@@ -21,7 +21,7 @@ module Jekyll
           notebook_file.close
   
           # Use nbconvert to convert the notebook to HTML
-          output = `jupyter nbconvert --to html --stdout #{notebook_file.path}`
+          output = `jupyter nbconvert --to html --template basic --stdout #{notebook_file.path}`
           
           # Clean up the temporary file
           notebook_file.unlink

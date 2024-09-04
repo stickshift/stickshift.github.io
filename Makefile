@@ -28,7 +28,8 @@ COLOR_RESET=\033[0m
 # EXCLUDE_SRC - Source patterns to ignore
 
 EXCLUDE_SRC := __pycache__ \
-			   .egg-info
+			   .egg-info \
+			   .ipynb_checkpoints
 EXCLUDE_SRC := $(subst $(eval ) ,|,$(EXCLUDE_SRC))
 
 #-------------------------------------------------------------------------------
@@ -92,8 +93,9 @@ SITE_SRC := $(SITE_SRC_DIR)/_config.yml $(wildcard $(SITE_SRC_DIR)/*.md)
 POSTS_SRC_DIR := posts
 POSTS_BUILD_DIR := $(SITE_SRC_DIR)/_posts
 
-POSTS_SRC := $(wildcard $(POSTS_SRC_DIR)/*.ipynb)
-POSTS := $(patsubst $(POSTS_SRC_DIR)/%.ipynb, $(POSTS_BUILD_DIR)/%.ipynb, $(POSTS_SRC))
+# Notebooks
+POSTS_SRC := $(shell find $(POSTS_SRC_DIR) -type f -name '*.ipynb' | egrep -v '$(EXCLUDE_SRC)')
+POSTS := $(subst $(POSTS_SRC_DIR),$(POSTS_BUILD_DIR),$(POSTS_SRC))
 
 #-------------------------------------------------------------------------------
 # Tests
@@ -203,9 +205,13 @@ PHONIES := $(PHONIES) packages
 $(POSTS_BUILD_DIR):
 	mkdir -p $@
 
-$(POSTS_BUILD_DIR)/%.ipynb: $(POSTS_SRC_DIR)/%.ipynb | $(POSTS_BUILD_DIR) $(DEPENDENCIES)
+$(POSTS_BUILD_DIR)/%: $(POSTS_SRC_DIR)/% | $(POSTS_BUILD_DIR) $(DEPENDENCIES)
 	@echo
 	@echo -e "$(COLOR_H1)# Post: $$(basename $@)$(COLOR_RESET)"
+	@echo
+
+	@echo -e "$(COLOR_COMMENT)# Prepare$(COLOR_RESET)"
+	mkdir -p $$(dirname $@)
 	@echo
 
 	@echo -e "$(COLOR_COMMENT)# Front matter$(COLOR_RESET)"
@@ -217,6 +223,10 @@ $(POSTS_BUILD_DIR)/%.ipynb: $(POSTS_SRC_DIR)/%.ipynb | $(POSTS_BUILD_DIR) $(DEPE
 
 	@echo -e "$(COLOR_COMMENT)# Content$(COLOR_RESET)"
 	cat $< >> $@
+	@echo
+
+	@echo -e "$(COLOR_COMMENT)# Resources$(COLOR_RESET)"
+	find $$(dirname $<) -type f -name '*.svg' -exec cp {} $$(dirname $@) \;
 
 posts: $(POSTS)
 
@@ -235,8 +245,9 @@ site: $(SITE_SRC) $(POSTS)
 	source $(VENV) && \
 	  cd $(SITE_SRC_DIR) && \
 	  bundle exec jekyll clean && \
-	  bundle exec jekyll build
+	  bundle exec jekyll build --verbose
 
+PHONIES := $(PHONIES) site
 
 #-------------------------------------------------------------------------------
 # Tests
