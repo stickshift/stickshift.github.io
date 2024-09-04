@@ -78,11 +78,19 @@ STICKSHIFT_PACKAGE := $(PACKAGES_DIR)/stickshift-$(PY_VERSION)-py3-none-any.whl
 PACKAGES := $(PACKAGES) $(STICKSHIFT_PACKAGE)
 
 #-------------------------------------------------------------------------------
+# Site
+#-------------------------------------------------------------------------------
+
+SITE_SRC_DIR := docs
+
+SITE_SRC := $(SITE_SRC_DIR)/_config.yml $(wildcard $(SITE_SRC_DIR)/*.md)
+
+#-------------------------------------------------------------------------------
 # Posts
 #-------------------------------------------------------------------------------
 
 POSTS_SRC_DIR := posts
-POSTS_BUILD_DIR := docs/_posts
+POSTS_BUILD_DIR := $(SITE_SRC_DIR)/_posts
 
 POSTS_SRC := $(wildcard $(POSTS_SRC_DIR)/*.ipynb)
 POSTS := $(patsubst $(POSTS_SRC_DIR)/%.ipynb, $(POSTS_BUILD_DIR)/%.ipynb, $(POSTS_SRC))
@@ -195,14 +203,39 @@ PHONIES := $(PHONIES) packages
 $(POSTS_BUILD_DIR):
 	mkdir -p $@
 
-$(POSTS_BUILD_DIR)/%.ipynb: $(POSTS_SRC_DIR)/%.ipynb | $(POSTS_DIR) $(DEPENDENCIES)
+$(POSTS_BUILD_DIR)/%.ipynb: $(POSTS_SRC_DIR)/%.ipynb | $(POSTS_BUILD_DIR) $(DEPENDENCIES)
 	@echo
 	@echo -e "$(COLOR_H1)# Post: $$(basename $@)$(COLOR_RESET)"
 	@echo
 
+	@echo -e "$(COLOR_COMMENT)# Front matter$(COLOR_RESET)"
+	echo "---" > $@
+	echo "layout: post" >> $@
+	echo "title: $$(cat $< | jq -r '.metadata.stickshift.title')" >> $@
+	echo "---" >> $@
+	@echo
+
+	@echo -e "$(COLOR_COMMENT)# Content$(COLOR_RESET)"
+	cat $< >> $@
+
 posts: $(POSTS)
 
 PHONIES := $(PHONIES) posts
+
+
+#-------------------------------------------------------------------------------
+# Site
+#-------------------------------------------------------------------------------
+
+site: $(SITE_SRC) $(POSTS)
+	@echo
+	@echo -e "$(COLOR_H1)# Site$(COLOR_RESET)"
+	@echo
+
+	source $(VENV) && \
+	  cd $(SITE_SRC_DIR) && \
+	  bundle exec jekyll clean && \
+	  bundle exec jekyll build
 
 
 #-------------------------------------------------------------------------------
@@ -258,6 +291,7 @@ clean-requirements:
 	$(RM) $(REQUIREMENTS)
 
 clean-site:
+	cd $(SITE_SRC_DIR) && bundle exec jekyll clean
 	$(RM) $(POSTS_BUILD_DIR)
 
 clean: clean-cache clean-venv clean-requirements clean-site
