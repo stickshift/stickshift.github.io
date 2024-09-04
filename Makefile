@@ -78,6 +78,16 @@ STICKSHIFT_PACKAGE := $(PACKAGES_DIR)/stickshift-$(PY_VERSION)-py3-none-any.whl
 PACKAGES := $(PACKAGES) $(STICKSHIFT_PACKAGE)
 
 #-------------------------------------------------------------------------------
+# Posts
+#-------------------------------------------------------------------------------
+
+POSTS_SRC_DIR := posts
+POSTS_BUILD_DIR := docs/_posts
+
+POSTS_SRC := $(wildcard $(POSTS_SRC_DIR)/*.ipynb)
+POSTS := $(patsubst $(POSTS_SRC_DIR)/%.ipynb, $(POSTS_BUILD_DIR)/%.ipynb, $(POSTS_SRC))
+
+#-------------------------------------------------------------------------------
 # Tests
 #-------------------------------------------------------------------------------
 
@@ -179,6 +189,23 @@ PHONIES := $(PHONIES) packages
 
 
 #-------------------------------------------------------------------------------
+# Posts
+#-------------------------------------------------------------------------------
+
+$(POSTS_BUILD_DIR):
+	mkdir -p $@
+
+$(POSTS_BUILD_DIR)/%.ipynb: $(POSTS_SRC_DIR)/%.ipynb | $(POSTS_DIR) $(DEPENDENCIES)
+	@echo
+	@echo -e "$(COLOR_H1)# Post: $$(basename $@)$(COLOR_RESET)"
+	@echo
+
+posts: $(POSTS)
+
+PHONIES := $(PHONIES) posts
+
+
+#-------------------------------------------------------------------------------
 # Tests
 #-------------------------------------------------------------------------------
 
@@ -230,8 +257,11 @@ clean-venv:
 clean-requirements:
 	$(RM) $(REQUIREMENTS)
 
-clean: clean-cache clean-venv clean-requirements
-PHONIES := $(PHONIES) clean-cache clean-venv clean-requirements clean
+clean-site:
+	$(RM) $(POSTS_BUILD_DIR)
+
+clean: clean-cache clean-venv clean-requirements clean-site
+PHONIES := $(PHONIES) clean-cache clean-venv clean-requirements clean-site clean
 
 
 .PHONIES: $(PHONIES)
