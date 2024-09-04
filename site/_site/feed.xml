@@ -1,9 +1,9 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://stickshift.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://stickshift.github.io/" rel="alternate" type="text/html" /><updated>2024-09-04T13:25:13-04:00</updated><id>https://stickshift.github.io/feed.xml</id><title type="html">Pattern Recognition</title><subtitle>Software architect, AI researcher, entrepreneur, and startup veteran with a passion for creativity and good coffee.</subtitle><entry><title type="html">Hello World</title><link href="https://stickshift.github.io/2024/09/04/hello-world.html" rel="alternate" type="text/html" title="Hello World" /><published>2024-09-04T00:00:00-04:00</published><updated>2024-09-04T00:00:00-04:00</updated><id>https://stickshift.github.io/2024/09/04/hello-world</id><content type="html" xml:base="https://stickshift.github.io/2024/09/04/hello-world.html"><![CDATA[<!DOCTYPE html>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2024-09-04T13:31:36-04:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Pattern Recognition</title><subtitle>Software architect, AI researcher, entrepreneur, and startup veteran with a passion for creativity and good coffee.</subtitle><entry><title type="html">Hello World</title><link href="http://localhost:4000/2024/09/04/hello-world.html" rel="alternate" type="text/html" title="Hello World" /><published>2024-09-04T00:00:00-04:00</published><updated>2024-09-04T00:00:00-04:00</updated><id>http://localhost:4000/2024/09/04/hello-world</id><content type="html" xml:base="http://localhost:4000/2024/09/04/hello-world.html"><![CDATA[<!DOCTYPE html>
 
 <html lang="en">
 <head><meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>notebook20240904-93088-jomtye</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
+<title>notebook20240904-93185-gcv99v</title><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.1.10/require.min.js"></script>
 <style type="text/css">
     pre { line-height: 125%; }
 td.linenos .normal { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
@@ -7551,4 +7551,4 @@ a.anchor-link {
 </div>
 </main>
 </body>
-</html>]]></content><author><name></name></author><summary type="html"><![CDATA[notebook20240904-93088-oqatcf Hello world $QK^T$! In [ ]: In [ ]:]]></summary></entry></feed>
+</html>]]></content><author><name></name></author><summary type="html"><![CDATA[notebook20240904-93185-hl4sfd Hello world $QK^T$! In [ ]: In [ ]:]]></summary></entry></feed>
