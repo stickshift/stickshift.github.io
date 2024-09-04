@@ -81,7 +81,7 @@ PACKAGES := $(PACKAGES) $(STICKSHIFT_PACKAGE)
 # Site
 #-------------------------------------------------------------------------------
 
-SITE_SRC_DIR := docs
+SITE_SRC_DIR := site
 
 SITE_SRC := $(SITE_SRC_DIR)/_config.yml $(wildcard $(SITE_SRC_DIR)/*.md)
 
