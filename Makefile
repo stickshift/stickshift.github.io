@@ -83,8 +83,9 @@ PACKAGES := $(PACKAGES) $(STICKSHIFT_PACKAGE)
 #-------------------------------------------------------------------------------
 
 SITE_SRC_DIR := site
-
-SITE_SRC := $(SITE_SRC_DIR)/_config.yml $(wildcard $(SITE_SRC_DIR)/*.md)
+SITE_SRC := $(SITE_SRC_DIR)/_config.yml \
+            $(shell find $(SITE_SRC_DIR) -type f -name '*.md') \
+			$(shell find $(SITE_SRC_DIR)/assets -type f)
 
 #-------------------------------------------------------------------------------
 # Posts
@@ -93,9 +94,10 @@ SITE_SRC := $(SITE_SRC_DIR)/_config.yml $(wildcard $(SITE_SRC_DIR)/*.md)
 POSTS_SRC_DIR := posts
 POSTS_BUILD_DIR := $(SITE_SRC_DIR)/_posts
 
-# Notebooks
+# Map $(POSTS_SRC_DIR)/**/*.ipynb to $(POSTS_BUILD_DIR)/**/*.md
 POSTS_SRC := $(shell find $(POSTS_SRC_DIR) -type f -name '*.ipynb' | egrep -v '$(EXCLUDE_SRC)')
 POSTS := $(subst $(POSTS_SRC_DIR),$(POSTS_BUILD_DIR),$(POSTS_SRC))
+POSTS := $(patsubst %.ipynb, %.md, $(POSTS))
 
 #-------------------------------------------------------------------------------
 # Tests
@@ -202,10 +204,7 @@ PHONIES := $(PHONIES) packages
 # Posts
 #-------------------------------------------------------------------------------
 
-$(POSTS_BUILD_DIR):
-	mkdir -p $@
-
-$(POSTS_BUILD_DIR)/%: $(POSTS_SRC_DIR)/% | $(POSTS_BUILD_DIR) $(DEPENDENCIES)
+$(POSTS_BUILD_DIR)/%.md: $(POSTS_SRC_DIR)/%.ipynb | $(DEPENDENCIES)
 	@echo
 	@echo -e "$(COLOR_H1)# Post: $$(basename $@)$(COLOR_RESET)"
 	@echo
@@ -214,7 +213,7 @@ $(POSTS_BUILD_DIR)/%: $(POSTS_SRC_DIR)/% | $(POSTS_BUILD_DIR) $(DEPENDENCIES)
 	mkdir -p $$(dirname $@)
 	@echo
 
-	@echo -e "$(COLOR_COMMENT)# Front matter$(COLOR_RESET)"
+	@echo -e "$(COLOR_COMMENT)# Front Matter$(COLOR_RESET)"
 	echo "---" > $@
 	echo "layout: post" >> $@
 	echo "title: $$(cat $< | jq -r '.metadata.stickshift.title')" >> $@
@@ -222,7 +221,23 @@ $(POSTS_BUILD_DIR)/%: $(POSTS_SRC_DIR)/% | $(POSTS_BUILD_DIR) $(DEPENDENCIES)
 	@echo
 
 	@echo -e "$(COLOR_COMMENT)# Content$(COLOR_RESET)"
-	cat $< >> $@
+
+	$(RM) $(BUILD_DIR)/$$(basename $@ .md)
+	mkdir -p $(BUILD_DIR)/$$(basename $@ .md)
+
+	source $(VENV) && \
+	  jupyter nbconvert --to markdown --output-dir $(BUILD_DIR)/$$(basename $@ .md) $<
+
+	if [[ -d $(BUILD_DIR)/$$(basename $@ .md)/$$(basename $@ .md)_files ]]; then \
+	  for f in $(BUILD_DIR)/$$(basename $@ .md)/$$(basename $@ .md)_files/*; do \
+	    digest=$$(echo $$(basename $$f) | md5); \
+		cp $$f $$(dirname $@)/$$digest.png; \
+		sed -i "" "s/$$(basename $@ .md)_files\/.*\.png/$$digest.png/g" $(BUILD_DIR)/$$(basename $@ .md)/$$(basename $@); \
+	  done; \
+	fi
+
+	cat $(BUILD_DIR)/$$(basename $@ .md)/$$(basename $@) >> $@
+
 	@echo
 
 	@echo -e "$(COLOR_COMMENT)# Resources$(COLOR_RESET)"
@@ -309,4 +324,4 @@ clean: clean-cache clean-venv clean-requirements clean-site
 PHONIES := $(PHONIES) clean-cache clean-venv clean-requirements clean-site clean
 
 
-.PHONIES: $(PHONIES)
+.PHONY: $(PHONIES)
