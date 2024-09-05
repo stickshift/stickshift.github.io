@@ -41,7 +41,9 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           source environment.sh && pip install uv && make site
-      
+        env:
+          GA_TRACKING_ID: ${{ secrets.GA_TRACKING_ID }}
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
