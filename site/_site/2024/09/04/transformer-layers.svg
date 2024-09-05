@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 944 352">
+  <defs>
+    <style>
+      .cls-1, .cls-2, .cls-3 {
+        fill: none;
+      }
+
+      .cls-4 {
+        font-family: DejaVuSansMono-Bold, 'DejaVu Sans Mono';
+        font-weight: 700;
+      }
+
+      .cls-4, .cls-5 {
+        font-size: 18px;
+      }
+
+      .cls-6 {
+        fill: #efefef;
+      }
+
+      .cls-6, .cls-7, .cls-2, .cls-3, .cls-8 {
+        stroke-miterlimit: 10;
+      }
+
+      .cls-6, .cls-7, .cls-3 {
+        stroke: #000;
+      }
+
+      .cls-7 {
+        fill: #fff;
+      }
+
+      .cls-5, .cls-9 {
+        font-family: DejaVuSansMono, 'DejaVu Sans Mono';
+      }
+
+      .cls-2, .cls-8 {
+        stroke: #ccc;
+        stroke-dasharray: 12;
+        stroke-width: 2px;
+      }
+
+      .cls-9 {
+        font-size: 12px;
+      }
+
+      .cls-3 {
+        stroke-width: 6px;
+      }
+
+      .cls-8 {
+        fill: #eee;
+      }
+    </style>
+  </defs>
+  <line class="cls-2" x1="351.5" y1="76.5" x2="16" y2="144"/>
+  <line class="cls-8" x1="479.5" y1="76.5" x2="928" y2="144"/>
+  <rect class="cls-6" x="376" y="-216" width="192" height="912" rx="4" ry="4" transform="translate(712 -232) rotate(90)"/>
+  <text class="cls-5" transform="translate(50.58 225.26)"><tspan x="0" y="0">X</tspan></text>
+  <text class="cls-5" transform="translate(882.58 225.26)"><tspan x="0" y="0">Z</tspan></text>
+  <g>
+    <rect class="cls-7" x="96" y="208" width="128" height="64" rx="4" ry="4"/>
+    <text class="cls-9" transform="translate(127.49 242.94)"><tspan x="0" y="0">Attention</tspan></text>
+  </g>
+  <g>
+    <rect class="cls-7" x="512" y="208" width="128" height="64" rx="4" ry="4"/>
+    <text class="cls-9" transform="translate(565.16 242.94)"><tspan x="0" y="0">FNN</tspan></text>
+  </g>
+  <g>
+    <rect class="cls-7" x="304" y="208" width="128" height="64" rx="4" ry="4"/>
+    <text class="cls-9" transform="translate(349.94 235.74)"><tspan x="0" y="0">Add &amp;</tspan><tspan x="-14.45" y="14.4">Normalize</tspan></text>
+  </g>
+  <g>
+    <rect class="cls-7" x="720" y="208" width="128" height="64" rx="4" ry="4"/>
+    <text class="cls-9" transform="translate(765.94 235.74)"><tspan x="0" y="0">Add &amp;</tspan><tspan x="-14.45" y="14.4">Normalize</tspan></text>
+  </g>
+  <g>
+    <line class="cls-3" x1="240" y1="240" x2="277.24" y2="240"/>
+    <polygon points="275.05 247.48 288 240 275.05 232.52 275.05 247.48"/>
+  </g>
+  <polyline class="cls-3" points="56 240 56 304 264 304 264 240"/>
+  <g>
+    <line class="cls-3" x1="448" y1="240" x2="485.24" y2="240"/>
+    <polygon points="483.05 247.48 496 240 483.05 232.52 483.05 247.48"/>
+  </g>
+  <g>
+    <line class="cls-3" x1="656" y1="240" x2="693.24" y2="240"/>
+    <polygon points="691.05 247.48 704 240 691.05 232.52 691.05 247.48"/>
+  </g>
+  <g>
+    <line class="cls-3" x1="32" y1="240" x2="69.24" y2="240"/>
+    <polygon points="67.05 247.48 80 240 67.05 232.52 67.05 247.48"/>
+  </g>
+  <g>
+    <line class="cls-3" x1="864" y1="240" x2="901.24" y2="240"/>
+    <polygon points="899.05 247.48 912 240 899.05 232.52 899.05 247.48"/>
+  </g>
+  <polyline class="cls-3" points="472 240 472 176 680 176 680 240"/>
+  <g>
+    <g>
+      <rect class="cls-7" x="143.74" y="16" width="128" height="64" rx="4" ry="4"/>
+      <text class="cls-9" transform="translate(182.46 50.94)"><tspan x="0" y="0">Layer 0</tspan></text>
+    </g>
+    <g>
+      <rect class="cls-7" x="351.74" y="16" width="128" height="64" rx="4" ry="4"/>
+      <text class="cls-9" transform="translate(390.46 50.94)"><tspan x="0" y="0">Layer 1</tspan></text>
+    </g>
+    <g>
+      <rect class="cls-7" x="672.26" y="16" width="128" height="64" rx="4" ry="4"/>
+      <text class="cls-9" transform="translate(710.97 50.94)"><tspan x="0" y="0">Layer N</tspan></text>
+    </g>
+    <text class="cls-4" transform="translate(559.74 52.23)"><tspan x="0" y="0">...</tspan></text>
+    <g>
+      <line class="cls-3" x1="79.74" y1="48" x2="116.98" y2="48"/>
+      <polygon points="114.79 55.48 127.74 48 114.79 40.52 114.79 55.48"/>
+    </g>
+    <text class="cls-9" transform="translate(116.31 31.51)"><tspan x="0" y="0">X</tspan></text>
+    <text class="cls-9" transform="translate(123.53 35.51) scale(.58)"><tspan x="0" y="0">0</tspan></text>
+    <g>
+      <line class="cls-3" x1="287.74" y1="48" x2="324.98" y2="48"/>
+      <polygon points="322.79 55.48 335.74 48 322.79 40.52 322.79 55.48"/>
+    </g>
+    <g>
+      <line class="cls-3" x1="495.74" y1="48" x2="532.98" y2="48"/>
+      <polygon points="530.79 55.48 543.74 48 530.79 40.52 530.79 55.48"/>
+    </g>
+    <g>
+      <line class="cls-3" x1="608.26" y1="48" x2="645.49" y2="48"/>
+      <polygon points="643.3 55.48 656.26 48 643.3 40.52 643.3 55.48"/>
+    </g>
+    <g>
+      <line class="cls-3" x1="816.26" y1="48" x2="853.49" y2="48"/>
+      <polygon points="851.3 55.48 864.26 48 851.3 40.52 851.3 55.48"/>
+    </g>
+    <text class="cls-9" transform="translate(324.31 31.51)"><tspan x="0" y="0">X</tspan></text>
+    <text class="cls-9" transform="translate(331.53 35.51) scale(.58)"><tspan x="0" y="0">1</tspan></text>
+    <text class="cls-9" transform="translate(644.82 31.51)"><tspan x="0" y="0">X</tspan></text>
+    <text class="cls-9" transform="translate(652.04 35.51) scale(.58)"><tspan x="0" y="0">N</tspan></text>
+    <text class="cls-9" transform="translate(287.74 31.51)"><tspan x="0" y="0">Z</tspan></text>
+    <text class="cls-9" transform="translate(294.97 35.51) scale(.58)"><tspan x="0" y="0">0</tspan></text>
+    <text class="cls-9" transform="translate(495.74 31.51)"><tspan x="0" y="0">Z</tspan></text>
+    <text class="cls-9" transform="translate(502.97 35.51) scale(.58)"><tspan x="0" y="0">1</tspan></text>
+    <text class="cls-9" transform="translate(816.26 31.51)"><tspan x="0" y="0">Z</tspan></text>
+    <text class="cls-9" transform="translate(823.48 35.51) scale(.58)"><tspan x="0" y="0">N</tspan></text>
+  </g>
+  <text class="cls-9" transform="translate(871.67 323.51)"><tspan x="0" y="0">Layer</tspan></text>
+  <text class="cls-9" transform="translate(907.79 327.5) scale(.58)"><tspan x="0" y="0">i</tspan></text>
+  <rect class="cls-1" x="296" y="-296" width="352" height="944" transform="translate(648 -296) rotate(90)"/>
+  <text class="cls-5" transform="translate(466.58 267.56)"><tspan x="0" y="0">Y</tspan></text>
+</svg>
