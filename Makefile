@@ -216,7 +216,7 @@ $(POSTS_BUILD_DIR)/%.md: $(POSTS_SRC_DIR)/%.ipynb | $(DEPENDENCIES)
 	@echo -e "$(COLOR_COMMENT)# Front Matter$(COLOR_RESET)"
 	echo "---" > $@
 	echo "layout: post" >> $@
-	echo "title: $$(cat $< | jq -r '.metadata.stickshift.title')" >> $@
+	echo "title: \"$$(cat $< | jq -r '.metadata.stickshift.title')\"" >> $@
 	echo "---" >> $@
 	@echo
 
