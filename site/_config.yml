@@ -7,7 +7,6 @@ description: >- # this means to ignore newlines until "baseurl:"
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "https://stickshift.github.io" # the base hostname & protocol for your site, e.g. http://example.com
 github_username:  stickshift
-google_analytics: "{{ ENV['GA_TRACKING_ID'] }}"
 
 # Build Settings
 theme: minima

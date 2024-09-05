@@ -87,6 +87,8 @@ SITE_SRC := $(SITE_SRC_DIR)/_config.yml \
             $(shell find $(SITE_SRC_DIR) -type f -name '*.md') \
 			$(shell find $(SITE_SRC_DIR)/assets -type f)
 
+GA_TRACKING_ID ?=
+
 #-------------------------------------------------------------------------------
 # Posts
 #-------------------------------------------------------------------------------
@@ -235,7 +237,8 @@ site: $(SITE_SRC) $(POSTS)
 	  cd $(SITE_SRC_DIR) && \
 	  bundle install && \
 	  bundle exec jekyll clean && \
-	  bundle exec jekyll build --verbose
+	  echo "google_analytics: $(GA_TRACKING_ID)" > _ga.yml && \
+	  bundle exec jekyll build --config _config.yml,_ga.yml --verbose
 
 PHONIES := $(PHONIES) site
 
