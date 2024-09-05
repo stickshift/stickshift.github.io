@@ -235,7 +235,7 @@ $(POSTS_BUILD_DIR)/%.md: $(POSTS_SRC_DIR)/%.ipynb | $(DEPENDENCIES)
 
 	if [[ -d $(BUILD_DIR)/$$(basename $@ .md)/$$(basename $@ .md)_files ]]; then \
 	  for f in $(BUILD_DIR)/$$(basename $@ .md)/$$(basename $@ .md)_files/*; do \
-	    digest=$$(echo $$(basename $$f) | md5); \
+	    digest=$$(echo $$(basename $$f) | md5sum | awk '{print $1}'); \
 		cp $$f $$(dirname $@)/$$digest.png; \
 		sed -i "" "s/$$(basename $@ .md)_files\/.*\.png/$$digest.png/g" $(BUILD_DIR)/$$(basename $@ .md)/$$(basename $@); \
 	  done; \
