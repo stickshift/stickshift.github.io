@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from stickshift import random_string, shell
+from stickshift import random_string, shell, take
 
 
 def test_random_string():
@@ -37,3 +37,33 @@ def test_shell():
 
     # results should include etc
     assert "etc" in results
+
+
+def test_take():
+    #
+    # Givens
+    #
+
+    # A list of alternating keys and values
+    data = [1, "one", 2, "two"]
+
+    #
+    # Whens
+    #
+
+    # I create an iterator to process values 2 at a time
+    it = take(2, data)
+
+    #
+    # Thens
+    #
+
+    # First pair should be (1, "one")
+    assert next(it) == (1, "one")
+
+    # Second pair should be (2, "two")
+    assert next(it) == (2, "two")
+
+    # There shouldn't be any more pairs
+    assert next(it, None) is None
+
