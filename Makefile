@@ -214,7 +214,7 @@ $(POSTS_BUILD_DIR)/%.md: $(POSTS_SRC_DIR)/%.ipynb | $(DEPENDENCIES)
 	@echo
 
 	@echo -e "$(COLOR_COMMENT)# Resources$(COLOR_RESET)"
-	find $$(dirname $<) -type f -name '*.svg' -exec cp {} $$(dirname $@) \;
+	find $$(dirname $<) -type f -name '*.svg' -o -name '*.png' -exec cp {} $$(dirname $@) \;
 
 posts: $(POSTS)
 
