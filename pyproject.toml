@@ -34,6 +34,7 @@ classifiers = [
 dynamic = ["version"]
 
 dependencies = [
+  "click",
   "ipywidgets",
   "jupyterlab",
   "jupyterlab_spellchecker",

@@ -209,40 +209,8 @@ $(POSTS_BUILD_DIR)/%.md: $(POSTS_SRC_DIR)/%.ipynb | $(DEPENDENCIES)
 	@echo -e "$(COLOR_H1)# Post: $$(basename $@)$(COLOR_RESET)"
 	@echo
 
-	@echo -e "$(COLOR_COMMENT)# Prepare$(COLOR_RESET)"
-	mkdir -p $$(dirname $@)
-	@echo
-
-	@echo -e "$(COLOR_COMMENT)# Front Matter$(COLOR_RESET)"
-	echo "---" > $@
-	echo "layout: post" >> $@
-	echo "title: \"$$(cat $< | jq -r '.metadata.stickshift.title')\"" >> $@
-	echo "---" >> $@
-	@echo
-
 	@echo -e "$(COLOR_COMMENT)# Content$(COLOR_RESET)"
-
-	$(RM) $(BUILD_DIR)/$$(basename $@ .md)
-	mkdir -p $(BUILD_DIR)/$$(basename $@ .md)
-
-	source $(VENV) && \
-	  jupyter nbconvert \
-	    --to markdown \
-		--TagRemovePreprocessor.enabled=True \
-		--TagRemovePreprocessor.remove_cell_tags skip-publish \
-		--output-dir $(BUILD_DIR)/$$(basename $@ .md) \
-		$<
-
-	if [[ -d $(BUILD_DIR)/$$(basename $@ .md)/$$(basename $@ .md)_files ]]; then \
-	  for f in $(BUILD_DIR)/$$(basename $@ .md)/$$(basename $@ .md)_files/*; do \
-	    digest=$$(echo $$(basename $$f) | md5sum | awk '{print $1}'); \
-		cp $$f $$(dirname $@)/$$digest.png; \
-		sed -i "" "s/$$(basename $@ .md)_files\/.*\.png/$$digest.png/g" $(BUILD_DIR)/$$(basename $@ .md)/$$(basename $@); \
-	  done; \
-	fi
-
-	cat $(BUILD_DIR)/$$(basename $@ .md)/$$(basename $@) >> $@
-
+	source $(VENV) && python -m stickshift.build.post --notebook "$<" --markdown "$@"
 	@echo
 
 	@echo -e "$(COLOR_COMMENT)# Resources$(COLOR_RESET)"
