@@ -43,7 +43,6 @@ jobs:
           source environment.sh && pip install uv && make site
         env:
           JEKYLL_ENV: production
-          GA_TRACKING_ID: ${{ secrets.GA_TRACKING_ID }}
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
