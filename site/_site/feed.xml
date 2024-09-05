@@ -1,32 +1,10 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2024-09-04T20:59:08-04:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Pattern Recognition</title><subtitle>Software architect, AI researcher, entrepreneur, and startup veteran with a passion for creativity and good coffee.</subtitle><entry><title type="html">Hello World</title><link href="http://localhost:4000/2024/09/04/hello-world.html" rel="alternate" type="text/html" title="Hello World" /><published>2024-09-04T00:00:00-04:00</published><updated>2024-09-04T00:00:00-04:00</updated><id>http://localhost:4000/2024/09/04/hello-world</id><content type="html" xml:base="http://localhost:4000/2024/09/04/hello-world.html"><![CDATA[<p>Hello world $QK^T$!</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
-</code></pre></div></div>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
-</code></pre></div></div>]]></content><author><name></name></author><summary type="html"><![CDATA[Hello world $QK^T$!]]></summary></entry><entry><title type="html">Writing a Transformer One Cell at a Time</title><link href="http://localhost:4000/2024/09/04/transformers.html" rel="alternate" type="text/html" title="Writing a Transformer One Cell at a Time" /><published>2024-09-04T00:00:00-04:00</published><updated>2024-09-04T00:00:00-04:00</updated><id>http://localhost:4000/2024/09/04/transformers</id><content type="html" xml:base="http://localhost:4000/2024/09/04/transformers.html"><![CDATA[<p>There is something special about Transformers. Since first introduced in 2017, the Transformer architecture has redefined the entire NLP category and is quickly spreading to other types of machine learning. Transformers, and the language embeddings at their core, seem to have hit on some underlying fundamental substrate that transcends boundaries, making them far more generalizable than previous approaches. Anyone who wants to contribute to the future of AI should clearly be studying Transformers inside and out.</p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="https://stickshift.github.io/feed.xml" rel="self" type="application/atom+xml" /><link href="https://stickshift.github.io/" rel="alternate" type="text/html" /><updated>2024-09-04T23:50:49-04:00</updated><id>https://stickshift.github.io/feed.xml</id><title type="html">Pattern Recognition</title><subtitle>Software architect, AI researcher, entrepreneur, and startup veteran with a passion for creativity and good coffee.</subtitle><entry><title type="html">Transformer Teardown: Tracing an Inference from Raw Data to Prediction</title><link href="https://stickshift.github.io/2024/09/04/transformer-teardown.html" rel="alternate" type="text/html" title="Transformer Teardown: Tracing an Inference from Raw Data to Prediction" /><published>2024-09-04T00:00:00-04:00</published><updated>2024-09-04T00:00:00-04:00</updated><id>https://stickshift.github.io/2024/09/04/transformer-teardown</id><content type="html" xml:base="https://stickshift.github.io/2024/09/04/transformer-teardown.html"><![CDATA[<p>There is something special about Transformers. Since first introduced in 2017, the Transformer architecture has redefined the entire NLP category and is quickly spreading to other types of machine learning. Transformers, and the language embeddings at their core, seem to have hit on some underlying fundamental substrate that transcends boundaries, making them far more generalizable than previous approaches. Anyone who wants to contribute to the future of AI should clearly be studying Transformers inside and out.</p>
 
 <p>While there are a million papers, blogs, and tutorials written on Transformers, I still find it challenging to map the abstract ideas from the research literature into concrete, actionable steps I can experiment with. My engineer’s brain wants to “see the code” behind high level concepts like embeddings, residuals, and multi-head self-attention. While it’s easy to find open source Transformer implementations, they are often overloaded with configuration settings, conditionalized to support every variation ever imagined, to the point that the main ideas are completely obscured.</p>
 
 <p>The goal of this post is to give you a stronger sense for how Transformers work under the hood. We’ll take a single inference—from raw data to final prediction—and break it down into tiny steps, illustrating the main ideas from the Transformer literature with minimal, straightforward, working Python code. You may be surprised by how few steps are required!</p>
 
-<h2 id="setup">Setup</h2>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kn">import</span> <span class="n">warnings</span>
-
-<span class="kn">from</span> <span class="n">matplotlib</span> <span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">plt</span>
-<span class="kn">import</span> <span class="n">seaborn</span> <span class="k">as</span> <span class="n">sns</span>
-<span class="kn">import</span> <span class="n">numpy</span> <span class="k">as</span> <span class="n">np</span>
-<span class="kn">from</span> <span class="n">pytest</span> <span class="kn">import</span> <span class="n">approx</span>
-<span class="kn">import</span> <span class="n">torch</span>
-<span class="kn">from</span> <span class="n">torch</span> <span class="kn">import</span> <span class="n">nn</span>
-<span class="kn">from</span> <span class="n">torch.nn.functional</span> <span class="kn">import</span> <span class="n">relu</span><span class="p">,</span> <span class="n">softmax</span>
-<span class="kn">import</span> <span class="n">transformers</span>
-
-<span class="kn">from</span> <span class="n">stickshift.models</span> <span class="kn">import</span> <span class="n">distilbert</span>
-</code></pre></div></div>
-
-<h2 id="text-classification-with-distilbert">Text Classification with DistilBERT</h2>
+<h1 id="text-classification-with-distilbert">Text Classification with DistilBERT</h1>
 
 <p>If you’ve worked with Transformers at all, I’m sure you’re familiar with Hugging Face’s collection of Python libraries as well as their endless repository of models and datasets. Throughout the post, we’ll be working with Hugging Face’s default text classification model: DistilBERT. DistilBERT is a smaller, faster, lighter-weight version of the original BERT model that’s easier to experiment with. We’ll use the pre-trained model parameters from Hugging Face, but we’ll implement the model’s logic step-by-step in Jupyter using a slightly modified version of the actual DistilBERT PyTorch implementation from Hugging Face’s <code class="language-plaintext highlighter-rouge">transformers</code> library.</p>
 
@@ -53,13 +31,13 @@ Using a pipeline without specifying a model name and revision in production is n
 <span class="n">parameters</span> <span class="o">=</span> <span class="n">transformer</span><span class="p">.</span><span class="n">model</span><span class="p">.</span><span class="nf">state_dict</span><span class="p">()</span>
 </code></pre></div></div>
 
-<h2 id="transformer-pipeline">Transformer Pipeline</h2>
+<h1 id="transformer-pipeline">Transformer Pipeline</h1>
 
 <p>The following diagram depicts a Transformer as a multi-stage pipeline. The Context stage at the center of the pipeline is where most of the magic happens. The stages before and after Context provide the extra machinery required to convert raw data into input embeddings and output embeddings into task-specific outputs. While we’ll focus on text data, it’s worth noting that the same stages can be applied to all data modalities including audio and images (Xu et al. 2023).</p>
 
 <p><img src="transformer-pipeline.svg" class="stickshift-figure" width="600" /></p>
 
-<h2 id="tokenize">Tokenize</h2>
+<h1 id="tokenize">Tokenize</h1>
 
 <p>The Tokenize stage is responsible for breaking raw data into a sequence of “tokens”. While the word “token” is often associated with text processing, the Transformer literature extends this to other data modalities as well. Examples include patches of an image or segments of an audio recording. In fact, tokenization is seen as a core strength of the Transformer architecture because it allows Transformers to process different types of data using a single, universal approach (Xu et al. 2023).</p>
 
@@ -88,7 +66,7 @@ Using a pipeline without specifying a model name and revision in production is n
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>['[CLS]', 'i', 'love', 'ice', 'cream', '[SEP]']
 </code></pre></div></div>
 
-<h2 id="embeddings">Embeddings</h2>
+<h1 id="embeddings">Embeddings</h1>
 
 <p>The second stage in the Transformer pipeline converts each of the integer-encoded categorical values into an “embedding”. Embeddings (Bengio et al. 2000) are the fundamental data structure of the Transformer architecture. The Transformer layers we’ll look at in the next stage take embeddings as input, <em>transform</em> them, and produce embeddings as output. Embeddings predated Transformers by almost 2 decades and are a fascinating topic in their own right. But we’ll save the embeddings deep dive for another post. For now, all we need to know is embeddings represent each token as a unique point in an n-dimensional vector space. The vector space coordinates are initialized randomly and then learned during training.</p>
 
@@ -244,7 +222,7 @@ Using a pipeline without specifying a model name and revision in production is n
 
 <p>Congrats! You’ve converted the raw text “I love ice cream” into embeddings that encode both the token values and positions.</p>
 
-<h2 id="context">Context</h2>
+<h1 id="context">Context</h1>
 
 <p>In the previous stage, we mapped the token values and positions to embeddings. But these embeddings represent the tokens in <em>isolation</em>. The Context stage is responsible for infusing each embedding with contextual signals drawn from the entire sequence. At a conceptual level, this should be intuitive. The meaning of the word “ice” changes when you add “cream” after it.</p>
 
@@ -263,7 +241,7 @@ Y &amp;= Normalize(X + Attention(X)) \\
 Z &amp;= Normalize(Y + FNN(Y))
 \end{align}\]
 
-<h3 id="scaled-dot-product-attention">Scaled Dot-Product Attention</h3>
+<h2 id="scaled-dot-product-attention">Scaled Dot-Product Attention</h2>
 
 <p>The Attention block is the signature component of the Transformer architecture. It’s also one of the most complicated and likely the least familiar when you’re first learning about Transformers. We’ll walk through the core attention algorithm described in the original “All You Need is Attention” paper by Vaswani et al. one step at a time. At the end of the Context section, we’ll put all the pieces together.</p>
 
@@ -273,7 +251,7 @@ Z &amp;= Normalize(Y + FNN(Y))
 Attention(Q, K, V) = softmax(\frac{QK^T}{\sqrt{d_K}})V
 \end{equation}\]
 
-<h3 id="queries-keys-values">Queries, Keys, Values</h3>
+<h2 id="queries-keys-values">Queries, Keys, Values</h2>
 
 <p>The $Q$, $K$, and $V$ terms in the SDPA equation are “query”, “key”, and “value” matrices respectively. Each row in $Q$, $K$, and $V$ represents a token embedding that has been projected to distinct representation subspaces. Query embeddings represent selection criteria for the surrounding tokens that would add context to the current token definition. Key embeddings represent characteristics that satisfy the selection criteria. Value embeddings represent the contextual information one token transfers to another. Together, queries, keys, and values allow the attention mechanism to refine the representation of each token based on the surrounding tokens.</p>
 
@@ -333,7 +311,7 @@ V &amp;= Values(X)
 
 <p>We can see the projections generated unique query, key, and value embeddings for each of the 6 tokens <code class="language-plaintext highlighter-rouge">['[CLS]', 'i', 'love', 'ice', 'cream', '[SEP]']</code>.</p>
 
-<h3 id="attention-weights">Attention Weights</h3>
+<h2 id="attention-weights">Attention Weights</h2>
 
 <p>Now that we have $Q$, $K$, and $V$, we can delve into the SDPA equation itself. For each input embedding, SDPA calculates a weighted sum of the value projections for all the tokens in the sequence. We already saw the value projections are represented by $V$. The weights are represented by the softmax term:</p>
 
@@ -411,9 +389,9 @@ w_{10} &amp; w_{11}
     <span class="n">ax</span><span class="p">.</span><span class="nf">set_ylabel</span><span class="p">(</span><span class="sa">f</span><span class="sh">"</span><span class="s">Weight</span><span class="sh">"</span><span class="p">)</span>
 </code></pre></div></div>
 
-<p><img src="928d66b5ce2483cf910cb4e3d861fc17.png" alt="png" /></p>
+<p><img src="477b37d606011b8e64fea676a9a72f5a.png" alt="png" /></p>
 
-<h3 id="attention-output">Attention Output</h3>
+<h2 id="attention-output">Attention Output</h2>
 
 <p>Now that we have the attention weights, we can apply them to the values. This will give us a weighted sum of contextual information. However, the answer is still in “value space”. Before we combine them with the token embeddings, we’ll project them back to “model space”.</p>
 
@@ -446,7 +424,7 @@ w_{10} &amp; w_{11}
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>torch.Size([6, 768])
 </code></pre></div></div>
 
-<h3 id="multi-head-attention">Multi-Head Attention</h3>
+<h2 id="multi-head-attention">Multi-Head Attention</h2>
 
 <p>At this point, we’ve walked through the core SDPA algorithm step-by-step. However, we’re not quite done. Vaswani et al. realized there are more than one set of relationships involved in transferring context across tokens. A single application of SDPA would effectively water these down by averaging these together. The solution is to apply SDPA multiple times on separate query, key, and value embeddings. Each of these is referred to as an “attention head”. Each head is isolated, leaving it free to learn distinct relational structures.</p>
 
@@ -508,7 +486,7 @@ w_{10} &amp; w_{11}
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>torch.Size([6, 768])
 </code></pre></div></div>
 
-<h3 id="add-and-normalize">Add and Normalize</h3>
+<h2 id="add-and-normalize">Add and Normalize</h2>
 
 <p>Before we get to the FNN, we’ll combine the attention embeddings with input embeddings the same way we combined the value and position embeddings.</p>
 
@@ -534,7 +512,7 @@ w_{10} &amp; w_{11}
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>torch.Size([6, 768])
 </code></pre></div></div>
 
-<h3 id="fnn">FNN</h3>
+<h2 id="fnn">FNN</h2>
 
 <p>The FNN block is a straightforward fully connected multi-layer perceptron.</p>
 
@@ -566,7 +544,7 @@ w_{10} &amp; w_{11}
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>torch.Size([6, 768])
 </code></pre></div></div>
 
-<h3 id="add-and-normalize-1">Add and Normalize</h3>
+<h2 id="add-and-normalize-1">Add and Normalize</h2>
 
 <p>Next, we combine the FNN outputs with the attention outputs.</p>
 
@@ -590,7 +568,7 @@ w_{10} &amp; w_{11}
 <div class="language-plaintext highlighter-rouge"><div class="highlight"><pre class="highlight"><code>torch.Size([6, 768])
 </code></pre></div></div>
 
-<h3 id="full-stack">Full Stack</h3>
+<h2 id="full-stack">Full Stack</h2>
 
 <p>Quick recap. Given input embeddings $X$, we added attention embeddings to get $Y$, and added transformed embeddings to get $Z$. Next, we combine all of these elements together and repeat for each layer in the stack. While you would normally create a stack of torch modules, we run the layers in a loop instead to make it easier to see what’s happening.</p>
 
@@ -729,7 +707,7 @@ w_{10} &amp; w_{11}
           5.6345e-01, -6.6278e-01]], grad_fn=&lt;NativeLayerNormBackward0&gt;)
 </code></pre></div></div>
 
-<h2 id="head">Head</h2>
+<h1 id="head">Head</h1>
 
 <p>As the final stage in the Transformer pipeline, the Head stage maps the contextualized embeddings to task-specific predictions. In our case, the Head stage is responsible for turning the contextualized embeddings into a binary classifier that predicts whether the original text contains positive or negative sentiments. This sounds like a straightforward output layer until you realize that instead of one set of features, we have a sequence of features. And the length of the sequence is arbitrary. How do you connect an arbitrary length sequence of feature vectors to an output layer?</p>
 
@@ -783,12 +761,12 @@ w_{10} &amp; w_{11}
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">assert</span> <span class="n">prediction1</span> <span class="o">==</span> <span class="nf">approx</span><span class="p">(</span><span class="n">prediction2</span><span class="p">)</span>
 </code></pre></div></div>
 
-<h2 id="discussion">Discussion</h2>
+<h1 id="discussion">Discussion</h1>
 
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
 </code></pre></div></div>
 
-<h2 id="references">References</h2>
+<h1 id="references">References</h1>
 
 <p>Bengio, Yoshua, Réjean Ducharme, and Pascal Vincent. “A Neural Probabilistic Language Model.” In Advances in Neural Information Processing Systems, Vol. 13. MIT Press, 2000. <a href="https://proceedings.neurips.cc/paper_files/paper/2000/hash/728f206c2a01bf572b5940d7d9a8fa4c-Abstract.html">https://proceedings.neurips.cc/paper_files/paper/2000/hash/728f206c2a01bf572b5940d7d9a8fa4c-Abstract.html</a>.</p>
 
@@ -798,4 +776,7 @@ w_{10} &amp; w_{11}
 
 <p>Vaswani, Ashish, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N. Gomez, Lukasz Kaiser, and Illia Polosukhin. “Attention Is All You Need.” arXiv, August 1, 2023. <a href="https://doi.org/10.48550/arXiv.1706.03762">https://doi.org/10.48550/arXiv.1706.03762</a></p>
 
-<p>Xu, Peng, Xiatian Zhu, and David A. Clifton. “Multimodal Learning with Transformers: A Survey.” arXiv, May 9, 2023. <a href="https://doi.org/10.48550/arXiv.2206.06488">https://doi.org/10.48550/arXiv.2206.06488</a>.</p>]]></content><author><name></name></author><summary type="html"><![CDATA[There is something special about Transformers. Since first introduced in 2017, the Transformer architecture has redefined the entire NLP category and is quickly spreading to other types of machine learning. Transformers, and the language embeddings at their core, seem to have hit on some underlying fundamental substrate that transcends boundaries, making them far more generalizable than previous approaches. Anyone who wants to contribute to the future of AI should clearly be studying Transformers inside and out.]]></summary></entry></feed>
+<p>Xu, Peng, Xiatian Zhu, and David A. Clifton. “Multimodal Learning with Transformers: A Survey.” arXiv, May 9, 2023. <a href="https://doi.org/10.48550/arXiv.2206.06488">https://doi.org/10.48550/arXiv.2206.06488</a>.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+</code></pre></div></div>]]></content><author><name></name></author><summary type="html"><![CDATA[There is something special about Transformers. Since first introduced in 2017, the Transformer architecture has redefined the entire NLP category and is quickly spreading to other types of machine learning. Transformers, and the language embeddings at their core, seem to have hit on some underlying fundamental substrate that transcends boundaries, making them far more generalizable than previous approaches. Anyone who wants to contribute to the future of AI should clearly be studying Transformers inside and out.]]></summary></entry></feed>

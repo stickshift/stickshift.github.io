@@ -1,3 +1,41 @@
+// Minima overrides
+
+.highlighter-rouge .highlight {
+    background: $code-background;
+}
+
+.post-content {
+    margin-bottom: $spacing-unit;
+  
+    h1 {
+        @include relative-font-size(2);
+    
+        @include media-query($on-laptop) {
+          @include relative-font-size(1.75);
+        }
+    }
+    
+    h2 {
+      @include relative-font-size(1.5);
+  
+      @include media-query($on-laptop) {
+        @include relative-font-size(1.375);
+      }
+    }
+  
+    h3 {
+      @include relative-font-size(1.25);
+  
+      @include media-query($on-laptop) {
+        @include relative-font-size(1.125);
+      }
+    }
+}
+
+h1, h2, h3 {
+    color: $primary-text-color;
+}
+
 // Code blocks
 pre, code {
     font-family: "Roboto Mono", monospace;
@@ -5,10 +43,6 @@ pre, code {
     font-weight: 400;
     font-style: normal;
     font-size: 13px;
-    background: $code-background;
-}
-
-.highlighter-rouge .highlight {
     background: $code-background;
 }
 

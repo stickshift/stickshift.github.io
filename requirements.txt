@@ -35,7 +35,7 @@ certifi==2024.8.30
     #   httpcore
     #   httpx
     #   requests
-cffi==1.17.0
+cffi==1.17.1
     # via argon2-cffi-bindings
 charset-normalizer==3.3.2
     # via requests
@@ -357,7 +357,7 @@ tinycss2==1.3.0
     # via nbconvert
 tokenizers==0.19.1
     # via transformers
-torch==2.4.0
+torch==2.4.1
     # via stickshift (pyproject.toml)
 tornado==6.4.1
     # via
