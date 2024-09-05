@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2024-09-04T19:55:08-04:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Pattern Recognition</title><subtitle>Software architect, AI researcher, entrepreneur, and startup veteran with a passion for creativity and good coffee.</subtitle><entry><title type="html">Hello World</title><link href="http://localhost:4000/2024/09/04/hello-world.html" rel="alternate" type="text/html" title="Hello World" /><published>2024-09-04T00:00:00-04:00</published><updated>2024-09-04T00:00:00-04:00</updated><id>http://localhost:4000/2024/09/04/hello-world</id><content type="html" xml:base="http://localhost:4000/2024/09/04/hello-world.html"><![CDATA[<p>Hello world $QK^T$!</p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2024-09-04T20:59:08-04:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Pattern Recognition</title><subtitle>Software architect, AI researcher, entrepreneur, and startup veteran with a passion for creativity and good coffee.</subtitle><entry><title type="html">Hello World</title><link href="http://localhost:4000/2024/09/04/hello-world.html" rel="alternate" type="text/html" title="Hello World" /><published>2024-09-04T00:00:00-04:00</published><updated>2024-09-04T00:00:00-04:00</updated><id>http://localhost:4000/2024/09/04/hello-world</id><content type="html" xml:base="http://localhost:4000/2024/09/04/hello-world.html"><![CDATA[<p>Hello world $QK^T$!</p>
 
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
 </code></pre></div></div>
@@ -57,7 +57,7 @@ Using a pipeline without specifying a model name and revision in production is n
 
 <p>The following diagram depicts a Transformer as a multi-stage pipeline. The Context stage at the center of the pipeline is where most of the magic happens. The stages before and after Context provide the extra machinery required to convert raw data into input embeddings and output embeddings into task-specific outputs. While we’ll focus on text data, it’s worth noting that the same stages can be applied to all data modalities including audio and images (Xu et al. 2023).</p>
 
-<p><img src="transformer-pipeline.svg" alt="Transformer Pipeline" /></p>
+<p><img src="transformer-pipeline.svg" class="stickshift-figure" width="600" /></p>
 
 <h2 id="tokenize">Tokenize</h2>
 
@@ -94,7 +94,7 @@ Using a pipeline without specifying a model name and revision in production is n
 
 <p>Similar to tokenization, the steps required to convert tokens into embeddings depend on the data modality. In text transformers, the Embeddings stage is typically implemented using 2 lookup tables. The first lookup table maps the value of each token to a unique embedding vector. The second lookup table maps the position of each token to a unique embedding vector. The value and position embeddings are then added together to create the initial token embeddings.</p>
 
-<p><img src="embeddings.svg" alt="Embeddings" /></p>
+<p><img src="embeddings.svg" class="stickshift-figure" width="600" /></p>
 
 <p>Let’s start with value embeddings. First, we initialize the value embeddings lookup table. Next, we read the values from the tokenizer output. Finally, we pass the token values to the lookup table to get unique embeddings for each value.</p>
 
@@ -335,7 +335,7 @@ V &amp;= Values(X)
 
 <h3 id="attention-weights">Attention Weights</h3>
 
-<p>Now that we have $Q$, $K$, and $V$, we can delve into the SDPA equation itself. For each input embedding, SDPA calculates a weighted sum of the value projections for all the tokens in the sequence. We already saw the value projections are represented by <code class="language-plaintext highlighter-rouge">V</code>. The weights are represented by the softmax term:</p>
+<p>Now that we have $Q$, $K$, and $V$, we can delve into the SDPA equation itself. For each input embedding, SDPA calculates a weighted sum of the value projections for all the tokens in the sequence. We already saw the value projections are represented by $V$. The weights are represented by the softmax term:</p>
 
 \[\begin{align}
 softmax(\frac{QK^T}{\sqrt{d_K}})
@@ -798,7 +798,4 @@ w_{10} &amp; w_{11}
 
 <p>Vaswani, Ashish, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N. Gomez, Lukasz Kaiser, and Illia Polosukhin. “Attention Is All You Need.” arXiv, August 1, 2023. <a href="https://doi.org/10.48550/arXiv.1706.03762">https://doi.org/10.48550/arXiv.1706.03762</a></p>
 
-<p>Xu, Peng, Xiatian Zhu, and David A. Clifton. “Multimodal Learning with Transformers: A Survey.” arXiv, May 9, 2023. <a href="https://doi.org/10.48550/arXiv.2206.06488">https://doi.org/10.48550/arXiv.2206.06488</a>.</p>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
-</code></pre></div></div>]]></content><author><name></name></author><summary type="html"><![CDATA[There is something special about Transformers. Since first introduced in 2017, the Transformer architecture has redefined the entire NLP category and is quickly spreading to other types of machine learning. Transformers, and the language embeddings at their core, seem to have hit on some underlying fundamental substrate that transcends boundaries, making them far more generalizable than previous approaches. Anyone who wants to contribute to the future of AI should clearly be studying Transformers inside and out.]]></summary></entry></feed>
+<p>Xu, Peng, Xiatian Zhu, and David A. Clifton. “Multimodal Learning with Transformers: A Survey.” arXiv, May 9, 2023. <a href="https://doi.org/10.48550/arXiv.2206.06488">https://doi.org/10.48550/arXiv.2206.06488</a>.</p>]]></content><author><name></name></author><summary type="html"><![CDATA[There is something special about Transformers. Since first introduced in 2017, the Transformer architecture has redefined the entire NLP category and is quickly spreading to other types of machine learning. Transformers, and the language embeddings at their core, seem to have hit on some underlying fundamental substrate that transcends boundaries, making them far more generalizable than previous approaches. Anyone who wants to contribute to the future of AI should clearly be studying Transformers inside and out.]]></summary></entry></feed>

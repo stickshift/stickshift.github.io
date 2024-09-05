@@ -1,0 +1,20 @@
+// Code blocks
+pre, code {
+    font-family: "Roboto Mono", monospace;
+    font-optical-sizing: auto;
+    font-weight: 400;
+    font-style: normal;
+    font-size: 13px;
+    background: $code-background;
+}
+
+.highlighter-rouge .highlight {
+    background: $code-background;
+}
+
+// Center blocks
+.stickshift-center, .stickshift-figure {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}

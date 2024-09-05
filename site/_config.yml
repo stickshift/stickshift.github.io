@@ -12,3 +12,5 @@ github_username:  stickshift
 theme: minima
 plugins:
   - jekyll-feed
+sass:
+  style: compressed
