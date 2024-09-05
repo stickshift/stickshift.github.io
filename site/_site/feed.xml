@@ -1,10 +1,10 @@
-<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2024-09-04T17:58:02-04:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Pattern Recognition</title><subtitle>Software architect, AI researcher, entrepreneur, and startup veteran with a passion for creativity and good coffee.</subtitle><entry><title type="html">Hello World</title><link href="http://localhost:4000/2024/09/04/hello-world.html" rel="alternate" type="text/html" title="Hello World" /><published>2024-09-04T00:00:00-04:00</published><updated>2024-09-04T00:00:00-04:00</updated><id>http://localhost:4000/2024/09/04/hello-world</id><content type="html" xml:base="http://localhost:4000/2024/09/04/hello-world.html"><![CDATA[<p>Hello world $QK^T$!</p>
+<?xml version="1.0" encoding="utf-8"?><feed xmlns="http://www.w3.org/2005/Atom" ><generator uri="https://jekyllrb.com/" version="4.3.3">Jekyll</generator><link href="http://localhost:4000/feed.xml" rel="self" type="application/atom+xml" /><link href="http://localhost:4000/" rel="alternate" type="text/html" /><updated>2024-09-04T19:55:08-04:00</updated><id>http://localhost:4000/feed.xml</id><title type="html">Pattern Recognition</title><subtitle>Software architect, AI researcher, entrepreneur, and startup veteran with a passion for creativity and good coffee.</subtitle><entry><title type="html">Hello World</title><link href="http://localhost:4000/2024/09/04/hello-world.html" rel="alternate" type="text/html" title="Hello World" /><published>2024-09-04T00:00:00-04:00</published><updated>2024-09-04T00:00:00-04:00</updated><id>http://localhost:4000/2024/09/04/hello-world</id><content type="html" xml:base="http://localhost:4000/2024/09/04/hello-world.html"><![CDATA[<p>Hello world $QK^T$!</p>
 
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
 </code></pre></div></div>
 
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
-</code></pre></div></div>]]></content><author><name></name></author><summary type="html"><![CDATA[Hello world $QK^T$!]]></summary></entry><entry><title type="html">Writing a Transformer One Cell at a Time</title><link href="http://localhost:4000/2024/09/04/transformers.html" rel="alternate" type="text/html" title="Writing a Transformer One Cell at a Time" /><published>2024-09-04T00:00:00-04:00</published><updated>2024-09-04T00:00:00-04:00</updated><id>http://localhost:4000/2024/09/04/transformers</id><content type="html" xml:base="http://localhost:4000/2024/09/04/transformers.html"><![CDATA[<p>There is something special about Transformers. Since first introduced in 2017, the Transformer architecture has redefined the entire NLP category and is quickly spreading to other types of machine learning. Transformers, and the language embeddings at their core, seem to have hit on some underlying fundamental substrate that transcends boundaries, making them far more generalizable than previous approaches. Anyone who wants to contribute to the future of AI should clearly be studying transformers inside and out.</p>
+</code></pre></div></div>]]></content><author><name></name></author><summary type="html"><![CDATA[Hello world $QK^T$!]]></summary></entry><entry><title type="html">Writing a Transformer One Cell at a Time</title><link href="http://localhost:4000/2024/09/04/transformers.html" rel="alternate" type="text/html" title="Writing a Transformer One Cell at a Time" /><published>2024-09-04T00:00:00-04:00</published><updated>2024-09-04T00:00:00-04:00</updated><id>http://localhost:4000/2024/09/04/transformers</id><content type="html" xml:base="http://localhost:4000/2024/09/04/transformers.html"><![CDATA[<p>There is something special about Transformers. Since first introduced in 2017, the Transformer architecture has redefined the entire NLP category and is quickly spreading to other types of machine learning. Transformers, and the language embeddings at their core, seem to have hit on some underlying fundamental substrate that transcends boundaries, making them far more generalizable than previous approaches. Anyone who wants to contribute to the future of AI should clearly be studying Transformers inside and out.</p>
 
 <p>While there are a million papers, blogs, and tutorials written on Transformers, I still find it challenging to map the abstract ideas from the research literature into concrete, actionable steps I can experiment with. My engineer’s brain wants to “see the code” behind high level concepts like embeddings, residuals, and multi-head self-attention. While it’s easy to find open source Transformer implementations, they are often overloaded with configuration settings, conditionalized to support every variation ever imagined, to the point that the main ideas are completely obscured.</p>
 
@@ -24,17 +24,6 @@
 <span class="kn">import</span> <span class="n">transformers</span>
 
 <span class="kn">from</span> <span class="n">stickshift.models</span> <span class="kn">import</span> <span class="n">distilbert</span>
-</code></pre></div></div>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Ignore all warnings
-</span><span class="n">warnings</span><span class="p">.</span><span class="nf">filterwarnings</span><span class="p">(</span><span class="sh">"</span><span class="s">ignore</span><span class="sh">"</span><span class="p">)</span>
-
-<span class="c1"># Configure gpu
-</span><span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nf">device</span><span class="p">(</span><span class="sh">"</span><span class="s">cpu</span><span class="sh">"</span><span class="p">)</span>
-<span class="k">if</span> <span class="n">torch</span><span class="p">.</span><span class="n">cuda</span><span class="p">.</span><span class="nf">is_available</span><span class="p">():</span>
-    <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nf">device</span><span class="p">(</span><span class="sh">"</span><span class="s">cuda</span><span class="sh">"</span><span class="p">)</span>
-<span class="k">elif</span> <span class="n">torch</span><span class="p">.</span><span class="n">backends</span><span class="p">.</span><span class="n">mps</span><span class="p">.</span><span class="nf">is_available</span><span class="p">():</span>
-    <span class="n">device</span> <span class="o">=</span> <span class="n">torch</span><span class="p">.</span><span class="nf">device</span><span class="p">(</span><span class="sh">"</span><span class="s">mps</span><span class="sh">"</span><span class="p">)</span>
 </code></pre></div></div>
 
 <h2 id="text-classification-with-distilbert">Text Classification with DistilBERT</h2>
@@ -269,10 +258,10 @@ Using a pipeline without specifying a model name and revision in production is n
 
 <p>As illustrated above, given input embeddings $X$, we can define the output embeddings $Z$ as:</p>
 
-<p>\begin{align}
-Y &amp;= Normalize(X + Attention(X)) <br />
+\[\begin{align}
+Y &amp;= Normalize(X + Attention(X)) \\
 Z &amp;= Normalize(Y + FNN(Y))
-\end{align}</p>
+\end{align}\]
 
 <h3 id="scaled-dot-product-attention">Scaled Dot-Product Attention</h3>
 
@@ -280,9 +269,9 @@ Z &amp;= Normalize(Y + FNN(Y))
 
 <p>Vaswani et al. described their attention algorithm as Scaled Dot-Product Attention (SDPA) and defined the standard attention equation everyone cites:</p>
 
-<p>\begin{equation}
+\[\begin{equation}
 Attention(Q, K, V) = softmax(\frac{QK^T}{\sqrt{d_K}})V
-\end{equation}</p>
+\end{equation}\]
 
 <h3 id="queries-keys-values">Queries, Keys, Values</h3>
 
@@ -290,12 +279,12 @@ Attention(Q, K, V) = softmax(\frac{QK^T}{\sqrt{d_K}})V
 
 <p>Given an $n \times d_{model}$ matrix of input embeddings $X$, we can expand on the SDPA equation by defining linear projections $Queries$, $Keys$, and $Values$:</p>
 
-<p>\begin{align}
-SDPA(Q, K, V) &amp;= softmax(\frac{QK^T}{\sqrt{d_K}})V <br />
-\text{where } Q &amp;= Queries(X) <br />
-K &amp;= Keys(X) <br />
+\[\begin{align}
+SDPA(Q, K, V) &amp;= softmax(\frac{QK^T}{\sqrt{d_K}})V \\
+\text{where } Q &amp;= Queries(X) \\
+K &amp;= Keys(X) \\
 V &amp;= Values(X)
-\end{align}</p>
+\end{align}\]
 
 <p>Enough LaTeX, let’s see what this looks like in Python.</p>
 
@@ -348,33 +337,33 @@ V &amp;= Values(X)
 
 <p>Now that we have $Q$, $K$, and $V$, we can delve into the SDPA equation itself. For each input embedding, SDPA calculates a weighted sum of the value projections for all the tokens in the sequence. We already saw the value projections are represented by <code class="language-plaintext highlighter-rouge">V</code>. The weights are represented by the softmax term:</p>
 
-<p>\begin{align}
+\[\begin{align}
 softmax(\frac{QK^T}{\sqrt{d_K}})
-\end{align}</p>
+\end{align}\]
 
 <p>I wouldn’t hold it against you if it’s not immediately obvious what we get here. To see what’s happening, let’s break this down even further.</p>
 
 <p>First, the $QK^T$ term calculates a $d_Q \times d_K$ matrix of the dot products of each query embedding with every key embedding. To see why, imagine we have 2 token embeddings of length 3.</p>
 
-<p>\begin{align}
+\[\begin{align}
 QK^T
 &amp;=
 \begin{bmatrix}
-q_{00} &amp; q_{01} &amp; q_{02} <br />
+q_{00} &amp; q_{01} &amp; q_{02} \\
 q_{10} &amp; q_{11} &amp; q_{12}
 \end{bmatrix}
 \begin{bmatrix}
-k_{00} &amp; k_{10} <br />
-k_{01} &amp; k_{11} <br />
+k_{00} &amp; k_{10} \\
+k_{01} &amp; k_{11} \\
 k_{02} &amp; k_{12}
 \end{bmatrix}
 =
 \begin{bmatrix}
-w_{00} &amp; w_{01} <br />
+w_{00} &amp; w_{01} \\
 w_{10} &amp; w_{11}
-\end{bmatrix} <br />
+\end{bmatrix} \\
 \text{where } w_{ij} &amp;= row(Q, i) \cdot row(K, j)
-\end{align}</p>
+\end{align}\]
 
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Calculate similarity between Q and K
 </span><span class="n">w</span> <span class="o">=</span> <span class="n">q</span> <span class="o">@</span> <span class="n">k</span><span class="p">.</span><span class="nf">transpose</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
@@ -422,7 +411,7 @@ w_{10} &amp; w_{11}
     <span class="n">ax</span><span class="p">.</span><span class="nf">set_ylabel</span><span class="p">(</span><span class="sa">f</span><span class="sh">"</span><span class="s">Weight</span><span class="sh">"</span><span class="p">)</span>
 </code></pre></div></div>
 
-<p><img src="67e7c1bc396c52f019188b875426defe.png" alt="png" /></p>
+<p><img src="928d66b5ce2483cf910cb4e3d861fc17.png" alt="png" /></p>
 
 <h3 id="attention-output">Attention Output</h3>
 
@@ -459,7 +448,7 @@ w_{10} &amp; w_{11}
 
 <h3 id="multi-head-attention">Multi-Head Attention</h3>
 
-<p>At this point, we’ve walked through the core SDPA algorithm step-by-step. However, we’re not quite done. Vaswani et al. realized there are more than one set of relationships involved in transferring context across tokens. A single application of SDPA would effectively average these together. The solution is to apply SDPA multiple times on separate query, key, and value embeddings. Each of these is referred to as an “attention head”. Each head is isolated, leaving it free to learn distinct relational structures.</p>
+<p>At this point, we’ve walked through the core SDPA algorithm step-by-step. However, we’re not quite done. Vaswani et al. realized there are more than one set of relationships involved in transferring context across tokens. A single application of SDPA would effectively water these down by averaging these together. The solution is to apply SDPA multiple times on separate query, key, and value embeddings. Each of these is referred to as an “attention head”. Each head is isolated, leaving it free to learn distinct relational structures.</p>
 
 <div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">def</span> <span class="nf">split_heads</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
     <span class="k">return</span> <span class="n">x</span><span class="p">.</span><span class="nf">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">config</span><span class="p">.</span><span class="n">n_heads</span><span class="p">,</span> <span class="n">config</span><span class="p">.</span><span class="n">d_head</span><span class="p">).</span><span class="nf">transpose</span><span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">)</span>
@@ -716,7 +705,7 @@ w_{10} &amp; w_{11}
     <span class="c1"># Attention
 </span>    <span class="n">y_i</span> <span class="o">=</span> <span class="nf">normalize_attention</span><span class="p">(</span><span class="n">x_i</span> <span class="o">+</span> <span class="nf">attention</span><span class="p">(</span><span class="n">x_i</span><span class="p">,</span> <span class="n">layer</span><span class="o">=</span><span class="n">layer</span><span class="p">),</span> <span class="n">layer</span><span class="o">=</span><span class="n">layer</span><span class="p">)</span>
 
-    <span class="c1"># Transform
+    <span class="c1"># FNN
 </span>    <span class="n">z_i</span> <span class="o">=</span> <span class="nf">normalize_fnn</span><span class="p">(</span><span class="n">y_i</span> <span class="o">+</span> <span class="nf">fnn</span><span class="p">(</span><span class="n">y_i</span><span class="p">,</span> <span class="n">layer</span><span class="o">=</span><span class="n">layer</span><span class="p">),</span> <span class="n">layer</span><span class="o">=</span><span class="n">layer</span><span class="p">)</span>
 
 <span class="c1"># Save outputs from last layer
@@ -738,11 +727,6 @@ w_{10} &amp; w_{11}
           7.9370e-01, -9.0899e-02],
         [ 1.1021e+00,  8.6115e-02,  5.7461e-01,  ...,  6.8800e-01,
           5.6345e-01, -6.6278e-01]], grad_fn=&lt;NativeLayerNormBackward0&gt;)
-</code></pre></div></div>
-
-<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="c1"># Sanity check
-</span><span class="n">hiddens</span> <span class="o">=</span> <span class="n">transformer</span><span class="p">.</span><span class="n">model</span><span class="p">.</span><span class="nf">distilbert</span><span class="p">(</span><span class="n">input_ids</span><span class="o">=</span><span class="n">batch</span><span class="p">.</span><span class="n">input_ids</span><span class="p">.</span><span class="nf">to</span><span class="p">(</span><span class="n">device</span><span class="p">)).</span><span class="n">last_hidden_state</span><span class="p">.</span><span class="nf">squeeze</span><span class="p">().</span><span class="nf">to</span><span class="p">(</span><span class="sh">"</span><span class="s">cpu</span><span class="sh">"</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">torch</span><span class="p">.</span><span class="nf">allclose</span><span class="p">(</span><span class="n">z</span><span class="p">,</span> <span class="n">hiddens</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="mf">1e-5</span><span class="p">)</span>
 </code></pre></div></div>
 
 <h2 id="head">Head</h2>
@@ -806,8 +790,15 @@ w_{10} &amp; w_{11}
 
 <h2 id="references">References</h2>
 
-<p>Devlin, Jacob, Ming-Wei Chang, Kenton Lee, and Kristina Toutanova. “BERT: Pre-Training of Deep Bidirectional Transformers for Language Understanding.” arXiv, May 24, 2019. https://doi.org/10.48550/arXiv.1810.04805.</p>
+<p>Bengio, Yoshua, Réjean Ducharme, and Pascal Vincent. “A Neural Probabilistic Language Model.” In Advances in Neural Information Processing Systems, Vol. 13. MIT Press, 2000. <a href="https://proceedings.neurips.cc/paper_files/paper/2000/hash/728f206c2a01bf572b5940d7d9a8fa4c-Abstract.html">https://proceedings.neurips.cc/paper_files/paper/2000/hash/728f206c2a01bf572b5940d7d9a8fa4c-Abstract.html</a>.</p>
 
-<p>Vaswani, Ashish, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N. Gomez, Lukasz Kaiser, and Illia Polosukhin. “Attention Is All You Need.” arXiv, August 1, 2023. https://doi.org/10.48550/arXiv.1706.03762.</p>
+<p>Devlin, Jacob, Ming-Wei Chang, Kenton Lee, and Kristina Toutanova. “BERT: Pre-Training of Deep Bidirectional Transformers for Language Understanding.” arXiv, May 24, 2019. <a href="https://doi.org/10.48550/arXiv.1810.04805">https://doi.org/10.48550/arXiv.1810.04805</a>.</p>
 
-<p>Xu, Peng, Xiatian Zhu, and David A. Clifton. “Multimodal Learning with Transformers: A Survey.” arXiv, May 9, 2023. https://doi.org/10.48550/arXiv.2206.06488.</p>]]></content><author><name></name></author><summary type="html"><![CDATA[There is something special about Transformers. Since first introduced in 2017, the Transformer architecture has redefined the entire NLP category and is quickly spreading to other types of machine learning. Transformers, and the language embeddings at their core, seem to have hit on some underlying fundamental substrate that transcends boundaries, making them far more generalizable than previous approaches. Anyone who wants to contribute to the future of AI should clearly be studying transformers inside and out.]]></summary></entry></feed>
+<p>“Transformer Explainer: LLM Transformer Model Visually Explained.” Accessed August 29, 2024. <a href="https://poloclub.github.io/transformer-explainer/">https://poloclub.github.io/transformer-explainer/</a>.</p>
+
+<p>Vaswani, Ashish, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N. Gomez, Lukasz Kaiser, and Illia Polosukhin. “Attention Is All You Need.” arXiv, August 1, 2023. <a href="https://doi.org/10.48550/arXiv.1706.03762">https://doi.org/10.48550/arXiv.1706.03762</a></p>
+
+<p>Xu, Peng, Xiatian Zhu, and David A. Clifton. “Multimodal Learning with Transformers: A Survey.” arXiv, May 9, 2023. <a href="https://doi.org/10.48550/arXiv.2206.06488">https://doi.org/10.48550/arXiv.2206.06488</a>.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code>
+</code></pre></div></div>]]></content><author><name></name></author><summary type="html"><![CDATA[There is something special about Transformers. Since first introduced in 2017, the Transformer architecture has redefined the entire NLP category and is quickly spreading to other types of machine learning. Transformers, and the language embeddings at their core, seem to have hit on some underlying fundamental substrate that transcends boundaries, making them far more generalizable than previous approaches. Anyone who wants to contribute to the future of AI should clearly be studying Transformers inside and out.]]></summary></entry></feed>

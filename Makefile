@@ -226,7 +226,12 @@ $(POSTS_BUILD_DIR)/%.md: $(POSTS_SRC_DIR)/%.ipynb | $(DEPENDENCIES)
 	mkdir -p $(BUILD_DIR)/$$(basename $@ .md)
 
 	source $(VENV) && \
-	  jupyter nbconvert --to markdown --output-dir $(BUILD_DIR)/$$(basename $@ .md) $<
+	  jupyter nbconvert \
+	    --to markdown \
+		--TagRemovePreprocessor.enabled=True \
+		--TagRemovePreprocessor.remove_cell_tags skip-publish \
+		--output-dir $(BUILD_DIR)/$$(basename $@ .md) \
+		$<
 
 	if [[ -d $(BUILD_DIR)/$$(basename $@ .md)/$$(basename $@ .md)_files ]]; then \
 	  for f in $(BUILD_DIR)/$$(basename $@ .md)/$$(basename $@ .md)_files/*; do \
