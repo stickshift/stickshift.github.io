@@ -28,9 +28,10 @@ jobs:
           python-version: "3.10"
 
       - name: Ruby
-        uses: actions/setup-ruby@v1
+        uses: ruby/setup-ruby@v1
         with:
-          ruby-version: "3.1"
+          ruby-version: "3.3"
+          bundler-cache: true
 
       - name: Setup Pages
         uses: actions/configure-pages@v5

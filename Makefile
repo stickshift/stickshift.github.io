@@ -232,6 +232,7 @@ site: $(SITE_SRC) $(POSTS)
 
 	source $(VENV) && \
 	  cd $(SITE_SRC_DIR) && \
+	  bundle install && \
 	  bundle exec jekyll clean && \
 	  bundle exec jekyll build --verbose
 
