@@ -39,6 +39,8 @@ cffi==1.17.1
     # via argon2-cffi-bindings
 charset-normalizer==3.3.2
     # via requests
+click==8.1.7
+    # via stickshift (pyproject.toml)
 comm==0.2.2
     # via
     #   ipykernel
