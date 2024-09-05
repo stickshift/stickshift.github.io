@@ -1,12 +1,15 @@
 import hashlib
+from itertools import islice
 from secrets import token_hex
 import subprocess
+from typing import Iterable, Any
 
 __all__ = [
     "default_arg",
     "random_string",
     "shell",
     "md5",
+    "take",
 ]
 
 
@@ -38,3 +41,14 @@ def shell(command: str) -> str:
 
 def md5(s: str) -> str:
     return hashlib.md5(s.encode()).hexdigest()
+
+
+def take(n: int, iterable: Iterable[Any]):
+    """Process items n at a time."""
+
+    it = iter(iterable)
+    while True:
+        chunk = tuple(islice(it, n))
+        if not chunk:
+            break
+        yield chunk
