@@ -1,12 +1,16 @@
 # jekyll config
 
+# Author Metadata
+author: "Andrew Young"
+github_username: stickshift
+linkedin_username: andrewsomesyoung
+
 # Site Metadata
 title: Pattern Recognition
 description: >- # this means to ignore newlines until "baseurl:"
   Software architect, AI researcher, entrepreneur, and startup veteran with a passion for creativity and good coffee.
 baseurl: "" # the subpath of your site, e.g. /blog
 url: "https://stickshift.github.io" # the base hostname & protocol for your site, e.g. http://example.com
-github_username: stickshift
 
 # Build Settings
 theme: minima
