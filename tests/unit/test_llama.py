@@ -15,8 +15,8 @@ def test_text_generation(device: torch.device):
     # Whens
     #
 
-    # I process 'I love ice cream'
-    outputs = transformer("I love ice cream")
+    # I process 'What is the capital of Massachusetts?'
+    outputs = transformer("What is the capital of Massachusetts?")
 
     #
     # Thens
