@@ -358,7 +358,9 @@ threadpoolctl==3.5.0
 tinycss2==1.3.0
     # via nbconvert
 tokenizers==0.19.1
-    # via transformers
+    # via
+    #   stickshift (pyproject.toml)
+    #   transformers
 torch==2.4.1
     # via stickshift (pyproject.toml)
 tornado==6.4.1

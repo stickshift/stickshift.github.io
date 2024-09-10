@@ -15,7 +15,7 @@ class Config(BaseModel):
     d_model: int
     n_heads: int
     d_head: int
-    d_fnn: int
+    d_ffn: int
     n_layers: int
     n_labels: int
     max_sequence_length: int
@@ -32,7 +32,7 @@ def config(model) -> Config:
         "d_model": config.dim,
         "n_heads": config.n_heads,
         "d_head": int(config.dim / config.n_heads),
-        "d_fnn": config.hidden_dim,
+        "d_ffn": config.hidden_dim,
         "n_layers": config.n_layers,
         "n_labels": config.num_labels,
         "max_sequence_length": config.max_position_embeddings,

@@ -43,6 +43,7 @@ dependencies = [
   "pydantic",
   "scikit-learn",
   "seaborn",
+  "tokenizers",
   "transformers",
   "torch",
   "tqdm",
