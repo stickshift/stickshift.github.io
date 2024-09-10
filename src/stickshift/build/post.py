@@ -28,6 +28,7 @@ def build_post(notebook: Path, markdown: Path):
         ---
         layout: post
         title: \"{shell(f"cat {notebook} | jq -r '.metadata.stickshift.title'")}\"
+        description: \"{shell(f"cat {notebook} | jq -r '.metadata.stickshift.description'")}\"
         ---
     """).lstrip()
     markdown.write_text(content)
