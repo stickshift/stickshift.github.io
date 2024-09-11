@@ -1,14 +1,13 @@
-"""
-Build a Jekyll post from Jupyter notebook.
-"""
-import re
-from textwrap import dedent
+"""Build a Jekyll post from Jupyter notebook."""
+
 from pathlib import Path
+import re
 import shutil
+from textwrap import dedent
 
 import click
 
-from stickshift import shell, md5
+from stickshift import md5, shell
 
 
 @click.command()
@@ -16,7 +15,6 @@ from stickshift import shell, md5
 @click.option("--markdown", type=click.Path(path_type=Path))
 def build_post(notebook: Path, markdown: Path):
     """Build a Jekyll post from Jupyter notebook."""
-
     # Create target directory
     markdown.parent.mkdir(parents=True, exist_ok=True)
 
@@ -67,6 +65,5 @@ def build_post(notebook: Path, markdown: Path):
         f.write(content)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     build_post()
-

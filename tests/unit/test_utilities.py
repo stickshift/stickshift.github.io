@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from stickshift import random_string, shell, take
 
 
@@ -26,7 +24,7 @@ def test_shell():
     #
 
     # I list contents of /
-    results = shell(f"ls /")
+    results = shell("ls /")
 
     # I split results on newlines
     results = results.splitlines()
@@ -66,4 +64,3 @@ def test_take():
 
     # There shouldn't be any more pairs
     assert next(it, None) is None
-

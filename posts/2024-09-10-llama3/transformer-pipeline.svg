@@ -51,7 +51,7 @@
   </g>
   <g>
     <rect class="cls-2" x="448" y="93.5" width="128" height="64" rx="4" ry="4"/>
-    <text class="cls-5" transform="translate(486.71 128.44)"><tspan x="0" y="0">Context</tspan></text>
+    <text class="cls-5" transform="translate(486.71 121.24)"><tspan x="0" y="0">Context</tspan><tspan x="3.61" y="14.4">Layers</tspan></text>
   </g>
   <g>
     <rect class="cls-2" x="640" y="93.5" width="128" height="64" rx="4" ry="4"/>

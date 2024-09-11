@@ -23,12 +23,13 @@
       }
 
       .cls-4 {
-        fill: #b3b3b3;
+        font-family: NotoSansMono-Regular, 'Noto Sans Mono';
+        font-size: 12px;
+        font-variation-settings: 'wght' 400, 'wdth' 100;
       }
 
       .cls-5 {
-        font-family: DejaVuSansMono, 'DejaVu Sans Mono';
-        font-size: 12px;
+        fill: #b3b3b3;
       }
 
       .cls-3 {
@@ -36,46 +37,38 @@
       }
     </style>
   </defs>
-  <text class="cls-5" transform="translate(722.08 215.87)"><tspan x="0" y="0">Task-Specific </tspan><tspan x="14.45" y="14.4">Predictions</tspan></text>
-  <text class="cls-5" transform="translate(138.86 41.01)"><tspan x="0" y="0">Token Sequence</tspan></text>
-  <text class="cls-5" transform="translate(400 215.87)"><tspan x="0" y="0">Initial Token </tspan><tspan x="0" y="14.4">Embeddings</tspan></text>
-  <text class="cls-5" transform="translate(479.51 26.61)"><tspan x="0" y="0">Contextualized Token </tspan><tspan x="72.25" y="14.4">Embeddings</tspan></text>
-  <text class="cls-5" transform="translate(16 215.87)"><tspan x="0" y="0">Raw Data</tspan></text>
-  <g>
-    <rect class="cls-2" x="64" y="93.5" width="128" height="64" rx="4" ry="4"/>
-    <text class="cls-5" transform="translate(99.1 128.44)"><tspan x="0" y="0">Tokenize</tspan></text>
-  </g>
-  <g>
-    <rect class="cls-2" x="256" y="93.5" width="128" height="64" rx="4" ry="4"/>
-    <text class="cls-5" transform="translate(283.88 128.44)"><tspan x="0" y="0">Embeddings</tspan></text>
-  </g>
-  <g>
-    <rect class="cls-2" x="448" y="93.5" width="128" height="64" rx="4" ry="4"/>
-    <text class="cls-5" transform="translate(486.71 128.44)"><tspan x="0" y="0">Context</tspan></text>
-  </g>
-  <g>
-    <rect class="cls-2" x="640" y="93.5" width="128" height="64" rx="4" ry="4"/>
-    <text class="cls-5" transform="translate(689.55 128.44)"><tspan x="0" y="0">Head</tspan></text>
-  </g>
+  <text class="cls-4" transform="translate(722.4 215.78)"><tspan x="0" y="0">Task-Specific </tspan><tspan x="14.4" y="14.4">Predictions</tspan></text>
+  <text class="cls-4" transform="translate(139.2 40.92)"><tspan x="0" y="0">Token Sequence</tspan></text>
+  <text class="cls-4" transform="translate(400 215.78)"><tspan x="0" y="0">Initial Token </tspan><tspan x="0" y="14.4">Embeddings</tspan></text>
+  <text class="cls-4" transform="translate(480 26.52)"><tspan x="0" y="0">Contextualized Token </tspan><tspan x="72" y="14.4">Embeddings</tspan></text>
+  <text class="cls-4" transform="translate(16 215.78)"><tspan x="0" y="0">Raw Data</tspan></text>
+  <rect class="cls-2" x="64" y="93.5" width="128" height="64" rx="4" ry="4"/>
+  <text class="cls-4" transform="translate(99.2 128.44)"><tspan x="0" y="0">Tokenize</tspan></text>
+  <rect class="cls-2" x="256" y="93.5" width="128" height="64" rx="4" ry="4"/>
+  <text class="cls-4" transform="translate(284 128.44)"><tspan x="0" y="0">Embeddings</tspan></text>
+  <rect class="cls-2" x="448" y="93.5" width="128" height="64" rx="4" ry="4"/>
+  <text class="cls-4" transform="translate(486.8 121.24)"><tspan x="0" y="0">Context</tspan><tspan x="3.6" y="14.4">Layers</tspan></text>
+  <rect class="cls-2" x="640" y="93.5" width="128" height="64" rx="4" ry="4"/>
+  <text class="cls-4" transform="translate(689.6 128.44)"><tspan x="0" y="0">Head</tspan></text>
   <g>
     <line class="cls-3" x1="16" y1="125.5" x2="37.24" y2="125.5"/>
     <polygon points="35.05 132.98 48 125.5 35.05 118.02 35.05 132.98"/>
   </g>
   <g>
     <line class="cls-1" x1="224" y1="65.07" x2="224" y2="109.5"/>
-    <path class="cls-4" d="M220.24,65.26c0-2.08,1.68-3.76,3.76-3.76s3.76,1.68,3.76,3.76-1.68,3.76-3.76,3.76-3.76-1.68-3.76-3.76Z"/>
+    <path class="cls-5" d="M220.24,65.26c0-2.08,1.68-3.76,3.76-3.76s3.76,1.68,3.76,3.76-1.68,3.76-3.76,3.76-3.76-1.68-3.76-3.76Z"/>
   </g>
   <g>
     <line class="cls-1" x1="416" y1="185.93" x2="416" y2="141.5"/>
-    <path class="cls-4" d="M419.76,185.74c0,2.08-1.68,3.76-3.76,3.76s-3.76-1.68-3.76-3.76,1.68-3.76,3.76-3.76,3.76,1.68,3.76,3.76Z"/>
+    <path class="cls-5" d="M419.76,185.74c0,2.08-1.68,3.76-3.76,3.76s-3.76-1.68-3.76-3.76,1.68-3.76,3.76-3.76,3.76,1.68,3.76,3.76Z"/>
   </g>
   <g>
     <line class="cls-1" x1="800" y1="185.93" x2="800" y2="141.5"/>
-    <path class="cls-4" d="M803.76,185.74c0,2.08-1.68,3.76-3.76,3.76s-3.76-1.68-3.76-3.76,1.68-3.76,3.76-3.76,3.76,1.68,3.76,3.76Z"/>
+    <path class="cls-5" d="M803.76,185.74c0,2.08-1.68,3.76-3.76,3.76s-3.76-1.68-3.76-3.76,1.68-3.76,3.76-3.76,3.76,1.68,3.76,3.76Z"/>
   </g>
   <g>
     <line class="cls-1" x1="608" y1="65.07" x2="608" y2="109.5"/>
-    <path class="cls-4" d="M604.24,65.26c0-2.08,1.68-3.76,3.76-3.76s3.76,1.68,3.76,3.76-1.68,3.76-3.76,3.76-3.76-1.68-3.76-3.76Z"/>
+    <path class="cls-5" d="M604.24,65.26c0-2.08,1.68-3.76,3.76-3.76s3.76,1.68,3.76,3.76-1.68,3.76-3.76,3.76-3.76-1.68-3.76-3.76Z"/>
   </g>
   <g>
     <line class="cls-3" x1="208" y1="125.5" x2="229.24" y2="125.5"/>
@@ -95,6 +88,6 @@
   </g>
   <g>
     <line class="cls-1" x1="32" y1="185.93" x2="32" y2="141.5"/>
-    <path class="cls-4" d="M35.76,185.74c0,2.08-1.68,3.76-3.76,3.76s-3.76-1.68-3.76-3.76,1.68-3.76,3.76-3.76,3.76,1.68,3.76,3.76Z"/>
+    <path class="cls-5" d="M35.76,185.74c0,2.08-1.68,3.76-3.76,3.76s-3.76-1.68-3.76-3.76,1.68-3.76,3.76-3.76,3.76,1.68,3.76,3.76Z"/>
   </g>
 </svg>

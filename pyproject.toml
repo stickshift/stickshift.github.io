@@ -35,9 +35,13 @@ dynamic = ["version"]
 
 dependencies = [
   "click",
+  "fairscale",
+  "fire",
+  "blobfile",
   "ipywidgets",
   "jupyterlab",
   "jupyterlab_spellchecker",
+  "llama_models",
   "numpy<2.0",
   "pandas",
   "pydantic",

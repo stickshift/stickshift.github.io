@@ -1,0 +1,198 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 455 219">
+  <defs>
+    <style>
+      .cls-1 {
+        stroke: #b3b3b3;
+        stroke-dasharray: 6.04 6.04;
+        stroke-width: 2px;
+      }
+
+      .cls-1, .cls-2, .cls-3, .cls-4, .cls-5, .cls-6, .cls-7, .cls-8, .cls-9, .cls-10, .cls-11 {
+        stroke-miterlimit: 10;
+      }
+
+      .cls-1, .cls-6, .cls-11 {
+        fill: none;
+      }
+
+      .cls-2 {
+        fill: #b3b3b3;
+      }
+
+      .cls-2, .cls-3, .cls-4, .cls-5, .cls-6, .cls-7, .cls-8, .cls-9, .cls-10, .cls-11 {
+        stroke: #000;
+      }
+
+      .cls-3 {
+        fill: rgba(179, 179, 179, .4);
+      }
+
+      .cls-4 {
+        fill: rgba(179, 179, 179, 0);
+      }
+
+      .cls-5 {
+        fill: #fff;
+      }
+
+      .cls-7 {
+        fill: rgba(179, 179, 179, .8);
+      }
+
+      .cls-12, .cls-13 {
+        font-family: NotoSansMono-Regular, 'Noto Sans Mono';
+        font-variation-settings: 'wght' 400, 'wdth' 100;
+      }
+
+      .cls-12, .cls-14 {
+        font-size: 12px;
+      }
+
+      .cls-8 {
+        fill: #b3b3b3;
+      }
+
+      .cls-15 {
+        font-family: NotoSansMono-Bold, 'Noto Sans Mono';
+        font-size: 18px;
+        font-variation-settings: 'wght' 700, 'wdth' 100;
+        font-weight: 700;
+      }
+
+      .cls-9 {
+        fill: rgba(179, 179, 179, .6);
+      }
+
+      .cls-10 {
+        fill: rgba(179, 179, 179, .2);
+      }
+
+      .cls-13 {
+        font-size: 14px;
+      }
+
+      .cls-11 {
+        stroke-width: 4px;
+      }
+
+      .cls-14 {
+        font-family: NotoSerifItalic-SemiBoldItalic, 'Noto Serif';
+        font-style: italic;
+        font-variation-settings: 'wght' 600, 'wdth' 100;
+        font-weight: 600;
+      }
+    </style>
+  </defs>
+  <rect class="cls-1" x="107.5" y="15.08" width="240" height="144" rx="4" ry="4"/>
+  <g>
+    <g>
+      <g>
+        <circle class="cls-2" cx="235.5" cy="87.08" r="8"/>
+        <circle class="cls-2" cx="255.5" cy="87.08" r="8"/>
+        <circle class="cls-7" cx="275.5" cy="87.08" r="8"/>
+        <circle class="cls-9" cx="295.5" cy="87.08" r="8"/>
+        <circle class="cls-3" cx="315.5" cy="87.08" r="8"/>
+        <circle class="cls-2" cx="235.5" cy="107.08" r="8"/>
+        <circle class="cls-2" cx="255.5" cy="107.08" r="8"/>
+        <circle class="cls-2" cx="275.5" cy="107.08" r="8"/>
+        <circle class="cls-7" cx="295.5" cy="107.08" r="8"/>
+        <circle class="cls-9" cx="315.5" cy="107.08" r="8"/>
+        <circle class="cls-2" cx="235.5" cy="67.08" r="8"/>
+        <circle class="cls-7" cx="255.5" cy="67.08" r="8"/>
+        <circle class="cls-9" cx="275.5" cy="67.08" r="8"/>
+        <circle class="cls-3" cx="295.5" cy="67.08" r="8"/>
+        <circle class="cls-10" cx="315.5" cy="67.08" r="8"/>
+        <circle class="cls-7" cx="235.5" cy="47.08" r="8"/>
+        <circle class="cls-9" cx="255.5" cy="47.08" r="8"/>
+        <circle class="cls-3" cx="275.5" cy="47.08" r="8"/>
+        <circle class="cls-10" cx="295.5" cy="47.08" r="8"/>
+        <circle class="cls-4" cx="315.5" cy="47.08" r="8"/>
+        <circle class="cls-8" cx="235.5" cy="127.08" r="8"/>
+        <circle class="cls-2" cx="255.5" cy="127.08" r="8"/>
+        <circle class="cls-2" cx="275.5" cy="127.08" r="8"/>
+        <circle class="cls-2" cx="295.5" cy="127.08" r="8"/>
+        <circle class="cls-7" cx="315.5" cy="127.08" r="8"/>
+      </g>
+      <g>
+        <g>
+          <rect class="cls-5" x="195.5" y="45.08" width="16" height="16" transform="translate(150.42 256.58) rotate(-90)"/>
+          <rect class="cls-5" x="195.5" y="63.08" width="16" height="16" transform="translate(132.42 274.58) rotate(-90)"/>
+        </g>
+        <g>
+          <rect class="cls-5" x="195.5" y="95.08" width="16" height="16" transform="translate(100.42 306.58) rotate(-90)"/>
+          <rect class="cls-5" x="195.5" y="113.08" width="16" height="16" transform="translate(82.42 324.58) rotate(-90)"/>
+        </g>
+      </g>
+    </g>
+    <g>
+      <rect class="cls-5" x="131.5" y="31.08" width="48" height="112" rx="4" ry="4"/>
+      <text class="cls-12" transform="translate(158.78 119.48) rotate(-90)"><tspan x="0" y="0">Normalize</tspan></text>
+    </g>
+  </g>
+  <g>
+    <line class="cls-11" x1="91.5" y1="87.08" x2="116.32" y2="87.08"/>
+    <polygon points="114.87 92.07 123.5 87.08 114.87 82.1 114.87 92.07"/>
+  </g>
+  <g>
+    <line class="cls-11" x1="331.5" y1="87.08" x2="356.32" y2="87.08"/>
+    <polygon points="354.86 92.07 363.5 87.08 354.86 82.1 354.86 92.07"/>
+  </g>
+  <g>
+    <g>
+      <rect class="cls-6" x="67.5" y="43.08" width="16" height="16"/>
+      <rect class="cls-6" x="49.5" y="43.08" width="16" height="16"/>
+      <rect class="cls-6" x="67.5" y="61.08" width="16" height="16"/>
+      <rect class="cls-6" x="49.5" y="61.08" width="16" height="16"/>
+      <rect class="cls-6" x="67.5" y="79.08" width="16" height="16"/>
+      <rect class="cls-6" x="49.5" y="79.08" width="16" height="16"/>
+      <rect class="cls-6" x="67.5" y="97.08" width="16" height="16"/>
+      <rect class="cls-6" x="49.5" y="97.08" width="16" height="16"/>
+      <rect class="cls-6" x="67.5" y="115.08" width="16" height="16"/>
+      <rect class="cls-6" x="49.5" y="115.08" width="16" height="16"/>
+    </g>
+    <g>
+      <rect class="cls-6" x="31.5" y="43.08" width="16" height="16"/>
+      <rect class="cls-6" x="31.5" y="61.08" width="16" height="16"/>
+      <rect class="cls-6" x="31.5" y="79.08" width="16" height="16"/>
+      <rect class="cls-6" x="31.5" y="97.08" width="16" height="16"/>
+      <rect class="cls-6" x="31.5" y="115.08" width="16" height="16"/>
+    </g>
+  </g>
+  <text class="cls-14" transform="translate(16.07 89.89)"><tspan x="0" y="0">n</tspan></text>
+  <text class="cls-14" transform="translate(43.64 26.42)"><tspan x="0" y="0">d</tspan></text>
+  <text class="cls-14" transform="translate(51.22 30.42) scale(.58)"><tspan x="0" y="0">model</tspan></text>
+  <g>
+    <g>
+      <rect class="cls-8" x="389.5" y="43.08" width="16" height="16"/>
+      <rect class="cls-8" x="371.5" y="43.08" width="16" height="16"/>
+      <rect class="cls-8" x="389.5" y="61.08" width="16" height="16"/>
+      <rect class="cls-8" x="371.5" y="61.08" width="16" height="16"/>
+      <rect class="cls-8" x="389.5" y="79.08" width="16" height="16"/>
+      <rect class="cls-8" x="371.5" y="79.08" width="16" height="16"/>
+      <rect class="cls-8" x="389.5" y="97.08" width="16" height="16"/>
+      <rect class="cls-8" x="371.5" y="97.08" width="16" height="16"/>
+      <rect class="cls-8" x="389.5" y="115.08" width="16" height="16"/>
+      <rect class="cls-8" x="371.5" y="115.08" width="16" height="16"/>
+    </g>
+    <g>
+      <rect class="cls-8" x="407.5" y="43.08" width="16" height="16"/>
+      <rect class="cls-8" x="407.5" y="61.08" width="16" height="16"/>
+      <rect class="cls-8" x="407.5" y="79.08" width="16" height="16"/>
+      <rect class="cls-8" x="407.5" y="97.08" width="16" height="16"/>
+      <rect class="cls-8" x="407.5" y="115.08" width="16" height="16"/>
+    </g>
+  </g>
+  <text class="cls-14" transform="translate(383.64 26.42)"><tspan x="0" y="0">d</tspan></text>
+  <text class="cls-14" transform="translate(391.22 30.42) scale(.58)"><tspan x="0" y="0">model</tspan></text>
+  <text class="cls-14" transform="translate(431.5 89.89)"><tspan x="0" y="0">n</tspan></text>
+  <g>
+    <text class="cls-12" transform="translate(39.5 183.8)"><tspan x="0" y="0">Token</tspan><tspan x="-18" y="14.4">Embeddings</tspan></text>
+    <text class="cls-15" transform="translate(52.1 162.51)"><tspan x="0" y="0">X</tspan></text>
+  </g>
+  <g>
+    <text class="cls-12" transform="translate(365.1 183.8)"><tspan x="0" y="0">Attention</tspan><tspan x="-3.6" y="14.4">Embeddings</tspan></text>
+    <text class="cls-15" transform="translate(392.1 162.51)"><tspan x="0" y="0">A</tspan></text>
+  </g>
+  <text class="cls-13" transform="translate(189.7 187.08)"><tspan x="0" y="0">Attention</tspan></text>
+</svg>

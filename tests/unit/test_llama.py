@@ -3,7 +3,6 @@ from transformers import pipeline
 
 
 def test_text_generation(device: torch.device):
-
     #
     # Givens
     #
@@ -16,7 +15,7 @@ def test_text_generation(device: torch.device):
     #
 
     # I process 'What is the capital of Massachusetts?'
-    outputs = transformer("What is the capital of Massachusetts?")
+    transformer("What is the capital of Massachusetts?")
 
     #
     # Thens

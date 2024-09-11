@@ -1,6 +1,4 @@
-"""
-Minimalistic DistilBERT utilities based on Hugging Face's transformers.models.distilbert.
-"""
+"""Minimalistic DistilBERT utilities based on Hugging Face's transformers.models.distilbert."""
 
 from pydantic import BaseModel, Field
 
@@ -11,6 +9,8 @@ __all__ = [
 
 
 class Config(BaseModel):
+    """Custom DistilBERT config."""
+
     vocab_size: int
     d_model: int
     n_heads: int
@@ -24,7 +24,6 @@ class Config(BaseModel):
 
 def config(model) -> Config:
     """Load config from distilbert model."""
-
     config = model.distilbert.config
 
     return Config(**{

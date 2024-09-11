@@ -1,5 +1,5 @@
 from tests.fixtures.torch_fixtures import device
 
-__all__ =[
+__all__ = [
     "device",
 ]

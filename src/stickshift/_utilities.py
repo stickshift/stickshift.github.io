@@ -2,13 +2,13 @@ import hashlib
 from itertools import islice
 from secrets import token_hex
 import subprocess
-from typing import Iterable, Any
+from typing import Any, Iterable
 
 __all__ = [
     "default_arg",
+    "md5",
     "random_string",
     "shell",
-    "md5",
     "take",
 ]
 
@@ -31,8 +31,7 @@ def random_string(length: int | None = None) -> str:
 
 def shell(command: str) -> str:
     """Run shell command."""
-
-    result = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+    result = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True, check=False)
     if result.returncode != 0:
         raise Exception(f"Command failed with error: {result.stderr}")
 
@@ -45,7 +44,6 @@ def md5(s: str) -> str:
 
 def take(n: int, iterable: Iterable[Any]):
     """Process items n at a time."""
-
     it = iter(iterable)
     while True:
         chunk = tuple(islice(it, n))

@@ -1,6 +1,7 @@
 import pytest
-
 import torch
+
+import stickshift as ss
 
 __all__ = [
     "device",
@@ -9,10 +10,4 @@ __all__ = [
 
 @pytest.fixture
 def device() -> torch.device:
-    if torch.backends.mps.is_available():
-        return torch.device("mps")
-
-    if torch.cuda.is_available():
-        return torch.device("cuda")
-
-    return torch.device("cpu")
+    return ss.torch.device()
