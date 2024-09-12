@@ -10,7 +10,7 @@ from stickshift import default_arg, take
 
 __all__ = [
     "Config",
-    "load_checkpoint",
+    "config",
     "load_state",
     "rotate_half",
 ]
@@ -32,12 +32,8 @@ class Config(BaseModel):
     rope_theta: float
 
 
-def load_checkpoint(
-    checkpoint_name: str,
-    max_seq_len: int | None = None,
-    device: torch.device | None = None,
-) -> tuple[Config, dict]:
-    """Load Llama 3 checkpoint."""
+def config(checkpoint_name: str, max_seq_len: int | None = None) -> Config:
+    """Load Llama3 config from checkpoint."""
     # Defaults
     max_seq_len = default_arg(max_seq_len, lambda: 8192)
 
@@ -70,10 +66,7 @@ def load_checkpoint(
         "d_ffn": d_ffn,
     })
 
-    # Load model params
-    checkpoint = torch.load(checkpoint_path / "consolidated.00.pth", weights_only=True, map_location=device)
-
-    return config, checkpoint
+    return config
 
 
 def load_state(*args, checkpoint, layer=None):

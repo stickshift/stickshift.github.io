@@ -1,16 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 832 251">
+<svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1236 309">
   <defs>
     <style>
       .cls-1 {
-        stroke: #b3b3b3;
+        stroke-dasharray: 6 6;
+        stroke-width: 3px;
       }
 
-      .cls-1, .cls-2, .cls-3 {
+      .cls-1, .cls-2, .cls-3, .cls-4, .cls-5 {
+        stroke: #000;
         stroke-miterlimit: 10;
       }
 
-      .cls-1, .cls-3 {
+      .cls-1, .cls-3, .cls-5 {
         fill: none;
       }
 
@@ -18,83 +20,158 @@
         fill: #fff;
       }
 
-      .cls-2, .cls-3 {
-        stroke: #000;
+      .cls-6 {
+        opacity: .5;
       }
 
       .cls-4 {
-        fill: #b3b3b3;
+        fill: #f1f1f1;
       }
 
       .cls-5 {
-        font-family: DejaVuSansMono, 'DejaVu Sans Mono';
-        font-size: 12px;
+        stroke-width: 6px;
       }
 
-      .cls-3 {
-        stroke-width: 6px;
+      .cls-7 {
+        font-family: NotoSansMono-Regular, 'Noto Sans Mono';
+        font-size: 14px;
+        font-variation-settings: 'wght' 400, 'wdth' 100;
       }
     </style>
   </defs>
-  <text class="cls-5" transform="translate(722.08 215.87)"><tspan x="0" y="0">Task-Specific </tspan><tspan x="14.45" y="14.4">Predictions</tspan></text>
-  <text class="cls-5" transform="translate(138.86 41.01)"><tspan x="0" y="0">Token Sequence</tspan></text>
-  <text class="cls-5" transform="translate(400 215.87)"><tspan x="0" y="0">Initial Token </tspan><tspan x="0" y="14.4">Embeddings</tspan></text>
-  <text class="cls-5" transform="translate(479.51 26.61)"><tspan x="0" y="0">Contextualized Token </tspan><tspan x="72.25" y="14.4">Embeddings</tspan></text>
-  <text class="cls-5" transform="translate(16 215.87)"><tspan x="0" y="0">Raw Data</tspan></text>
+  <text class="cls-7" transform="translate(302.8 28.4)"><tspan x="0" y="0">Token </tspan><tspan x="-12.6" y="16.8">Sequence</tspan></text>
   <g>
-    <rect class="cls-2" x="64" y="93.5" width="128" height="64" rx="4" ry="4"/>
-    <text class="cls-5" transform="translate(99.1 128.44)"><tspan x="0" y="0">Tokenize</tspan></text>
+    <rect class="cls-2" x="387.8" y="119.15" width="128" height="64" rx="4" ry="4"/>
+    <text class="cls-7" transform="translate(409.8 154.09)"><tspan x="0" y="0">Embeddings</tspan></text>
   </g>
   <g>
-    <rect class="cls-2" x="256" y="93.5" width="128" height="64" rx="4" ry="4"/>
-    <text class="cls-5" transform="translate(283.88 128.44)"><tspan x="0" y="0">Embeddings</tspan></text>
+    <rect class="cls-2" x="679.8" y="119.15" width="128" height="64" rx="4" ry="4"/>
+    <text class="cls-7" transform="translate(714.4 146.03)"><tspan x="0" y="0">Context</tspan><tspan x="4.2" y="16.8">Layers</tspan></text>
   </g>
   <g>
-    <rect class="cls-2" x="448" y="93.5" width="128" height="64" rx="4" ry="4"/>
-    <text class="cls-5" transform="translate(486.71 121.24)"><tspan x="0" y="0">Context</tspan><tspan x="3.61" y="14.4">Layers</tspan></text>
+    <rect class="cls-2" x="971.8" y="119.15" width="128" height="64" rx="4" ry="4"/>
+    <text class="cls-7" transform="translate(1019 154.09)"><tspan x="0" y="0">Head</tspan></text>
   </g>
   <g>
-    <rect class="cls-2" x="640" y="93.5" width="128" height="64" rx="4" ry="4"/>
-    <text class="cls-5" transform="translate(689.55 128.44)"><tspan x="0" y="0">Head</tspan></text>
+    <line class="cls-5" x1="343.8" y1="151.15" x2="365.04" y2="151.15"/>
+    <polygon points="362.85 158.63 375.8 151.15 362.85 143.67 362.85 158.63"/>
   </g>
   <g>
-    <line class="cls-3" x1="16" y1="125.5" x2="37.24" y2="125.5"/>
-    <polygon points="35.05 132.98 48 125.5 35.05 118.02 35.05 132.98"/>
+    <line class="cls-5" x1="527.8" y1="151.15" x2="549.04" y2="151.15"/>
+    <polygon points="546.85 158.63 559.8 151.15 546.85 143.67 546.85 158.63"/>
   </g>
   <g>
-    <line class="cls-1" x1="224" y1="65.07" x2="224" y2="109.5"/>
-    <path class="cls-4" d="M220.24,65.26c0-2.08,1.68-3.76,3.76-3.76s3.76,1.68,3.76,3.76-1.68,3.76-3.76,3.76-3.76-1.68-3.76-3.76Z"/>
+    <line class="cls-5" x1="927.8" y1="151.15" x2="949.04" y2="151.15"/>
+    <polygon points="946.85 158.63 959.8 151.15 946.85 143.67 946.85 158.63"/>
   </g>
   <g>
-    <line class="cls-1" x1="416" y1="185.93" x2="416" y2="141.5"/>
-    <path class="cls-4" d="M419.76,185.74c0,2.08-1.68,3.76-3.76,3.76s-3.76-1.68-3.76-3.76,1.68-3.76,3.76-3.76,3.76,1.68,3.76,3.76Z"/>
+    <line class="cls-5" x1="1111.8" y1="151.15" x2="1133.04" y2="151.15"/>
+    <polygon points="1130.85 158.63 1143.8 151.15 1130.85 143.67 1130.85 158.63"/>
   </g>
   <g>
-    <line class="cls-1" x1="800" y1="185.93" x2="800" y2="141.5"/>
-    <path class="cls-4" d="M803.76,185.74c0,2.08-1.68,3.76-3.76,3.76s-3.76-1.68-3.76-3.76,1.68-3.76,3.76-3.76,3.76,1.68,3.76,3.76Z"/>
+    <rect class="cls-2" x="315.8" y="107.15" width="16" height="16"/>
+    <rect class="cls-2" x="315.8" y="125.15" width="16" height="16"/>
+    <rect class="cls-2" x="315.8" y="143.15" width="16" height="16"/>
+    <rect class="cls-2" x="315.8" y="161.15" width="16" height="16"/>
+    <rect class="cls-2" x="315.8" y="179.15" width="16" height="16"/>
   </g>
   <g>
-    <line class="cls-1" x1="608" y1="65.07" x2="608" y2="109.5"/>
-    <path class="cls-4" d="M604.24,65.26c0-2.08,1.68-3.76,3.76-3.76s3.76,1.68,3.76,3.76-1.68,3.76-3.76,3.76-3.76-1.68-3.76-3.76Z"/>
+    <rect class="cls-2" x="589.8" y="107.15" width="16" height="16"/>
+    <rect class="cls-2" x="571.8" y="107.15" width="16" height="16"/>
+    <rect class="cls-2" x="589.8" y="125.15" width="16" height="16"/>
+    <rect class="cls-2" x="571.8" y="125.15" width="16" height="16"/>
+    <rect class="cls-2" x="589.8" y="143.15" width="16" height="16"/>
+    <rect class="cls-2" x="571.8" y="143.15" width="16" height="16"/>
+    <rect class="cls-2" x="589.8" y="161.15" width="16" height="16"/>
+    <rect class="cls-2" x="571.8" y="161.15" width="16" height="16"/>
+    <rect class="cls-2" x="589.8" y="179.15" width="16" height="16"/>
+    <rect class="cls-2" x="571.8" y="179.15" width="16" height="16"/>
+    <g>
+      <rect class="cls-2" x="607.8" y="107.15" width="16" height="16"/>
+      <rect class="cls-2" x="607.8" y="125.15" width="16" height="16"/>
+      <rect class="cls-2" x="607.8" y="143.15" width="16" height="16"/>
+      <rect class="cls-2" x="607.8" y="161.15" width="16" height="16"/>
+      <rect class="cls-2" x="607.8" y="179.15" width="16" height="16"/>
+    </g>
   </g>
   <g>
-    <line class="cls-3" x1="208" y1="125.5" x2="229.24" y2="125.5"/>
-    <polygon points="227.05 132.98 240 125.5 227.05 118.02 227.05 132.98"/>
+    <line class="cls-5" x1="635.8" y1="151.15" x2="657.04" y2="151.15"/>
+    <polygon points="654.85 158.63 667.8 151.15 654.85 143.67 654.85 158.63"/>
   </g>
   <g>
-    <line class="cls-3" x1="400" y1="125.5" x2="421.24" y2="125.5"/>
-    <polygon points="419.05 132.98 432 125.5 419.05 118.02 419.05 132.98"/>
+    <rect class="cls-4" x="881.8" y="107.15" width="16" height="16"/>
+    <rect class="cls-4" x="863.8" y="107.15" width="16" height="16"/>
+    <rect class="cls-4" x="881.8" y="125.15" width="16" height="16"/>
+    <rect class="cls-4" x="863.8" y="125.15" width="16" height="16"/>
+    <rect class="cls-4" x="881.8" y="143.15" width="16" height="16"/>
+    <rect class="cls-4" x="863.8" y="143.15" width="16" height="16"/>
+    <rect class="cls-4" x="881.8" y="161.15" width="16" height="16"/>
+    <rect class="cls-4" x="863.8" y="161.15" width="16" height="16"/>
+    <rect class="cls-4" x="881.8" y="179.15" width="16" height="16"/>
+    <rect class="cls-4" x="863.8" y="179.15" width="16" height="16"/>
+    <g>
+      <rect class="cls-4" x="899.8" y="107.15" width="16" height="16"/>
+      <rect class="cls-4" x="899.8" y="125.15" width="16" height="16"/>
+      <rect class="cls-4" x="899.8" y="143.15" width="16" height="16"/>
+      <rect class="cls-4" x="899.8" y="161.15" width="16" height="16"/>
+      <rect class="cls-4" x="899.8" y="179.15" width="16" height="16"/>
+    </g>
   </g>
   <g>
-    <line class="cls-3" x1="592" y1="125.5" x2="613.24" y2="125.5"/>
-    <polygon points="611.05 132.98 624 125.5 611.05 118.02 611.05 132.98"/>
+    <line class="cls-5" x1="819.8" y1="151.15" x2="841.04" y2="151.15"/>
+    <polygon points="838.85 158.63 851.8 151.15 838.85 143.67 838.85 158.63"/>
+  </g>
+  <rect class="cls-2" x="1155.8" y="143.15" width="16" height="16"/>
+  <g class="cls-6">
+    <g>
+      <line class="cls-3" x1="889.8" y1="87.08" x2="889.8" y2="66.65"/>
+      <path d="M893.56,86.89c0,2.08-1.68,3.76-3.76,3.76s-3.76-1.68-3.76-3.76,1.68-3.76,3.76-3.76,3.76,1.68,3.76,3.76Z"/>
+    </g>
+  </g>
+  <text class="cls-7" transform="translate(568.4 28.4)"><tspan x="0" y="0">Initial </tspan><tspan x="-12.6" y="16.8">Embeddings</tspan></text>
+  <text class="cls-7" transform="translate(831 28.4)"><tspan x="0" y="0">Contextualized </tspan><tspan x="16.8" y="16.8">Embeddings</tspan></text>
+  <text class="cls-7" transform="translate(1138.6 28.4)"><tspan x="0" y="0">Output </tspan><tspan x="4.2" y="16.8">Token</tspan></text>
+  <g class="cls-6">
+    <g>
+      <line class="cls-3" x1="1163.8" y1="123.58" x2="1163.8" y2="67.15"/>
+      <path d="M1167.56,123.39c0,2.08-1.68,3.76-3.76,3.76s-3.76-1.68-3.76-3.76,1.68-3.76,3.76-3.76,3.76,1.68,3.76,3.76Z"/>
+    </g>
+  </g>
+  <text class="cls-7" transform="translate(675.2 287.15)"><tspan x="0" y="0">Autoregressive Decoding</tspan></text>
+  <g>
+    <rect class="cls-2" x="131.8" y="119.15" width="128" height="64" rx="4" ry="4"/>
+    <text class="cls-7" transform="translate(162.2 154.09)"><tspan x="0" y="0">Tokenize</tspan></text>
   </g>
   <g>
-    <line class="cls-3" x1="784" y1="125.5" x2="805.24" y2="125.5"/>
-    <polygon points="803.05 132.98 816 125.5 803.05 118.02 803.05 132.98"/>
+    <line class="cls-5" x1="271.8" y1="151.15" x2="293.04" y2="151.15"/>
+    <polygon points="290.85 158.63 303.8 151.15 290.85 143.67 290.85 158.63"/>
   </g>
   <g>
-    <line class="cls-1" x1="32" y1="185.93" x2="32" y2="141.5"/>
-    <path class="cls-4" d="M35.76,185.74c0,2.08-1.68,3.76-3.76,3.76s-3.76-1.68-3.76-3.76,1.68-3.76,3.76-3.76,3.76,1.68,3.76,3.76Z"/>
+    <line class="cls-5" x1="87.8" y1="151.15" x2="109.04" y2="151.15"/>
+    <polygon points="106.85 158.63 119.8 151.15 106.85 143.67 106.85 158.63"/>
+  </g>
+  <path class="cls-3" d="M23.8,195.15v-9.78h8.67v9.78h-8.67ZM23.8,175.59v-9.78h23.11v9.78h-23.11ZM23.8,156.04v-9.78h52v9.78H23.8ZM23.8,136.48v-9.78h23.11v9.78h-23.11ZM23.8,116.93v-9.78h8.67v9.78h-8.67ZM38.24,195.15v-9.78h8.67v9.78h-8.67ZM38.24,116.93v-9.78h8.67v9.78h-8.67ZM52.69,195.15v-9.78h8.67v9.78h-8.67ZM52.69,175.59v-9.78h23.11v9.78h-23.11ZM52.69,136.48v-9.78h23.11v9.78h-23.11ZM52.69,116.93v-9.78h8.67v9.78h-8.67ZM67.13,195.15v-9.78h8.67v9.78h-8.67ZM67.13,116.93v-9.78h8.67v9.78h-8.67Z"/>
+  <text class="cls-7" transform="translate(16.2 45.2)"><tspan x="0" y="0">Raw Text</tspan></text>
+  <g class="cls-6">
+    <g>
+      <line class="cls-3" x1="323.8" y1="87.08" x2="323.8" y2="66.65"/>
+      <path d="M327.56,86.89c0,2.08-1.68,3.76-3.76,3.76s-3.76-1.68-3.76-3.76,1.68-3.76,3.76-3.76,3.76,1.68,3.76,3.76Z"/>
+    </g>
+  </g>
+  <g class="cls-6">
+    <g>
+      <line class="cls-3" x1="49.8" y1="87.08" x2="49.8" y2="66.65"/>
+      <path d="M53.56,86.89c0,2.08-1.68,3.76-3.76,3.76s-3.76-1.68-3.76-3.76,1.68-3.76,3.76-3.76,3.76,1.68,3.76,3.76Z"/>
+    </g>
+  </g>
+  <g class="cls-6">
+    <g>
+      <line class="cls-3" x1="597.8" y1="87.08" x2="597.8" y2="66.65"/>
+      <path d="M601.56,86.89c0,2.08-1.68,3.76-3.76,3.76s-3.76-1.68-3.76-3.76,1.68-3.76,3.76-3.76,3.76,1.68,3.76,3.76Z"/>
+    </g>
+  </g>
+  <g>
+    <polyline class="cls-1" points="323.8 219.76 323.8 259.15 1219.8 259.15 1219.8 151.15 1187.8 151.15"/>
+    <polygon points="317.82 221.51 323.8 211.15 329.78 221.51 317.82 221.51"/>
   </g>
 </svg>
