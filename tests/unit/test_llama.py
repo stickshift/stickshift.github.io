@@ -16,15 +16,19 @@ def test_text_generation(device: torch.device):
     )
 
     # Prompt
-    prompt = "<|start_header_id|>user<|end_header_id|>write a haiku<|eot_id|><|start_header_id|>assistant<|end_header_id|>"
-    # prompt = "<|start_header_id|>user<|end_header_id|>What is the capital of Massachusetts? Answer in one word.<|eot_id|><|start_header_id|>assistant<|end_header_id|>"
+    prompts = [
+        {
+            "role": "user",
+            "content": "What is the capital of Massachusetts?"
+        }
+    ]
 
     #
     # Whens
     #
 
     # I generate answer
-    response = transformer(prompt, return_full_text=False)
+    response = transformer(prompts, return_full_text=False)
     answer = response[0]["generated_text"].strip()
 
     #
