@@ -34,6 +34,7 @@ class Config(BaseModel):
     temperature: float | None = 0.6
     top_k: int = 50
     top_p: float = 0.9
+    max_output_tokens: int = 500
 
 
 def config(checkpoint_name: str, max_seq_len: int | None = None) -> Config:

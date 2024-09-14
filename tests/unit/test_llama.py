@@ -19,7 +19,7 @@ def test_text_generation(device: torch.device):
     prompts = [
         {
             "role": "user",
-            "content": "What is the capital of Massachusetts?"
+            "content": "What is the capital of Massachusetts? Answer in one word."
         }
     ]
 
@@ -36,5 +36,5 @@ def test_text_generation(device: torch.device):
     #
 
     # The sentence should be classified as positive
-    assert answer == "Boston"
+    assert answer == "Boston."
 
