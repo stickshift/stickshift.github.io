@@ -30,6 +30,10 @@ class Config(BaseModel):
     n_kv_groups: int
     rms_norm_eps: float
     rope_theta: float
+    max_seq_len: int
+    temperature: float | None = 0.6
+    top_k: int = 50
+    top_p: float = 0.9
 
 
 def config(checkpoint_name: str, max_seq_len: int | None = None) -> Config:
@@ -64,6 +68,7 @@ def config(checkpoint_name: str, max_seq_len: int | None = None) -> Config:
         "n_kv_groups": hparams["n_heads"] / hparams["n_kv_heads"],
         "rope_theta": hparams["rope_theta"],
         "d_ffn": d_ffn,
+        "max_seq_len": max_seq_len,
     })
 
     return config
