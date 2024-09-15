@@ -1,4 +1,6 @@
 // Minima theme overrides
+$content-width:    860px !default;
+
 $base-font-family: "Noto Serif", serif, !default;
 $base-font-weight: 400 !default;
 $base-font-size:   18px !default;
@@ -7,7 +9,6 @@ $secondary-font-family: "Noto Sans", sans-serif;
 
 $code-font-family: "Noto Sans Mono", monospace;
 $code-font-weight: 400;
-$code-font-style: normal;
 $code-font-size: 13px;
 
 $text-color: rgba(0, 0, 0, 0.7) !default;
