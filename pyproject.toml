@@ -35,14 +35,14 @@ dynamic = ["version"]
 
 dependencies = [
   "click",
-  "fairscale",
-  "fire",
-  "blobfile",
+  "fairscale; sys_platform == 'darwin'",
+  "fire; sys_platform == 'darwin'",
+  "blobfile; sys_platform == 'darwin'",
   "ipywidgets",
   "jupyterlab",
   "jupyterlab_spellchecker",
-  "llama_models",
-  "llama_toolchain",
+  "llama_models; sys_platform == 'darwin'",
+  "llama_toolchain; sys_platform == 'darwin'",
   "numpy<2.0",
   "pandas",
   "pydantic",
@@ -50,7 +50,7 @@ dependencies = [
   "seaborn",
   "tokenizers",
   "transformers",
-  "torch",
+  "torch; sys_platform == 'darwin'",
   "tqdm",
 
   "pip",
