@@ -1,7 +1,7 @@
 import pytest
 import torch
 
-import stickshift as ss
+from stickshift.torch import device as torch_device
 
 __all__ = [
     "device",
@@ -10,4 +10,4 @@ __all__ = [
 
 @pytest.fixture
 def device() -> torch.device:
-    return ss.torch.device()
+    return torch_device()
