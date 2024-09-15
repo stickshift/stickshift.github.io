@@ -42,6 +42,7 @@ dependencies = [
   "jupyterlab",
   "jupyterlab_spellchecker",
   "llama_models",
+  "llama_toolchain",
   "numpy<2.0",
   "pandas",
   "pydantic",
