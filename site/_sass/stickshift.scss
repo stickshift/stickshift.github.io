@@ -44,15 +44,15 @@
 }
 
 h1, h2, h3 {
-  color: $primary-text-color;
+    color: $primary-text-color;
 }
 
 // Code blocks
 pre, code {
-  font-family: $code-font-family;
-  font-weight: $code-font-weight;
-  font-size: $code-font-size;
-  background: $code-background;
+    font-family: $code-font-family;
+    font-weight: $code-font-weight;
+    font-size: $code-font-size;
+    background: $code-background;
 }
 
 // Figures
@@ -69,4 +69,14 @@ figure > img {
 
 figcaption {
     text-align: center;
+}
+
+// Blockquotes
+blockquote {
+    font-family: $secondary-font-family;
+    font-weight: 300;
+    margin-top: 2.0rem;
+    margin-bottom: 2.0rem;
+    padding-top: 1.0rem;
+    padding-bottom: 1.0rem;
 }
