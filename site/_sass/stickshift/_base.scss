@@ -1,0 +1,142 @@
+// _base.scss
+
+html {
+    background-color: white;
+}
+
+/**
+ * Text Styles
+ */
+
+html, body, header, footer, main, div, p, td, h1, h2, h3, h4, h5 {
+    font-family: $base-font-family;
+    font-size: $base-font-size;
+    font-weight: $base-font-weight;
+    font-style: $base-font-style;
+    font-optical-sizing: auto;
+    font-variation-settings: "wdth" 100;
+    color: $primary-text-color;
+}
+
+// Site header, main, footer
+body {
+
+    // Header
+    > header {
+        border-top: 2px solid $accent-color;
+        border-bottom: 1px solid $border-color;
+        padding-top: 1.0rem;
+        padding-bottom: 1.0rem;
+
+        a {
+            font-size: $lg-font-size;
+        }
+
+        * {
+            font-family: $accent-font-family;
+        }
+    }
+
+    // Footer
+    > footer {
+        border-top: 1px solid $border-color;
+        background-color: rgba(0, 0, 0, 0.02);
+
+        h1 {
+            font-size: $med-font-size;
+        }
+
+        p {
+            color: $secondary-text-color;
+        }
+
+        .author {
+            font-size: $med-font-size;
+        }
+
+        * {
+            font-family: $accent-font-family;
+        }
+    }
+}
+
+// Links
+a,
+a:link,
+a:visited,
+a:hover,
+a:active,
+a:focus {
+  color: $link-color;
+  text-decoration: none;
+}
+
+// Articles
+article {
+    // Header
+    > header {
+        h1 {
+            font-size: $xxlg-font-size;
+        }
+        h2 {
+            font-size: $lg-font-size;
+            font-family: $accent-font-family;
+            color: $secondary-text-color;
+        }
+        .post-meta {
+            color: $secondary-text-color;
+        }
+    }
+
+    // Body
+    > .body {
+        h1 {
+            font-size: $xlg-font-size;
+        }
+        h2 {
+            font-size: $lg-font-size;
+        }
+        h3 {
+            font-size: $med-font-size;
+        }
+        p {
+            font-size: $med-font-size;
+            font-weight: $light-font-weight;
+            font-variation-settings: "wdth" 120;
+        }
+        a {
+            font-weight: $bold-font-weight;
+        }
+    }
+}
+
+// Icons
+.svg-icon {
+    width: 1.0rem;
+    height: 1.0rem;
+    display: inline-block;
+    fill: #{$link-color};
+    padding-right: 5px;
+    vertical-align: text-top;
+}
+
+// Figures
+figcaption {
+    color: $secondary-text-color;
+    text-align: center;
+    font-family: $accent-font-family;
+}
+
+// Blockquotes
+blockquote {
+    margin-top: 2.0rem;
+    margin-bottom: 2.0rem;
+    margin-left: 1.0rem;
+    margin-right: 1.0rem;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
+    padding-left: 1.0rem;
+    padding-right: 1.0rem;
+    border-left: 0.5rem solid $blockquote-border-color;
+    background-color: $blockquote-background-color;
+}

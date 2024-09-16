@@ -1,82 +1,43 @@
-// Minima overrides
+// stickshift.scss
 
-.highlighter-rouge .highlight {
-    background: $code-background;
-}
+// Fonts
+$base-font-family: "Noto Serif", serif, !default;
+$base-font-size: 16px;
+$base-font-weight: 400;
+$base-font-style: normal;
+$accent-font-family: "Noto Sans", sans-serif;
+$code-font-family: "Noto Sans Mono", monospace;
 
-.post-title {
-    @include relative-font-size(2.3);
-}
+$xxlg-font-size: 2.5rem;
+$xlg-font-size: 2.0rem;
+$lg-font-size: 1.7rem;
+$med-font-size: 1.3rem;
+$sm-font-size: 0.9rem;
 
-.post-description {
-  font-family: $secondary-font-family;
-  @include relative-font-size(1.3);
-  color: $secondary-text-color;
-}
+$bold-font-weight: calc(1.2*#{$base-font-weight});
+$light-font-weight: calc(0.75*#{$base-font-weight});
 
-.post-content {
-    h1 {
-        @include relative-font-size(1.8);
-        margin-top: 2.0rem;
-    }
-    
-    h2 {
-        @include relative-font-size(1.3);
-        margin-top: 2.0rem;
-    }
-  
-    h3 {
-        @include relative-font-size(1.1);
-        margin-top: 2.0rem;
-    }
-}
 
-.footer-col-1 {
-  width: calc(30% - (#{$spacing-unit} / 2));
-}
+// Colors
+$base-text-color: rgba(0, 0, 0, 1.0);
+$primary-text-color: rgba($base-text-color, 0.89);
+$secondary-text-color: rgba($base-text-color, 0.54);
+$accent-color: rgba(29, 66, 115, 1.0);
+$link-color: rgba($accent-color, 0.89);
+$border-color: rgba($accent-color, 0.30);
+$code-border-color: rgba($base-text-color, 0.2);
+$code-background-color: rgba($base-text-color, 0.05);
+$blockquote-border-color: rgba($accent-color, 0.75);
+$blockquote-background-color: rgba($accent-color, 0.1);
 
-.footer-col-2 {
-  width: calc(30% - (#{$spacing-unit} / 2));
-}
+// Layouts
+$content-width: 960px;
+$spacing-size: 10px;
 
-.footer-col-3 {
-  width: calc(40% - (#{$spacing-unit} / 2));
-}
-
-h1, h2, h3 {
-    color: $primary-text-color;
-}
-
-// Code blocks
-pre, code {
-    font-family: $code-font-family;
-    font-weight: $code-font-weight;
-    font-size: $code-font-size;
-    background: $code-background;
-}
-
-// Figures
-figure {
-    margin-top: 2.0rem;
-    margin-bottom: 2.0rem;
-}
-
-figure > img {
-    display:block;
-    margin-left: auto !important;
-    margin-right: auto !important;
-}
-
-figcaption {
-    text-align: center;
-}
-
-// Blockquotes
-blockquote {
-    font-family: $secondary-font-family;
-    font-weight: 300;
-    margin-top: 2.0rem;
-    margin-bottom: 2.0rem;
-    padding-top: 1.0rem;
-    padding-bottom: 1.0rem;
-}
+// Import partials
+@import
+  "stickshift/base",
+  "stickshift/layout",
+  "stickshift/posts",
+  "stickshift/syntax-highlighting"
+;

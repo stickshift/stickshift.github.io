@@ -22,13 +22,23 @@ def build_post(notebook: Path, markdown: Path):
     markdown.unlink(missing_ok=True)
 
     # Front matter
-    content = dedent(f"""
-        ---
-        layout: post
-        title: \"{shell(f"cat {notebook} | jq -r '.metadata.stickshift.title'")}\"
-        description: \"{shell(f"cat {notebook} | jq -r '.metadata.stickshift.description'")}\"
-        ---
-    """).lstrip()
+    content = "---\n"
+    content += "layout: post\n"
+
+    value = shell(f"cat {notebook} | jq -r '.metadata.stickshift.title'")
+    if value != "null":
+        content += f"title: \"{value}\"\n"
+
+    value = shell(f"cat {notebook} | jq -r '.metadata.stickshift.description'")
+    if value != "null":
+        content += f"description: \"{value}\"\n"
+
+    value = shell(f"cat {notebook} | jq -r '.metadata.stickshift.image'")
+    if value != "null":
+        content += f"image: \"{value}\"\n"
+
+    content += "---\n"
+
     markdown.write_text(content)
 
     # Content

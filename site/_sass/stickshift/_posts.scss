@@ -1,0 +1,22 @@
+// _posts.scss
+
+.post-list {
+    li {
+        margin-top: 2.0rem;
+
+        .post-meta {
+            color: $secondary-text-color;
+        }
+
+        .post-link {
+            display: block;
+            margin-top: 0.5rem;
+            font-family: $accent-font-family;
+            font-size: $lg-font-size;
+        }
+    }
+
+    li:last-of-type {
+        margin-bottom: 2.0rem;
+    }
+}
