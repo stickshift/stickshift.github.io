@@ -92,12 +92,21 @@ article {
     > .body {
         h1 {
             font-size: $xlg-font-size;
+            margin-top: 2.0rem;
+            margin-bottom: 1.0rem;
         }
         h2 {
             font-size: $lg-font-size;
+            margin-top: 2.0rem;
+            margin-bottom: 1.0rem;
         }
         h3 {
             font-size: $med-font-size;
+            font-family: $accent-font-family;
+            margin-top: 2.0rem;
+            margin-bottom: 1.0rem;
+            text-transform: uppercase;
+            color: rgba($primary-text-color, 0.7);
         }
         p {
             font-size: $med-font-size;
