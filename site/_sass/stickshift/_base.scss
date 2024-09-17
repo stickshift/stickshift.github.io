@@ -147,5 +147,10 @@ blockquote {
     padding-left: 1.0rem;
     padding-right: 1.0rem;
     border-left: 0.5rem solid $blockquote-border-color;
+    border-right: 0.5rem solid $blockquote-border-color;
     background-color: $blockquote-background-color;
+
+    p {
+        font-style: italic;
+    }
 }

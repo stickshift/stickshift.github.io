@@ -1,6 +1,10 @@
 // _posts.scss
 
-.post-list {
+ul.post-list {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+
     li {
         margin-top: 2.0rem;
 
@@ -19,4 +23,10 @@
     li:last-of-type {
         margin-bottom: 2.0rem;
     }
+}
+
+ul.social-media-list {
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
 }
