@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 113">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #fff;
+      }
+
+      .cls-1, .cls-2, .cls-3, .cls-4 {
+        stroke: #000;
+        stroke-miterlimit: 10;
+      }
+
+      .cls-2 {
+        fill: #e6e6e6;
+      }
+
+      .cls-2, .cls-3 {
+        stroke-width: 2px;
+      }
+
+      .cls-3, .cls-4 {
+        fill: none;
+      }
+
+      .cls-4 {
+        stroke-width: 6px;
+      }
+
+      .cls-5 {
+        font-family: NotoSansMono-Regular, 'Noto Sans Mono';
+        font-size: 14px;
+        font-variation-settings: 'wght' 400, 'wdth' 100;
+      }
+    </style>
+  </defs>
+  <g>
+    <rect class="cls-1" x="115.9" y="15.78" width="192" height="64" rx="4" ry="4"/>
+    <text class="cls-5" transform="translate(144.7 51.05)"><tspan x="0" y="0">Normalize Inputs</tspan></text>
+  </g>
+  <circle class="cls-3" cx="35.9" cy="47.78" r="16"/>
+  <text class="cls-5" transform="translate(14.9 91.78)"><tspan x="0" y="0">Start</tspan></text>
+  <g>
+    <line class="cls-4" x1="67.9" y1="47.78" x2="89.14" y2="47.78"/>
+    <polygon points="86.95 55.26 99.9 47.78 86.95 40.3 86.95 55.26"/>
+  </g>
+  <circle class="cls-2" cx="899.9" cy="47.78" r="16"/>
+  <text class="cls-5" transform="translate(874.7 91.78)"><tspan x="0" y="0">Finish</tspan></text>
+  <g>
+    <rect class="cls-1" x="371.9" y="15.78" width="192" height="64" rx="4" ry="4"/>
+    <text class="cls-5" transform="translate(404.9 51.05)"><tspan x="0" y="0">Project Outputs</tspan></text>
+  </g>
+  <g>
+    <rect class="cls-1" x="627.9" y="15.78" width="192" height="64" rx="4" ry="4"/>
+    <text class="cls-5" transform="translate(669.3 51.05)"><tspan x="0" y="0">Sample Tokens</tspan></text>
+  </g>
+  <g>
+    <line class="cls-4" x1="323.9" y1="47.78" x2="345.14" y2="47.78"/>
+    <polygon points="342.95 55.26 355.9 47.78 342.95 40.3 342.95 55.26"/>
+  </g>
+  <g>
+    <line class="cls-4" x1="579.9" y1="47.78" x2="601.14" y2="47.78"/>
+    <polygon points="598.95 55.26 611.9 47.78 598.95 40.3 598.95 55.26"/>
+  </g>
+  <g>
+    <line class="cls-4" x1="835.9" y1="47.78" x2="857.14" y2="47.78"/>
+    <polygon points="854.95 55.26 867.9 47.78 854.95 40.3 854.95 55.26"/>
+  </g>
+</svg>
