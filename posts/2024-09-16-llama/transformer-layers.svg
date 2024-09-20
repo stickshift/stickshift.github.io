@@ -154,8 +154,8 @@
       <polygon points="535.64 156.14 546 150.16 535.64 144.18 535.64 156.14"/>
     </g>
   </g>
-  <text class="cls-3" transform="translate(354.4 242.16)"><tspan x="0" y="0">Residual Embedding</tspan></text>
-  <text class="cls-3" transform="translate(546.4 64.72)"><tspan x="0" y="0">Residual Embedding</tspan></text>
+  <text class="cls-3" transform="translate(396.4 242.16)"><tspan x="0" y="0">Residual</tspan></text>
+  <text class="cls-3" transform="translate(588.4 64.72)"><tspan x="0" y="0">Residual</tspan></text>
   <text class="cls-1" transform="translate(498.8 295.09)"><tspan x="0" y="0">Layer</tspan></text>
   <text class="cls-2" transform="translate(552.8 303.08) scale(.58)"><tspan x="0" y="0">i</tspan></text>
 </svg>
