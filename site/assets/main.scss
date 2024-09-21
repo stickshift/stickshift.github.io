@@ -3,11 +3,5 @@
 ---
 // assets/css/main.scss
 
-// Import variable overrides first
-@import "stickshift_vars";
-
-// The rest of the minima theme styles (minima is already included by default)
-@import "minima";
-
-// Import rest of customizations last
+// Stickshift theme
 @import "stickshift";

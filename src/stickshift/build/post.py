@@ -1,14 +1,13 @@
-"""
-Build a Jekyll post from Jupyter notebook.
-"""
-import re
-from textwrap import dedent
+"""Build a Jekyll post from Jupyter notebook."""
+
 from pathlib import Path
+import re
 import shutil
+from textwrap import dedent
 
 import click
 
-from stickshift import shell, md5
+from stickshift import md5, shell
 
 
 @click.command()
@@ -16,7 +15,6 @@ from stickshift import shell, md5
 @click.option("--markdown", type=click.Path(path_type=Path))
 def build_post(notebook: Path, markdown: Path):
     """Build a Jekyll post from Jupyter notebook."""
-
     # Create target directory
     markdown.parent.mkdir(parents=True, exist_ok=True)
 
@@ -24,12 +22,30 @@ def build_post(notebook: Path, markdown: Path):
     markdown.unlink(missing_ok=True)
 
     # Front matter
-    content = dedent(f"""
-        ---
-        layout: post
-        title: \"{shell(f"cat {notebook} | jq -r '.metadata.stickshift.title'")}\"
-        ---
-    """).lstrip()
+    content = "---\n"
+    content += "layout: post\n"
+
+    value = shell(f"cat {notebook} | jq -r '.metadata.stickshift.draft'")
+    draft = (value == "true")
+    if draft:
+        content += f"draft: true\n"
+
+    value = shell(f"cat {notebook} | jq -r '.metadata.stickshift.title'")
+    if value != "null":
+        if draft:
+            value = f"DRAFT: {value}"
+        content += f"title: \"{value}\"\n"
+
+    value = shell(f"cat {notebook} | jq -r '.metadata.stickshift.description'")
+    if value != "null":
+        content += f"description: \"{value}\"\n"
+
+    value = shell(f"cat {notebook} | jq -r '.metadata.stickshift.image'")
+    if value != "null":
+        content += f"image: \"{value}\"\n"
+
+    content += "---\n"
+
     markdown.write_text(content)
 
     # Content
@@ -66,6 +82,5 @@ def build_post(notebook: Path, markdown: Path):
         f.write(content)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     build_post()
-

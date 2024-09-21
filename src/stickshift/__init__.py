@@ -1,9 +1,9 @@
-from ._utilities import default_arg, random_string, shell, md5, take
+from ._utilities import default_arg, md5, random_string, shell, take
 
 __all__ = [
     "default_arg",
+    "md5",
     "random_string",
     "shell",
-    "md5",
     "take",
 ]

@@ -65,7 +65,7 @@
   </g>
   <g>
     <rect class="cls-7" x="512" y="208" width="128" height="64" rx="4" ry="4"/>
-    <text class="cls-9" transform="translate(565.16 242.94)"><tspan x="0" y="0">FNN</tspan></text>
+    <text class="cls-9" transform="translate(565.16 242.94)"><tspan x="0" y="0">FFN</tspan></text>
   </g>
   <g>
     <rect class="cls-7" x="304" y="208" width="128" height="64" rx="4" ry="4"/>

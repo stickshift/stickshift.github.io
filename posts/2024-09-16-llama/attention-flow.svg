@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 940 369">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #fff;
+      }
+
+      .cls-1, .cls-2, .cls-3, .cls-4 {
+        stroke: #000;
+        stroke-miterlimit: 10;
+      }
+
+      .cls-2 {
+        fill: #e6e6e6;
+      }
+
+      .cls-2, .cls-3 {
+        stroke-width: 2px;
+      }
+
+      .cls-3, .cls-4 {
+        fill: none;
+      }
+
+      .cls-4 {
+        stroke-width: 6px;
+      }
+
+      .cls-5 {
+        font-family: NotoSansMono-Regular, 'Noto Sans Mono';
+        font-size: 14px;
+        font-variation-settings: 'wght' 400, 'wdth' 100;
+      }
+    </style>
+  </defs>
+  <g>
+    <rect class="cls-1" x="115.9" y="15.78" width="192" height="64" rx="4" ry="4"/>
+    <text class="cls-5" transform="translate(144.7 51.05)"><tspan x="0" y="0">Normalize Inputs</tspan></text>
+  </g>
+  <g>
+    <rect class="cls-1" x="371.9" y="15.78" width="192" height="64" rx="4" ry="4"/>
+    <text class="cls-5" transform="translate(400.7 42.65)"><tspan x="0" y="0">Project Queries, </tspan><tspan x="16.8" y="16.8">Keys, Values</tspan></text>
+  </g>
+  <g>
+    <rect class="cls-1" x="627.9" y="15.78" width="192" height="64" rx="4" ry="4"/>
+    <text class="cls-5" transform="translate(660.9 42.65)"><tspan x="0" y="0">Split Attention </tspan><tspan x="42" y="16.8">Heads</tspan></text>
+  </g>
+  <g>
+    <rect class="cls-1" x="627.9" y="143.78" width="192" height="64" rx="4" ry="4"/>
+    <text class="cls-5" transform="translate(656.7 179.05)"><tspan x="0" y="0">Encode Positions</tspan></text>
+  </g>
+  <g>
+    <rect class="cls-1" x="371.9" y="143.78" width="192" height="64" rx="4" ry="4"/>
+    <text class="cls-5" transform="translate(400.7 170.65)"><tspan x="0" y="0">Expand Key/Value </tspan><tspan x="42" y="16.8">Groups</tspan></text>
+  </g>
+  <g>
+    <rect class="cls-1" x="115.9" y="143.78" width="192" height="64" rx="4" ry="4"/>
+    <text class="cls-5" transform="translate(132.1 179.05)"><tspan x="0" y="0">Calculate Attention</tspan></text>
+  </g>
+  <g>
+    <rect class="cls-1" x="115.9" y="271.78" width="192" height="64" rx="4" ry="4"/>
+    <text class="cls-5" transform="translate(132.1 298.65)"><tspan x="0" y="0">Recombine Attention </tspan><tspan x="58.8" y="16.8">Heads</tspan></text>
+  </g>
+  <g>
+    <rect class="cls-1" x="371.9" y="271.78" width="192" height="64" rx="4" ry="4"/>
+    <text class="cls-5" transform="translate(404.9 307.05)"><tspan x="0" y="0">Project Outputs</tspan></text>
+  </g>
+  <g>
+    <rect class="cls-1" x="627.9" y="271.78" width="192" height="64" rx="4" ry="4"/>
+    <text class="cls-5" transform="translate(648.3 298.65)"><tspan x="0" y="0">Combine Outputs w/ </tspan><tspan x="37.8" y="16.8">Residuals</tspan></text>
+  </g>
+  <g>
+    <line class="cls-4" x1="323.9" y1="47.78" x2="345.14" y2="47.78"/>
+    <polygon points="342.95 55.26 355.9 47.78 342.95 40.3 342.95 55.26"/>
+  </g>
+  <g>
+    <line class="cls-4" x1="579.9" y1="47.78" x2="601.14" y2="47.78"/>
+    <polygon points="598.95 55.26 611.9 47.78 598.95 40.3 598.95 55.26"/>
+  </g>
+  <g>
+    <line class="cls-4" x1="323.9" y1="303.78" x2="345.14" y2="303.78"/>
+    <polygon points="342.95 311.26 355.9 303.78 342.95 296.3 342.95 311.26"/>
+  </g>
+  <g>
+    <line class="cls-4" x1="579.9" y1="303.78" x2="601.14" y2="303.78"/>
+    <polygon points="598.95 311.26 611.9 303.78 598.95 296.3 598.95 311.26"/>
+  </g>
+  <g>
+    <line class="cls-4" x1="611.9" y1="175.78" x2="590.66" y2="175.78"/>
+    <polygon points="592.85 168.3 579.9 175.78 592.85 183.26 592.85 168.3"/>
+  </g>
+  <g>
+    <line class="cls-4" x1="355.9" y1="175.78" x2="334.66" y2="175.78"/>
+    <polygon points="336.85 168.3 323.9 175.78 336.85 183.26 336.85 168.3"/>
+  </g>
+  <g>
+    <line class="cls-4" x1="723.9" y1="95.78" x2="723.9" y2="117.01"/>
+    <polygon points="716.42 114.83 723.9 127.78 731.38 114.83 716.42 114.83"/>
+  </g>
+  <g>
+    <line class="cls-4" x1="211.9" y1="223.78" x2="211.9" y2="245.01"/>
+    <polygon points="204.42 242.82 211.9 255.78 219.38 242.82 204.42 242.82"/>
+  </g>
+  <circle class="cls-3" cx="35.9" cy="47.78" r="16"/>
+  <text class="cls-5" transform="translate(14.9 91.78)"><tspan x="0" y="0">Start</tspan></text>
+  <g>
+    <line class="cls-4" x1="67.9" y1="47.78" x2="89.14" y2="47.78"/>
+    <polygon points="86.95 55.26 99.9 47.78 86.95 40.3 86.95 55.26"/>
+  </g>
+  <circle class="cls-2" cx="899.9" cy="303.78" r="16"/>
+  <g>
+    <line class="cls-4" x1="835.9" y1="303.78" x2="857.14" y2="303.78"/>
+    <polygon points="854.95 311.26 867.9 303.78 854.95 296.3 854.95 311.26"/>
+  </g>
+  <text class="cls-5" transform="translate(874.7 347.78)"><tspan x="0" y="0">Finish</tspan></text>
+</svg>

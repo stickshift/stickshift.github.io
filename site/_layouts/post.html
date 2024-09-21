@@ -1,0 +1,30 @@
+---
+layout: default
+---
+<div class="columns">
+  <div class="column1">
+    <article itemscope itemtype="http://schema.org/BlogPosting">
+
+      <header>
+        <h1 itemprop="headline">{{ page.title | escape }}</h1>
+        <h2 itemprop="abstract">{{ page.description | escape }}</h2>
+        <p class="post-meta">
+          <time class="dt-published" datetime="{{ page.date | date_to_xmlschema }}" itemprop="datePublished">
+            {%- assign date_format = site.minima.date_format | default: "%b %-d, %Y" -%}
+            {{ page.date | date: date_format }}
+          </time>
+        </p>
+
+        {%- if page.image -%}
+        <img src="{{ page.image | escape }}" itemprop="image">
+        {%- endif -%}
+      </header>
+
+      <div class="body" itemprop="articleBody">
+        {{ content }}
+      </div>
+
+      <a class="u-url" href="{{ page.url | relative_url }}" hidden></a>
+    </article>
+  </div>
+</div>

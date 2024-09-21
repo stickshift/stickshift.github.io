@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1198 113">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #fff;
+      }
+
+      .cls-1, .cls-2, .cls-3, .cls-4 {
+        stroke: #000;
+        stroke-miterlimit: 10;
+      }
+
+      .cls-2 {
+        fill: #e6e6e6;
+      }
+
+      .cls-2, .cls-3 {
+        stroke-width: 2px;
+      }
+
+      .cls-3, .cls-4 {
+        fill: none;
+      }
+
+      .cls-4 {
+        stroke-width: 6px;
+      }
+
+      .cls-5 {
+        font-family: NotoSansMono-Regular, 'Noto Sans Mono';
+        font-size: 14px;
+        font-variation-settings: 'wght' 400, 'wdth' 100;
+      }
+    </style>
+  </defs>
+  <g>
+    <rect class="cls-1" x="116.9" y="15.78" width="192" height="64" rx="4" ry="4"/>
+    <text class="cls-5" transform="translate(145.7 51.05)"><tspan x="0" y="0">Normalize Inputs</tspan></text>
+  </g>
+  <circle class="cls-3" cx="36.9" cy="47.78" r="16"/>
+  <text class="cls-5" transform="translate(15.9 91.78)"><tspan x="0" y="0">Start</tspan></text>
+  <g>
+    <line class="cls-4" x1="68.9" y1="47.78" x2="90.14" y2="47.78"/>
+    <polygon points="87.95 55.26 100.9 47.78 87.95 40.3 87.95 55.26"/>
+  </g>
+  <circle class="cls-2" cx="1156.9" cy="47.78" r="16"/>
+  <text class="cls-5" transform="translate(1131.7 91.78)"><tspan x="0" y="0">Finish</tspan></text>
+  <g>
+    <rect class="cls-1" x="372.9" y="15.78" width="192" height="64" rx="4" ry="4"/>
+    <text class="cls-5" transform="translate(431.1 51.05)"><tspan x="0" y="0">Transform</tspan></text>
+  </g>
+  <g>
+    <rect class="cls-1" x="884.9" y="15.78" width="192" height="64" rx="4" ry="4"/>
+    <text class="cls-5" transform="translate(905.3 42.65)"><tspan x="0" y="0">Combine Outputs w/ </tspan><tspan x="37.8" y="16.8">Residuals</tspan></text>
+  </g>
+  <g>
+    <rect class="cls-1" x="628.9" y="15.78" width="192" height="64" rx="4" ry="4"/>
+    <text class="cls-5" transform="translate(661.9 51.05)"><tspan x="0" y="0">Project Outputs</tspan></text>
+  </g>
+  <g>
+    <line class="cls-4" x1="324.9" y1="47.78" x2="346.14" y2="47.78"/>
+    <polygon points="343.95 55.26 356.9 47.78 343.95 40.3 343.95 55.26"/>
+  </g>
+  <g>
+    <line class="cls-4" x1="580.9" y1="47.78" x2="602.14" y2="47.78"/>
+    <polygon points="599.95 55.26 612.9 47.78 599.95 40.3 599.95 55.26"/>
+  </g>
+  <g>
+    <line class="cls-4" x1="836.9" y1="47.78" x2="858.14" y2="47.78"/>
+    <polygon points="855.95 55.26 868.9 47.78 855.95 40.3 855.95 55.26"/>
+  </g>
+  <g>
+    <line class="cls-4" x1="1092.9" y1="47.78" x2="1114.14" y2="47.78"/>
+    <polygon points="1111.95 55.26 1124.9 47.78 1111.95 40.3 1111.95 55.26"/>
+  </g>
+</svg>
