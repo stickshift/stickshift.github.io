@@ -27,7 +27,6 @@ class Config(BaseModel):
     n_layers: int
     n_heads: int
     n_kv_heads: int
-    n_kv_groups: int
     rms_norm_eps: float
     rope_theta: float
     max_seq_len: int
@@ -66,7 +65,6 @@ def config(checkpoint_name: str, max_seq_len: int | None = None) -> Config:
         "n_heads": hparams["n_heads"],
         "d_head": int(hparams["dim"] / hparams["n_heads"]),
         "n_kv_heads": hparams["n_kv_heads"],
-        "n_kv_groups": hparams["n_heads"] / hparams["n_kv_heads"],
         "rope_theta": hparams["rope_theta"],
         "d_ffn": d_ffn,
         "max_seq_len": max_seq_len,
