@@ -102,6 +102,10 @@ figure {
     }
 }
 
+mjx-container > svg {
+    max-width: 100%;
+}
+
 /**
  * 960px grid
  */

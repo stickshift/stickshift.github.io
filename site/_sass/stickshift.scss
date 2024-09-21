@@ -31,11 +31,12 @@ $blockquote-background-color: rgba($accent-color, 0.1);
 
 // Layouts
 $content-width: 960px;
-$spacing-size: 10px;
+$spacing-size: 20px;
 
 // Media queries
 $desktop-mode: $content-width;
 $portrait-mode: 600px;
+$landscape-mode: 900px;
 
 // Import partials
 @import
