@@ -16,6 +16,10 @@ html, body, header, footer, main, div, p, td, h1, h2, h3, h4, h5 {
     font-optical-sizing: auto;
     font-variation-settings: "wdth" 100;
     color: $primary-text-color;
+
+    @media screen and (max-width: $landscape-mode) {
+        font-size: calc(0.8*#{$base-font-size})
+    }
 }
 
 // Site header, main, footer
