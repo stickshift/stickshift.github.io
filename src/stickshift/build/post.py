@@ -25,8 +25,15 @@ def build_post(notebook: Path, markdown: Path):
     content = "---\n"
     content += "layout: post\n"
 
+    value = shell(f"cat {notebook} | jq -r '.metadata.stickshift.draft'")
+    draft = (value == "true")
+    if draft:
+        content += f"draft: true\n"
+
     value = shell(f"cat {notebook} | jq -r '.metadata.stickshift.title'")
     if value != "null":
+        if draft:
+            value = f"DRAFT: {value}"
         content += f"title: \"{value}\"\n"
 
     value = shell(f"cat {notebook} | jq -r '.metadata.stickshift.description'")
