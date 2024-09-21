@@ -115,6 +115,10 @@ article {
         a {
             font-weight: $bold-font-weight;
         }
+        // Inline math
+        p mjx-math, li mjx-math {
+            font-size: $med-font-size !important;
+        }
     }
 }
 
@@ -125,7 +129,7 @@ article {
     display: inline-block;
     fill: #{$link-color};
     padding-right: 5px;
-    vertical-align: text-top;
+    vertical-align: middle;
 }
 
 // Figures
@@ -151,5 +155,17 @@ blockquote {
 
     p {
         font-style: italic;
+    }
+}
+
+
+/**
+ * Math
+ */
+
+// Downscale select eqs on mobile
+@media screen and (max-width: $portrait-mode) {
+    .small-math mjx-math {
+        font-size: $base-font-size !important;
     }
 }
