@@ -1,7 +1,7 @@
 // stickshift.scss
 
 // Fonts
-$base-font-family: "Noto Serif", serif, !default;
+$base-font-family: "Noto Serif", serif;
 $base-font-size: 16px;
 $base-font-weight: 400;
 $base-font-style: normal;
@@ -16,7 +16,6 @@ $sm-font-size: 0.9rem;
 
 $bold-font-weight: calc(1.2*#{$base-font-weight});
 $light-font-weight: calc(0.75*#{$base-font-weight});
-
 
 // Colors
 $base-text-color: rgba(0, 0, 0, 1.0);
@@ -33,6 +32,10 @@ $blockquote-background-color: rgba($accent-color, 0.1);
 // Layouts
 $content-width: 960px;
 $spacing-size: 10px;
+
+// Media queries
+$desktop-mode: $content-width;
+$portrait-mode: 600px;
 
 // Import partials
 @import

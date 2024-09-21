@@ -32,6 +32,15 @@ body {
 
 
 /**
+ * Images
+ */
+
+img {
+    max-width: 100%;
+}
+
+
+/**
  * Lists
  */
 
@@ -93,7 +102,6 @@ figure {
     }
 }
 
-
 /**
  * 960px grid
  */
@@ -101,7 +109,7 @@ figure {
 .columns {
     display: flex;
     flex-direction: row;
-    width: $content-width;
+    max-width: $content-width;
     margin-left: auto;
     margin-right: auto;
 
@@ -112,17 +120,27 @@ figure {
 
     // 1 Column
     .column1 {
-        min-width: calc(#{$content-width} - 2*#{$spacing-size});
+        width: calc(100% - 2*#{$spacing-size});
     }
 
     // 2 Columns
     .column2 {
-        min-width: calc(#{$content-width}/2 - 2*#{$spacing-size});
+        width: calc(50% - 2*#{$spacing-size});
     }
 
     // 3 Columns
     .column3 {
-        min-width: calc(#{$content-width}/3 - 2*#{$spacing-size});
+        width: calc(33% - 2*#{$spacing-size});
+    }
+}
+
+@media screen and (max-width: $portrait-mode) {
+    // Stack all columns full width
+    .columns {
+        flex-direction: column;
+    }
+    .column2, .column3 {
+        width: calc(100% - 2*#{$spacing-size}) !important;
     }
 }
 
