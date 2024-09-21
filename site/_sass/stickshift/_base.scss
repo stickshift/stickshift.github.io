@@ -106,9 +106,8 @@ article {
             margin-top: 2.0rem;
             margin-bottom: 1.0rem;
             text-transform: uppercase;
-            color: rgba($primary-text-color, 0.7);
         }
-        p {
+        p, li {
             font-size: $med-font-size;
             font-weight: $light-font-weight;
             font-variation-settings: "wdth" 120;
