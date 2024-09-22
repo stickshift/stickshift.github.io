@@ -48,7 +48,7 @@
   <text class="cls-5" transform="translate(874.7 91.78)"><tspan x="0" y="0">Finish</tspan></text>
   <g>
     <rect class="cls-1" x="371.9" y="15.78" width="192" height="64" rx="4" ry="4"/>
-    <text class="cls-5" transform="translate(404.9 51.05)"><tspan x="0" y="0">Project Outputs</tspan></text>
+    <text class="cls-5" transform="translate(396.5 51.05)"><tspan x="0" y="0">Classify Sequence</tspan></text>
   </g>
   <g>
     <rect class="cls-1" x="627.9" y="15.78" width="192" height="64" rx="4" ry="4"/>
