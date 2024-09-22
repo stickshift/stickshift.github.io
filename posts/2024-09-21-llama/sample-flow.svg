@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1308 96">
+  <defs>
+    <style>
+      .cls-1 {
+        fill: #fff;
+      }
+
+      .cls-1, .cls-2, .cls-3, .cls-4 {
+        stroke: #000;
+        stroke-miterlimit: 10;
+      }
+
+      .cls-2 {
+        fill: #e6e6e6;
+      }
+
+      .cls-2, .cls-3 {
+        stroke-width: 2px;
+      }
+
+      .cls-3, .cls-4 {
+        fill: none;
+      }
+
+      .cls-4 {
+        stroke-width: 6px;
+      }
+
+      .cls-5 {
+        font-family: NotoSansMono-Regular, 'Noto Sans Mono';
+        font-size: 14px;
+        font-variation-settings: 'wght' 400, 'wdth' 100;
+      }
+    </style>
+  </defs>
+  <g>
+    <rect class="cls-1" x="169.8" y="16" width="192" height="64" rx="4" ry="4"/>
+    <text class="cls-5" transform="translate(219.6 51.28)"><tspan x="0" y="0">Temperature</tspan></text>
+  </g>
+  <circle class="cls-3" cx="89.8" cy="48" r="16"/>
+  <text class="cls-5" transform="translate(15.8 51.28)"><tspan x="0" y="0">Start</tspan></text>
+  <g>
+    <line class="cls-4" x1="121.8" y1="48" x2="143.04" y2="48"/>
+    <polygon points="140.85 55.48 153.8 48 140.85 40.52 140.85 55.48"/>
+  </g>
+  <circle class="cls-2" cx="1209.8" cy="48" r="16"/>
+  <text class="cls-5" transform="translate(1241.8 51.28)"><tspan x="0" y="0">Finish</tspan></text>
+  <g>
+    <rect class="cls-1" x="425.8" y="16" width="192" height="64" rx="4" ry="4"/>
+    <text class="cls-5" transform="translate(500.8 51.28)"><tspan x="0" y="0">Top K</tspan></text>
+  </g>
+  <g>
+    <rect class="cls-1" x="681.8" y="16" width="192" height="64" rx="4" ry="4"/>
+    <text class="cls-5" transform="translate(756.8 51.28)"><tspan x="0" y="0">Top P</tspan></text>
+  </g>
+  <g>
+    <line class="cls-4" x1="377.8" y1="48" x2="399.04" y2="48"/>
+    <polygon points="396.85 55.48 409.8 48 396.85 40.52 396.85 55.48"/>
+  </g>
+  <g>
+    <line class="cls-4" x1="633.8" y1="48" x2="655.04" y2="48"/>
+    <polygon points="652.85 55.48 665.8 48 652.85 40.52 652.85 55.48"/>
+  </g>
+  <g>
+    <line class="cls-4" x1="889.8" y1="48" x2="911.04" y2="48"/>
+    <polygon points="908.85 55.48 921.8 48 908.85 40.52 908.85 55.48"/>
+  </g>
+  <g>
+    <line class="cls-4" x1="1145.8" y1="48" x2="1167.04" y2="48"/>
+    <polygon points="1164.85 55.48 1177.8 48 1164.85 40.52 1164.85 55.48"/>
+  </g>
+  <g>
+    <rect class="cls-1" x="937.8" y="16" width="192" height="64" rx="4" ry="4"/>
+    <text class="cls-5" transform="translate(966.6 51.28)"><tspan x="0" y="0">Random Selection</tspan></text>
+  </g>
+</svg>

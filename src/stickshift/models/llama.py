@@ -79,21 +79,16 @@ def load_state(*args, checkpoint, layer=None):
 
     for module, key in take(2, args):
         match key:
+            # Embeddings
             case "embeddings":
                 module.load_state_dict({
                     "weight": checkpoint["tok_embeddings.weight"],
                 })
+
+            # Attention
             case "normalize_attention":
                 module.load_state_dict({
                     "weight": checkpoint[f"layers.{layer}.attention_norm.weight"],
-                })
-            case "normalize_ffn":
-                module.load_state_dict({
-                    "weight": checkpoint[f"layers.{layer}.ffn_norm.weight"],
-                })
-            case "normalize_head":
-                module.load_state_dict({
-                    "weight": checkpoint["norm.weight"],
                 })
             case "w_q":
                 module.load_state_dict({
@@ -107,23 +102,35 @@ def load_state(*args, checkpoint, layer=None):
                 module.load_state_dict({
                     "weight": checkpoint[f"layers.{layer}.attention.wv.weight"],
                 })
-            case "attention_outputs":
+            case "w_a":
                 module.load_state_dict({
                     "weight": checkpoint[f"layers.{layer}.attention.wo.weight"],
                 })
-            case "ffn_gates":
+
+            # FFN
+            case "normalize_ffn":
+                module.load_state_dict({
+                    "weight": checkpoint[f"layers.{layer}.ffn_norm.weight"],
+                })
+            case "w_g":
                 module.load_state_dict({
                     "weight": checkpoint[f"layers.{layer}.feed_forward.w1.weight"],
                 })
-            case "ffn_inputs":
+            case "w_h":
                 module.load_state_dict({
                     "weight": checkpoint[f"layers.{layer}.feed_forward.w3.weight"],
                 })
-            case "ffn_outputs":
+            case "w_f":
                 module.load_state_dict({
                     "weight": checkpoint[f"layers.{layer}.feed_forward.w2.weight"],
                 })
-            case "head_outputs":
+
+            # Head
+            case "normalize_head":
+                module.load_state_dict({
+                    "weight": checkpoint["norm.weight"],
+                })
+            case "w_head":
                 module.load_state_dict({
                     "weight": checkpoint["output.weight"],
                 })
