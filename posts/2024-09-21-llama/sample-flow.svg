@@ -1,77 +1,153 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1308 96">
+<svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1072 226">
   <defs>
     <style>
-      .cls-1 {
-        fill: #fff;
+      .cls-1, .cls-2 {
+        isolation: isolate;
       }
 
-      .cls-1, .cls-2, .cls-3, .cls-4 {
-        stroke: #000;
-        stroke-miterlimit: 10;
-      }
-
-      .cls-2 {
-        fill: #e6e6e6;
-      }
-
-      .cls-2, .cls-3 {
-        stroke-width: 2px;
-      }
-
-      .cls-3, .cls-4 {
-        fill: none;
-      }
-
-      .cls-4 {
-        stroke-width: 6px;
-      }
-
-      .cls-5 {
+      .cls-1, .cls-3 {
         font-family: NotoSansMono-Regular, 'Noto Sans Mono';
         font-size: 14px;
         font-variation-settings: 'wght' 400, 'wdth' 100;
       }
+
+      .cls-4, .cls-5, .cls-6, .cls-7 {
+        fill: #fff;
+      }
+
+      .cls-4, .cls-5, .cls-6, .cls-7, .cls-8, .cls-9 {
+        stroke: #000;
+        stroke-miterlimit: 10;
+      }
+
+      .cls-5 {
+        stroke-width: .82px;
+      }
+
+      .cls-6 {
+        stroke-width: .82px;
+      }
+
+      .cls-7 {
+        stroke-width: .82px;
+      }
+
+      .cls-8, .cls-9 {
+        fill: none;
+      }
+
+      .cls-10 {
+        opacity: .5;
+      }
+
+      .cls-9 {
+        stroke-width: 6px;
+      }
     </style>
   </defs>
   <g>
-    <rect class="cls-1" x="169.8" y="16" width="192" height="64" rx="4" ry="4"/>
-    <text class="cls-5" transform="translate(219.6 51.28)"><tspan x="0" y="0">Temperature</tspan></text>
-  </g>
-  <circle class="cls-3" cx="89.8" cy="48" r="16"/>
-  <text class="cls-5" transform="translate(15.8 51.28)"><tspan x="0" y="0">Start</tspan></text>
-  <g>
-    <line class="cls-4" x1="121.8" y1="48" x2="143.04" y2="48"/>
-    <polygon points="140.85 55.48 153.8 48 140.85 40.52 140.85 55.48"/>
-  </g>
-  <circle class="cls-2" cx="1209.8" cy="48" r="16"/>
-  <text class="cls-5" transform="translate(1241.8 51.28)"><tspan x="0" y="0">Finish</tspan></text>
-  <g>
-    <rect class="cls-1" x="425.8" y="16" width="192" height="64" rx="4" ry="4"/>
-    <text class="cls-5" transform="translate(500.8 51.28)"><tspan x="0" y="0">Top K</tspan></text>
+    <path class="cls-6" d="M146.67,117.72h122.67c1.47,0,2.67,1.79,2.67,4v56c0,2.21-1.19,4-2.67,4h-122.67c-1.47,0-2.67-1.79-2.67-4v-56c0-2.21,1.19-4,2.67-4Z"/>
+    <g class="cls-2">
+      <text class="cls-1" transform="translate(161.8 153)"><tspan x="0" y="0">Temperature</tspan></text>
+    </g>
   </g>
   <g>
-    <rect class="cls-1" x="681.8" y="16" width="192" height="64" rx="4" ry="4"/>
-    <text class="cls-5" transform="translate(756.8 51.28)"><tspan x="0" y="0">Top P</tspan></text>
+    <line class="cls-9" x1="96" y1="149.72" x2="117.24" y2="149.72"/>
+    <polygon points="115.05 157.2 128 149.72 115.05 142.24 115.05 157.2"/>
   </g>
   <g>
-    <line class="cls-4" x1="377.8" y1="48" x2="399.04" y2="48"/>
-    <polygon points="396.85 55.48 409.8 48 396.85 40.52 396.85 55.48"/>
+    <path class="cls-7" d="M338.67,117.72h122.67c1.47,0,2.67,1.79,2.67,4v56c0,2.21-1.19,4-2.67,4h-122.67c-1.47,0-2.67-1.79-2.67-4v-56c0-2.21,1.19-4,2.67-4Z"/>
+    <g class="cls-2">
+      <text class="cls-1" transform="translate(379 153)"><tspan x="0" y="0">Top K</tspan></text>
+    </g>
   </g>
   <g>
-    <line class="cls-4" x1="633.8" y1="48" x2="655.04" y2="48"/>
-    <polygon points="652.85 55.48 665.8 48 652.85 40.52 652.85 55.48"/>
+    <path class="cls-7" d="M530.67,117.72h122.67c1.47,0,2.67,1.79,2.67,4v56c0,2.21-1.19,4-2.67,4h-122.67c-1.47,0-2.67-1.79-2.67-4v-56c0-2.21,1.19-4,2.67-4Z"/>
+    <g class="cls-2">
+      <text class="cls-1" transform="translate(571 153)"><tspan x="0" y="0">Top P</tspan></text>
+    </g>
   </g>
   <g>
-    <line class="cls-4" x1="889.8" y1="48" x2="911.04" y2="48"/>
-    <polygon points="908.85 55.48 921.8 48 908.85 40.52 908.85 55.48"/>
+    <line class="cls-9" x1="288" y1="149.72" x2="309.24" y2="149.72"/>
+    <polygon points="307.05 157.2 320 149.72 307.05 142.24 307.05 157.2"/>
   </g>
   <g>
-    <line class="cls-4" x1="1145.8" y1="48" x2="1167.04" y2="48"/>
-    <polygon points="1164.85 55.48 1177.8 48 1164.85 40.52 1164.85 55.48"/>
+    <line class="cls-9" x1="480" y1="149.72" x2="501.24" y2="149.72"/>
+    <polygon points="499.05 157.2 512 149.72 499.05 142.24 499.05 157.2"/>
   </g>
   <g>
-    <rect class="cls-1" x="937.8" y="16" width="192" height="64" rx="4" ry="4"/>
-    <text class="cls-5" transform="translate(966.6 51.28)"><tspan x="0" y="0">Random Selection</tspan></text>
+    <line class="cls-9" x1="672" y1="149.72" x2="693.24" y2="149.72"/>
+    <polygon points="691.05 157.2 704 149.72 691.05 142.24 691.05 157.2"/>
+  </g>
+  <g>
+    <line class="cls-9" x1="944" y1="149.72" x2="965.24" y2="149.72"/>
+    <polygon points="963.05 157.2 976 149.72 963.05 142.24 963.05 157.2"/>
+  </g>
+  <g>
+    <path class="cls-5" d="M802.67,117.72h122.67c1.47,0,2.67,1.79,2.67,4v56c0,2.21-1.19,4-2.67,4h-122.67c-1.47,0-2.67-1.79-2.67-4v-56c0-2.21,1.19-4,2.67-4Z"/>
+    <g class="cls-2">
+      <text class="cls-1" transform="translate(838.8 144.6)"><tspan x="0" y="0">Random</tspan><tspan x="-12.6" y="16.8">Selection</tspan></text>
+    </g>
+  </g>
+  <text class="cls-3" transform="translate(30 28.03)"><tspan x="0" y="0">All Tokens</tspan></text>
+  <g class="cls-10">
+    <g>
+      <line class="cls-8" x1="72" y1="69.91" x2="72" y2="49.48"/>
+      <path d="M75.76,69.72c0,2.08-1.68,3.76-3.76,3.76s-3.76-1.68-3.76-3.76,1.68-3.76,3.76-3.76,3.76,1.68,3.76,3.76Z"/>
+    </g>
+  </g>
+  <g>
+    <g>
+      <rect class="cls-4" x="64" y="89.48" width="16" height="16"/>
+      <rect class="cls-4" x="64" y="109.48" width="16" height="16"/>
+    </g>
+    <g>
+      <rect class="cls-4" x="64" y="173.97" width="16" height="16"/>
+      <rect class="cls-4" x="64" y="193.97" width="16" height="16"/>
+    </g>
+    <g>
+      <g id="glyph-0-0">
+        <path d="M73.91,135.37c0-1.03-.86-1.89-1.91-1.89s-1.91.86-1.91,1.89.86,1.91,1.91,1.91,1.91-.86,1.91-1.91Z"/>
+      </g>
+      <g id="glyph-0-0-2" data-name="glyph-0-0">
+        <path d="M73.91,149.71c0-1.03-.86-1.89-1.91-1.89s-1.91.86-1.91,1.89.86,1.91,1.91,1.91,1.91-.86,1.91-1.91Z"/>
+      </g>
+      <g id="glyph-0-0-3" data-name="glyph-0-0">
+        <path d="M73.91,164.06c0-1.03-.86-1.89-1.91-1.89s-1.91.86-1.91,1.89.86,1.91,1.91,1.91,1.91-.86,1.91-1.91Z"/>
+      </g>
+    </g>
+  </g>
+  <text class="cls-3" transform="translate(686 28.28)"><tspan x="0" y="0">Top Tokens</tspan></text>
+  <g>
+    <rect class="cls-4" x="720" y="121.72" width="16" height="16"/>
+    <rect class="cls-4" x="720" y="141.72" width="16" height="16"/>
+    <rect class="cls-4" x="720" y="161.72" width="16" height="16"/>
+  </g>
+  <g>
+    <line class="cls-9" x1="16" y1="149.72" x2="37.24" y2="149.72"/>
+    <polygon points="35.05 157.2 48 149.72 35.05 142.24 35.05 157.2"/>
+  </g>
+  <g>
+    <line class="cls-9" x1="752" y1="149.72" x2="773.24" y2="149.72"/>
+    <polygon points="771.05 157.2 784 149.72 771.05 142.24 771.05 157.2"/>
+  </g>
+  <rect class="cls-4" x="992" y="141.72" width="16" height="16"/>
+  <text class="cls-3" transform="translate(958 28.28)"><tspan x="0" y="0">Next Token</tspan></text>
+  <g class="cls-10">
+    <g>
+      <line class="cls-8" x1="728" y1="102.15" x2="728" y2="49.72"/>
+      <path d="M731.76,101.96c0,2.08-1.68,3.76-3.76,3.76s-3.76-1.68-3.76-3.76,1.68-3.76,3.76-3.76,3.76,1.68,3.76,3.76Z"/>
+    </g>
+  </g>
+  <g class="cls-10">
+    <g>
+      <line class="cls-8" x1="1000" y1="122.15" x2="1000" y2="49.72"/>
+      <path d="M1003.76,121.96c0,2.08-1.68,3.76-3.76,3.76s-3.76-1.68-3.76-3.76,1.68-3.76,3.76-3.76,3.76,1.68,3.76,3.76Z"/>
+    </g>
+  </g>
+  <g>
+    <line class="cls-9" x1="1024" y1="149.72" x2="1045.24" y2="149.72"/>
+    <polygon points="1043.05 157.2 1056 149.72 1043.05 142.24 1043.05 157.2"/>
   </g>
 </svg>
