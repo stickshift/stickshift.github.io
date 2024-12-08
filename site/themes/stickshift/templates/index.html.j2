@@ -1,0 +1,19 @@
+{% extends "layout.html.j2" %}
+
+{#---------------------------------------------------------------------------#}
+{# Main #}
+{#---------------------------------------------------------------------------#}
+{% block main %}
+    <!-- articles -->
+    <ul class="articles">
+        {% for article in page.articles %}
+            {% if not article.draft %}
+            <li>
+                <div class="published">{{ article.published | format_date }}</div>
+                <a href="/articles/{{ article.id }}">{{ article.title }} — {{ article.subtitle }}</a>
+            </li>
+            {% endif %}
+        {% endfor %}
+    </ul>
+    <!-- /articles -->
+{% endblock %}

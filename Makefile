@@ -1,22 +1,35 @@
 ################################################################################
 # Makefile
+#
+#   * General
+#   * Output Dirs
+#   * Environment
+#   * Articles
+#   * Theme
+#   * Site
+#   * Tests
+#   * Linters
+#   * Phonies
+#
 ################################################################################
+
+# Verify environment.sh
+ifneq ($(PROJECT_NAME),stickshift.github.io)
+$(error Environment not configured. Run `source environment.sh`)
+endif
+
 
 ################################################################################
 # Settings
 ################################################################################
 
-# Verify environment.sh
-ifeq ($(strip $(PROJECT_ROOT)),)
-$(error Environment not configured. Run `source environment.sh`)
-endif
 
 #-------------------------------------------------------------------------------
-# Shell
+# General
 #-------------------------------------------------------------------------------
 
 # Bash
-SHELL := /bin/bash
+export SHELL := /bin/bash
 .SHELLFLAGS := -e -u -o pipefail -c
 
 # Colors - Supports colorized messages
@@ -29,81 +42,78 @@ COLOR_RESET=\033[0m
 
 EXCLUDE_SRC := __pycache__ \
 			   .egg-info \
-			   .ipynb_checkpoints
+			   .ipynb_checkpoints \
+			   .venv
 EXCLUDE_SRC := $(subst $(eval ) ,|,$(EXCLUDE_SRC))
 
-#-------------------------------------------------------------------------------
 # Commands
-#-------------------------------------------------------------------------------
-
 RM := rm -rf
+
 
 #-------------------------------------------------------------------------------
 # Output Dirs
 #-------------------------------------------------------------------------------
 
-BUILD_DIR := .build
+OUTPUT_DIRS :=
+
+BUILD_DIR := $(PROJECT_ROOT)/.build
+OUTPUT_DIRS := $(OUTPUT_DIRS) $(BUILD_DIR)
+
 
 #-------------------------------------------------------------------------------
 # Environment
 #-------------------------------------------------------------------------------
 
 VENV_ROOT := .venv
+VENV_SRC := pyproject.toml uv.lock
 VENV := $(VENV_ROOT)/bin/activate
 
-#-------------------------------------------------------------------------------
-# Requirements
-#-------------------------------------------------------------------------------
-
-REQUIREMENTS := requirements.txt
-
-#-------------------------------------------------------------------------------
-# Dependencies
-#-------------------------------------------------------------------------------
-
-DEPENDENCIES := $(BUILD_DIR)/deps.ts
-
-#-------------------------------------------------------------------------------
-# Packages
-#-------------------------------------------------------------------------------
-
-PACKAGES_DIR := $(BUILD_DIR)/packages
-PACKAGES :=
-
-# Package: stickshift
-
-STICKSHIFT_PACKAGE_SRC := $(shell find src -type f | egrep -v '$(EXCLUDE_SRC)')
-STICKSHIFT_PACKAGE_REQUIRES = $(STICKSHIFT_PACKAGE_SRC)
-STICKSHIFT_PACKAGE := $(PACKAGES_DIR)/stickshift-$(PY_VERSION)-py3-none-any.whl
-
-PACKAGES := $(PACKAGES) $(STICKSHIFT_PACKAGE)
 
 #-------------------------------------------------------------------------------
 # Site
 #-------------------------------------------------------------------------------
 
-SITE_SRC_DIR := site
-SITE_SRC := $(SITE_SRC_DIR)/_config.yml \
-            $(shell find $(SITE_SRC_DIR) -type f -name '*.md') \
-			$(shell find $(SITE_SRC_DIR)/assets -type f)
+SITE_SRC_DIR := $(PROJECT_ROOT)/site
+SITE_BUILD_DIR := $(BUILD_DIR)/site
+SITE_PUBLISH_DIR := $(SITE_SRC_DIR)/dist
 
-#-------------------------------------------------------------------------------
-# Posts
-#-------------------------------------------------------------------------------
+ARTICLES_DIR := $(PROJECT_ROOT)/articles
+ARTICLE_IDS := $(foreach dir,$(shell find $(ARTICLES_DIR) -mindepth 1 -maxdepth 1 -type d),$(notdir $(dir)))
+ARTICLE_VENV_ROOTS := $(foreach id,$(ARTICLE_IDS),$(ARTICLES_DIR)/$(id)/.venv)
+ARTICLE_VENVS := $(foreach id,$(ARTICLE_IDS),$(ARTICLES_DIR)/$(id)/.venv/bin/activate)
+ARTICLE_KERNEL_SPEC_ROOTS := $(foreach id,$(ARTICLE_IDS),$(JUPYTER_DATA_DIR)/kernels/$(id))
+ARTICLE_KERNEL_SPECS := $(foreach id,$(ARTICLE_IDS),$(JUPYTER_DATA_DIR)/kernels/$(id)/kernel.json)
+ARTICLE_BUNDLE_ROOTS := $(foreach id,$(ARTICLE_IDS),$(SITE_BUILD_DIR)/articles/$(id))
+ARTICLE_BUNDLES := $(foreach id,$(ARTICLE_IDS),$(SITE_BUILD_DIR)/articles/$(id)/index.html)
+ARTICLE_ROOTS := $(ARTICLE_VENV_ROOTS) $(ARTICLE_KERNEL_SPEC_ROOTS) $(ARTICLE_BUNDLE_ROOTS)
+ARTICLES := $(ARTICLE_VENVS) $(ARTICLE_KERNEL_SPECS) $(ARTICLE_BUNDLES)
 
-POSTS_SRC_DIR := posts
-POSTS_BUILD_DIR := $(SITE_SRC_DIR)/_posts
+THEME := stickshift
+THEME_PYGMENTS_STYLE := tango
+THEME_SRC_DIR := $(SITE_SRC_DIR)/themes/$(THEME)
 
-# Map $(POSTS_SRC_DIR)/**/*.ipynb to $(POSTS_BUILD_DIR)/**/*.md
-POSTS_SRC := $(shell find $(POSTS_SRC_DIR) -type f -name '*.ipynb' | egrep -v '$(EXCLUDE_SRC)')
-POSTS := $(subst $(POSTS_SRC_DIR),$(POSTS_BUILD_DIR),$(POSTS_SRC))
-POSTS := $(patsubst %.ipynb, %.md, $(POSTS))
+SITE_IMAGE_SRC := $(shell find $(THEME_SRC_DIR)/assets/images -type f | egrep -v '$(EXCLUDE_SRC)')
+SITE_IMAGE_BUNDLE := $(patsubst $(THEME_SRC_DIR)/assets/%,$(SITE_BUILD_DIR)/%,$(SITE_IMAGE_SRC))
+
+SITE_CSS_SRC := $(shell find $(THEME_SRC_DIR)/assets/styles -type f | egrep -v '$(EXCLUDE_SRC)')
+
+SITE_CSS_BUNDLE :=
+SITE_CSS_BUNDLE := $(SITE_CSS_BUNDLE) $(SITE_BUILD_DIR)/styles/$(THEME).css
+SITE_CSS_BUNDLE := $(SITE_CSS_BUNDLE) $(SITE_BUILD_DIR)/styles/pygments.css
+
+SITE_BUNDLE := $(SITE_BUILD_DIR)/index.html
+
+SITE := $(ARTICLES) $(SITE_IMAGE_BUNDLE) $(SITE_CSS_BUNDLE) $(SITE_BUNDLE)
+
+SITE_PUBLISHED_BUNDLE := $(SITE_PUBLISH_DIR)/index.html
+
 
 #-------------------------------------------------------------------------------
 # Tests
 #-------------------------------------------------------------------------------
 
-PYTEST_OPTS ?=
+PYTEST_OPTS ?= -n auto
+
 
 #-------------------------------------------------------------------------------
 # Linters
@@ -112,150 +122,168 @@ PYTEST_OPTS ?=
 RUFF_CHECK_OPTS ?= --preview
 RUFF_FORMAT_OPTS ?= --preview
 
+
 #-------------------------------------------------------------------------------
 # Phonies
 #-------------------------------------------------------------------------------
 
 PHONIES :=
 
+
 ################################################################################
 # Targets
 ################################################################################
 
-all: deps
+all: site
+	@echo
+	@echo -e "$(COLOR_H1)# $(PROJECT_NAME)$(COLOR_RESET)"
+	@echo
+	@echo -e "$(COLOR_COMMENT)# Activate VENV$(COLOR_RESET)"
+	@echo -e "source $(VENV)"
+	@echo
+	@echo -e "$(COLOR_COMMENT)# Deactivate VENV$(COLOR_RESET)"
+	@echo -e "deactivate"
+	@echo
+
 
 #-------------------------------------------------------------------------------
 # Output Dirs
 #-------------------------------------------------------------------------------
 
 $(BUILD_DIR):
-	mkdir -p $(BUILD_DIR)
+	mkdir -p $@
+
 
 #-------------------------------------------------------------------------------
 # Environment
 #-------------------------------------------------------------------------------
 
-$(VENV):
-	uv venv --seed
+$(VENV): $(VENV_SRC)
+	uv sync
+	
+	source $@ && python -m ipykernel install --user --name "workspace" --display-name "Workspace"
+	
+	touch $@
 
 venv: $(VENV)
 PHONIES := $(PHONIES) venv
 
 
 #-------------------------------------------------------------------------------
-# Requirements
-#-------------------------------------------------------------------------------
-
-$(REQUIREMENTS): pyproject.toml | $(VENV)
-	@echo
-	@echo -e "$(COLOR_H1)# $@$(COLOR_RESET)"
-	@echo
-
-	source $(VENV) && uv pip compile -o $@ pyproject.toml
-
-	@echo -e "$(COLOR_COMMENT)# Add Project$(COLOR_RESET)"
-	echo "-e file://." >> $@
-	@echo
-
-requirements: $(REQUIREMENTS)
-PHONIES := $(PHONIES) requirements
-
-
-#-------------------------------------------------------------------------------
-# Dependencies
-#-------------------------------------------------------------------------------
-
-$(DEPENDENCIES): $(REQUIREMENTS) | $(BUILD_DIR)
-	source $(VENV) && uv pip sync $(REQUIREMENTS)
-	@echo
-	@echo -e "$(COLOR_COMMENT)# Activate venv: $(COLOR_OK)source $(VENV)$(COLOR_RESET)"
-	@echo -e "$(COLOR_COMMENT)# Deactivate venv: $(COLOR_OK)deactivate$(COLOR_RESET)"
-	@echo
-	touch $@
-
-deps: $(DEPENDENCIES)
-PHONIES := $(PHONIES) deps
-
-
-#-------------------------------------------------------------------------------
-# Packages
-#-------------------------------------------------------------------------------
-
-$(PACKAGES_DIR):
-	mkdir -p $@
-
-# Package: stickshift
-
-$(STICKSHIFT_PACKAGE): $(STICKSHIFT_PACKAGE_REQUIRES) | $(PACKAGES_DIR) $(DEPENDENCIES)
-	@echo
-	@echo -e "$(COLOR_H1)# Package: $$(basename $@)$(COLOR_RESET)"
-	@echo
-
-	@echo -e "$(COLOR_COMMENT)# Build Package$(COLOR_RESET)"
-	source $(VENV) && python -m build --outdir $(PROJECT_ROOT)/$$(dirname $@)
-	@echo
-
-packages: $(PACKAGES)
-
-PHONIES := $(PHONIES) packages
-
-
-#-------------------------------------------------------------------------------
-# Posts
-#-------------------------------------------------------------------------------
-
-$(POSTS_BUILD_DIR)/%.md: $(POSTS_SRC_DIR)/%.ipynb | $(DEPENDENCIES)
-	@echo
-	@echo -e "$(COLOR_H1)# Post: $$(basename $@)$(COLOR_RESET)"
-	@echo
-
-	@echo -e "$(COLOR_COMMENT)# Content$(COLOR_RESET)"
-	source $(VENV) && python -m stickshift.build.post --notebook "$<" --markdown "$@"
-	@echo
-
-	@echo -e "$(COLOR_COMMENT)# Resources$(COLOR_RESET)"
-	find $$(dirname $<) -type f -name '*.svg' -exec cp {} $$(dirname $@) \;
-	find $$(dirname $<) -type f -name '*.png' -exec cp {} $$(dirname $@) \;
-
-posts: $(POSTS)
-
-PHONIES := $(PHONIES) posts
-
-
-#-------------------------------------------------------------------------------
 # Site
 #-------------------------------------------------------------------------------
 
-site: $(SITE_SRC) $(POSTS)
+# Venvs
+$(ARTICLES_DIR)/%/.venv/bin/activate: $(ARTICLES_DIR)/%/pyproject.toml
 	@echo
-	@echo -e "$(COLOR_H1)# Site$(COLOR_RESET)"
+	@echo -e "$(COLOR_H1)# Configure venv $*$(COLOR_RESET)"
 	@echo
 
-	source $(VENV) && \
-	  cd $(SITE_SRC_DIR) && \
-	  bundle install && \
-	  python -m stickshift.build.patch && \
-	  bundle exec jekyll clean && \
-	  bundle exec jekyll build --verbose
+	uv sync --directory "$(ARTICLES_DIR)/$*"
+	
+	touch $@
 
-PHONIES := $(PHONIES) site
+# Kernel Specs
+$(JUPYTER_DATA_DIR)/kernels/%/kernel.json: $(ARTICLES_DIR)/%/.venv/bin/activate
+	@echo
+	@echo -e "$(COLOR_H1)# Configure kernel $*$(COLOR_RESET)"
+	@echo
+
+	mkdir -p "$(dir $@)"
+	source "$<" && python -m ipykernel install --user --name "$*" --display-name "$*"
+	
+	touch $@
+
+# Articles
+$(SITE_BUILD_DIR)/articles/%/index.html: $(ARTICLES_DIR)/%/index.md $(JUPYTER_DATA_DIR)/kernels/%/kernel.json | $(VENV)
+	@echo
+	@echo -e "$(COLOR_H1)# Article $*$(COLOR_RESET)"
+	@echo
+
+	mkdir -p $$(dirname $@)	
+	
+	@echo
+	@echo -e "$(COLOR_COMMENT)# Sync resources$(COLOR_RESET)"	
+	mkdir -p $$(dirname $@)/resources
+	rsync -a $(ARTICLES_DIR)/$*/resources/ $$(dirname $@)/resources/
+
+	@echo
+	@echo -e "$(COLOR_COMMENT)# Build article$(COLOR_RESET)"
+	source $(VENV) && python -m stickshift.build_article --theme $(THEME_SRC_DIR) $< $@
+
+# Theme Images
+$(SITE_BUILD_DIR)/images/%: $(THEME_SRC_DIR)/assets/images/%
+	@echo
+	@echo -e "$(COLOR_COMMENT)# $*$(COLOR_RESET)"
+	mkdir -p $(dir $@)
+	cp $< $@
+
+# Theme Styles
+$(SITE_BUILD_DIR)/styles/$(THEME).css: $(SITE_CSS_SRC)
+	@echo
+	@echo -e "$(COLOR_H1)# Compile CSS$(COLOR_RESET)"
+	@echo
+
+	mkdir -p $(dir $@)
+	sass $(THEME_SRC_DIR)/assets/styles/$(THEME).scss $@
+
+# Pygments
+$(SITE_BUILD_DIR)/styles/pygments.css: | $(VENV)
+	@echo
+	@echo -e "$(COLOR_H1)# Pygments$(COLOR_RESET)"
+	@echo
+
+	mkdir -p $(dir $@)
+	source $(VENV) && pygmentize -S $(THEME_PYGMENTS_STYLE) -f html > $@
+
+# Site Index
+$(SITE_BUILD_DIR)/index.html: $(ARTICLES) | $(VENV)
+	@echo
+	@echo -e "$(COLOR_H1)# Site Index$(COLOR_RESET)"
+	@echo
+
+	source $(VENV) && python -m stickshift.build_index --theme $(THEME_SRC_DIR) $@
+
+# Published Site
+$(SITE_PUBLISHED_BUNDLE): $(SITE)
+	@echo
+	@echo -e "$(COLOR_H1)# Publish Site$(COLOR_RESET)"
+	@echo
+	
+	$(RM) $(SITE_PUBLISH_DIR)
+	mkdir -p $(SITE_PUBLISH_DIR)
+	cp -R $(SITE_BUILD_DIR)/* $(SITE_PUBLISH_DIR)
+
+	touch $@
+
+articles: $(ARTICLES)
+
+site: $(SITE)
+
+deploy: $(SITE)
+	source $(VENV) && python -m http.server -d $(SITE_BUILD_DIR)
+
+publish: $(SITE_PUBLISHED_BUNDLE)
+
+PHONIES := $(PHONIES) articles site deploy publish
+
 
 #-------------------------------------------------------------------------------
 # Tests
 #-------------------------------------------------------------------------------
 
-tests: $(DEPENDENCIES)
+tests: $(VENV)
 	@echo
 	@echo -e "$(COLOR_H1)# Tests$(COLOR_RESET)"
 	@echo
 
 	source $(VENV) && pytest $(PYTEST_OPTS) tests
 
-coverage: $(DEPENDENCIES)
+coverage: $(VENV)
 	@echo
 	@echo -e "$(COLOR_H1)# Coverage$(COLOR_RESET)"
 	@echo
-
+	mkdir -p $$(dirname $(BUILD_DIR)/coverage)
 	source $(VENV) && pytest $(PYTEST_OPTS) --cov=xformers --cov-report=html:$(BUILD_DIR)/coverage tests
 
 PHONIES := $(PHONIES) tests coverage
@@ -265,18 +293,16 @@ PHONIES := $(PHONIES) tests coverage
 # Linters
 #-------------------------------------------------------------------------------
 
-lint-fmt: deps
-	source $(VENV) && \
-	  ruff format $(RUFF_FORMAT_OPTS) && \
-	  ruff check --fix $(RUFF_CHECK_OPTS) && \
-	  make lint-style
+lint: venv
+	uvx ruff check $(RUFF_CHECK_OPTS)
+	uvx ruff format --check $(RUFF_FORMAT_OPTS)
 
-lint-style: deps
-	source $(VENV) && \
-	  ruff check $(RUFF_CHECK_OPTS) && \
-	  ruff format --check $(RUFF_FORMAT_OPTS)
+lint-fix: venv
+	uvx ruff format $(RUFF_FORMAT_OPTS)
+	uvx ruff check --fix $(RUFF_CHECK_OPTS)
+	make lint
 
-PHONIES := $(PHONIES) lint-fmt lint-style
+PHONIES := $(PHONIES) lint-fix lint
 
 
 #-------------------------------------------------------------------------------
@@ -287,17 +313,18 @@ clean-cache:
 	find . -type d -name "__pycache__" -exec rm -rf {} +
 
 clean-venv:
-	$(RM) $(VENV_ROOT)
+	$(RM) "$(VENV_ROOT)"
 
-clean-requirements:
-	$(RM) $(REQUIREMENTS)
+clean-articles:
+	$(RM) $(ARTICLE_ROOTS)
 
 clean-site:
-	cd $(SITE_SRC_DIR) && bundle exec jekyll clean
-	$(RM) $(POSTS_BUILD_DIR)
+	$(RM) "$(SITE_BUILD_DIR)"
 
-clean: clean-cache clean-venv clean-requirements clean-site
-PHONIES := $(PHONIES) clean-cache clean-venv clean-requirements clean-site clean
+clean-build: clean-articles clean-site
+	$(RM) "$(BUILD_DIR)"
 
+clean: clean-cache clean-venv clean-articles clean-site clean-build 
+PHONIES := $(PHONIES) clean-cache clean-venv clean-articles clean-site clean-build clean
 
 .PHONY: $(PHONIES)

@@ -1,0 +1,441 @@
+html {
+  background-color: white;
+}
+
+html, body, header, footer, main, div, p, td, h1, h2, h3, h4, h5 {
+  font-family: "Noto Serif", serif;
+  font-size: 16px;
+  font-weight: 400;
+  font-style: normal;
+  font-optical-sizing: auto;
+  font-variation-settings: "wdth" 100;
+  color: rgba(0, 0, 0, 0.89);
+  margin: 0;
+  padding: 0;
+}
+@media screen and (max-width: 960px) {
+  html, body, header, footer, main, div, p, td, h1, h2, h3, h4, h5 {
+    font-size: calc(0.8 * 16px);
+  }
+}
+
+a,
+a:link,
+a:visited,
+a:hover,
+a:active,
+a:focus {
+  color: rgba(29, 66, 115, 0.89);
+  font-weight: calc(1.2 * 400);
+  text-decoration: none;
+}
+a.headerlink,
+a:link.headerlink,
+a:visited.headerlink,
+a:hover.headerlink,
+a:active.headerlink,
+a:focus.headerlink {
+  color: rgb(166.3541666667, 194.875, 232.6458333333);
+  font-size: 0.8em;
+  padding: 0 4px;
+  margin-left: 0.2em;
+  text-decoration: none;
+  user-select: none;
+}
+
+a.missing {
+  color: red;
+}
+
+.icon {
+  display: inline-block;
+  vertical-align: middle;
+}
+
+img.align-center {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+figure figcaption {
+  text-align: center;
+  color: rgba(0, 0, 0, 0.54);
+}
+
+body > header {
+  border-top: 2px solid rgb(29, 66, 115);
+  border-bottom: 1px solid rgb(29, 66, 115);
+  background-color: rgba(0, 0, 0, 0.05);
+}
+body > header .navbar {
+  padding: 16px 0;
+}
+body > header .navbar a {
+  font-family: "Noto Sans", sans-serif !important;
+  font-size: 1.4rem !important;
+}
+body > header .navbar .icon {
+  width: 1.5rem;
+  height: 1.5rem;
+}
+body > main > aside .toc {
+  margin-bottom: 2rem;
+}
+body > main > aside .toc header {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+body > main > aside .toc header h1 {
+  font-size: 16px;
+  font-family: "Noto Sans", sans-serif;
+  font-weight: calc(1.2 * 400);
+}
+body > main > aside .toc header .icon {
+  width: 1rem;
+  height: 1rem;
+}
+body > main > aside .toc ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0 0 0 0.5rem;
+}
+body > main > aside .toc ul > li {
+  margin-bottom: 0.5rem;
+}
+body > main > aside .toc li {
+  font-family: "Noto Sans", sans-serif;
+}
+body > main > aside .toc ul > li > ul {
+  margin: 0.5rem 0 0 1rem;
+}
+body > main > aside .toc ul > li > ul > li {
+  margin-bottom: 0.25rem;
+}
+body > main article {
+  margin-bottom: 2rem;
+}
+body > main article > header > h1 {
+  font-size: 2.3rem;
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+body > main article > header > h2 {
+  font-size: 1.4rem;
+  font-family: "Noto Sans", sans-serif;
+  font-weight: 400;
+  color: rgba(0, 0, 0, 0.54);
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+body > main article > header > h3 {
+  font-size: 16px;
+  color: rgba(0, 0, 0, 0.54);
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+body > main article > h1, body > main article > h2, body > main article > h3 {
+  margin-top: 2rem;
+  margin-bottom: 1rem;
+}
+body > main article > h1 {
+  font-size: 1.8rem;
+}
+body > main article > h2 {
+  font-size: 1.4rem;
+}
+body > main article > h3 {
+  font-size: 1.2rem;
+  font-family: "Noto Sans", sans-serif;
+  text-transform: uppercase;
+}
+body > main article p, body > main article li {
+  font-size: 1.2rem;
+  font-weight: calc(0.75 * 400);
+  font-variation-settings: "wdth" 120;
+}
+body > main article p {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+body > footer {
+  border-top: 1px solid rgb(29, 66, 115);
+  border-bottom: 2px solid rgb(29, 66, 115);
+  background-color: rgba(0, 0, 0, 0.05);
+}
+body > footer h1 {
+  font-size: 1.2rem;
+  font-family: "Noto Sans", sans-serif;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+body > footer h2 {
+  font-size: 1.2rem;
+  font-family: "Noto Sans", sans-serif;
+  color: rgba(0, 0, 0, 0.54);
+  margin-bottom: 1rem;
+}
+body > footer ul {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+body > footer ul li {
+  margin-bottom: 1rem;
+}
+body > footer p {
+  font-family: "Noto Sans", sans-serif;
+  color: rgba(0, 0, 0, 0.54);
+}
+body > footer .icon {
+  width: 1rem;
+  height: 1rem;
+  padding-right: 0.25rem;
+}
+body > footer .username {
+  font-family: "Noto Sans", sans-serif;
+}
+
+ul.articles {
+  list-style-type: none;
+  padding: 0;
+  margin: 0;
+}
+ul.articles li {
+  margin-top: 2rem;
+}
+ul.articles li .published {
+  font-family: "Noto Sans", sans-serif;
+  color: rgba(0, 0, 0, 0.54);
+  margin-bottom: 0.5rem;
+}
+ul.articles li a {
+  display: block;
+  font-family: "Noto Sans", sans-serif;
+  font-weight: 400;
+  font-size: 1.4rem;
+}
+ul.articles li:last-child {
+  margin-bottom: 2rem;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+body > header {
+  flex-shrink: 0;
+  width: 100%;
+}
+body > header .navbar {
+  display: flex;
+  justify-content: space-between;
+  width: 960px;
+  margin: 0 auto;
+}
+@media screen and (max-width: 960px) {
+  body > header .navbar {
+    width: 95%;
+  }
+}
+body > main {
+  flex-grow: 1;
+  display: flex;
+  width: 960px;
+  margin: 0 auto;
+}
+body > main > aside {
+  width: calc(3 * calc(960px / 12) - 16px);
+  margin-right: 16px;
+  flex-shrink: 0;
+}
+body > main > aside .toc {
+  position: sticky;
+  top: 1rem;
+}
+body > main > aside .toc header {
+  display: flex;
+  gap: 0.5rem;
+}
+body > main article {
+  width: calc(9 * calc(960px / 12));
+}
+@media screen and (max-width: 960px) {
+  body > main {
+    width: 95%;
+  }
+}
+body > footer {
+  height: 220px;
+  flex-shrink: 0;
+}
+
+@media screen and (max-width: 960px) {
+  body > main > aside {
+    display: none;
+  }
+  body > main article {
+    width: 100%;
+  }
+}
+img, mjx-container > svg {
+  max-width: 100%;
+}
+
+a.headerlink {
+  visibility: hidden;
+}
+
+h1:hover > a.headerlink,
+h2:hover > a.headerlink,
+h3:hover > a.headerlink,
+h4:hover > a.headerlink,
+h5:hover > a.headerlink,
+h6:hover > a.headerlink,
+dt:hover > a.headerlink,
+caption:hover > a.headerlink,
+p.caption:hover > a.headerlink,
+div.code-block-caption:hover > a.headerlink {
+  visibility: visible;
+}
+
+.content {
+  width: 960px;
+  margin: 0 auto;
+}
+@media screen and (max-width: 960px) {
+  .content {
+    width: 95%;
+  }
+}
+
+.columns {
+  width: 100%;
+  display: flex;
+}
+.columns .column1 {
+  width: calc(4 * calc(960px / 12) - 16px);
+  margin-right: 16px;
+}
+.columns .column2 {
+  width: calc(4 * calc(960px / 12) - 16px);
+  margin-right: 16px;
+}
+.columns .column3 {
+  width: calc(4 * calc(960px / 12));
+}
+@media screen and (max-width: 960px) {
+  .columns {
+    flex-direction: column;
+  }
+  .columns .column1, .columns .column2, .columns .column3 {
+    width: 100%;
+  }
+}
+
+pre, code {
+  margin: 0;
+  padding: 0;
+  font-family: "Noto Sans Mono", monospace;
+  font-weight: 400;
+  font-size: 0.9rem;
+}
+
+.highlight pre {
+  overflow-x: auto;
+  padding: 0.75rem;
+  border-style: solid;
+  border-radius: 0.25rem;
+  border-width: 1px 1px 1px 1px;
+  border-color: rgba(0, 0, 0, 0.2);
+  background-color: rgba(0, 0, 0, 0.025);
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+
+.highlight.language-markdown pre {
+  text-wrap: wrap;
+}
+
+.cell-input .highlight pre {
+  margin-bottom: 1rem;
+}
+
+.cell-output .highlight pre {
+  border: none;
+  background-color: white;
+  text-wrap: wrap;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+}
+.cell-output img {
+  display: block;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+mjx-container {
+  margin-top: 2rem !important;
+  margin-bottom: 2rem !important;
+}
+
+.citation {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+.citation p {
+  margin: 0;
+}
+
+.references .csl-entry {
+  font-size: 1.2rem;
+  font-weight: calc(0.75 * 400);
+  font-variation-settings: "wdth" 120;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  padding-left: 2rem;
+  text-indent: -2rem;
+}
+
+aside.admonition {
+  border-style: solid;
+  border-radius: 0.25rem;
+  border-width: 1px 1px 1px 1px;
+  border-color: rgba(29, 66, 115, 0.75);
+  background-color: rgba(29, 66, 115, 0.1);
+  margin: 2rem 1rem;
+}
+aside.admonition p {
+  margin: 0;
+  padding: 1rem;
+}
+aside.admonition p.admonition-title {
+  font-family: "Noto Sans", sans-serif;
+  font-weight: calc(1.2 * 400);
+  background-color: rgb(29, 66, 115);
+  border-radius: 0.25rem 0.25rem 0 0;
+  color: white;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+div.card {
+  border-style: solid;
+  border-radius: 0.25rem;
+  border-width: 1px 1px 1px 1px;
+  border-color: rgba(29, 66, 115, 0.75);
+  background-color: rgba(29, 66, 115, 0.1);
+  margin: 2rem 1rem;
+}
+div.card p {
+  font-family: "Noto Sans", sans-serif;
+  margin: 0;
+  padding: 1rem;
+}
+
+/*# sourceMappingURL=stickshift.css.map */

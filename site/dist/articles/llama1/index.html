@@ -1,0 +1,1354 @@
+<!DOCTYPE html>
+
+
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pattern Recognition - Transformer Teardown: Llama 3.1</title>
+
+    <!-- fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Mono:wght@100..900&family=Noto+Sans:ital,wght@0,100..900;1,100..900&family=Noto+Serif:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">
+    <!-- /fonts -->
+
+    <!-- css -->
+    
+    <link rel="stylesheet" href="/styles/pygments.css">
+    
+    <link rel="stylesheet" href="/styles/stickshift.css">
+    
+    <!-- /css -->
+
+    <!-- mathjax -->
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$']],
+                tags: 'ams' // Support numbered eqs
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    <!-- /mathjax -->
+
+</head>
+<body>
+    <header>
+        <div class="navbar">
+            <a href="/index.html">Pattern Recognition</a>
+            <a href="https://github.com/stickshift/stickshift.github.io"><img class="icon icon-github" src="/images/github.svg"></a>
+        </div>
+    </header>
+
+    <main>
+        
+    <!-- toc -->
+    <aside>
+        <div class="toc">
+            <header>
+                <h1>Sections</h1>
+                <a href="#"><img class="icon icon-up" src="/images/up.svg"></a>
+            </header>
+
+            <ul>
+    
+    <li>
+        <a href="#llama-foundation-models">Llama Foundation Models</a>
+        
+    </li>
+    
+    <li>
+        <a href="#model-checkpoint">Model Checkpoint</a>
+        
+    </li>
+    
+    <li>
+        <a href="#text-generation-pipeline">Text Generation Pipeline</a>
+        
+    </li>
+    
+    <li>
+        <a href="#raw-text">Raw Text</a>
+        
+    </li>
+    
+    <li>
+        <a href="#tokenize">Tokenize</a>
+        
+    </li>
+    
+    <li>
+        <a href="#embeddings">Embeddings</a>
+        
+    </li>
+    
+    <li>
+        <a href="#context-layers">Context Layers</a>
+        
+            <ul>
+    
+    <li>
+        <a href="#decoder-only-model-architecture">Decoder-Only Model Architecture</a>
+        
+    </li>
+    
+    <li>
+        <a href="#attention">Attention</a>
+        
+    </li>
+    
+    <li>
+        <a href="#feedforward-networks">Feedforward Networks</a>
+        
+    </li>
+    
+    <li>
+        <a href="#stacking-the-layers">Stacking the Layers</a>
+        
+    </li>
+    
+</ul>
+        
+    </li>
+    
+    <li>
+        <a href="#head">Head</a>
+        
+            <ul>
+    
+    <li>
+        <a href="#normalize-inputs">Normalize Inputs</a>
+        
+    </li>
+    
+    <li>
+        <a href="#classify-sequence">Classify Sequence</a>
+        
+    </li>
+    
+    <li>
+        <a href="#top-token">Top Token</a>
+        
+    </li>
+    
+    <li>
+        <a href="#sample-tokens">Sample Tokens</a>
+        
+    </li>
+    
+    <li>
+        <a href="#complete-head-stage">Complete Head Stage</a>
+        
+    </li>
+    
+</ul>
+        
+    </li>
+    
+    <li>
+        <a href="#generator">Generator</a>
+        
+    </li>
+    
+    <li>
+        <a href="#recap">Recap</a>
+        
+    </li>
+    
+    <li>
+        <a href="#references">References</a>
+        
+    </li>
+    
+</ul>
+        </div>
+    </aside>
+    <!-- /toc -->
+
+
+        
+    <!-- article -->
+    <article>
+        <header>
+<h1>Transformer Teardown: Llama 3.1</h1>
+<h2>Trace an Inference Through Each Layer of the SOTA Llama 3.1 Foundation Models</h2>
+<h3>September 21, 2024</h3>
+<img src="resources/banner.png" alt="Transformer Teardown: Llama 3.1"></header>
+<p>In <a href="https://stickshift.github.io/articles/distilbert1">the last Transformer Teardown</a>, we dissected a DistilBERT text classification pipeline, tracing a single inference through the entire stack from raw data to final prediction. Studying BERT-based text classification models is a fantastic way to see the basic Transformer machinery in action. But BERT was published in 2018! It would be another 4 years before ChatGPT launched and Generative AI exploded onto the scene. It's safe to say a lot has changed.</p>
+<p>In this Transformer Teardown, we're going to fast forward to present day. We'll use the same teardown process to unpack the state-of-the-art <a href="https://llama.meta.com/">Llama 3.1</a> open source foundation models released by Meta in July. We'll walk through each step of a text generation pipeline one cell at a time, tracing an inference from raw text to the first output token. We'll illustrate the main ideas from the latest Transformer literature with minimal, straightforward, working Python code, giving you a close-up view of the core mechanisms driving the Generative AI revolution.</p>
+<h1 id="llama-foundation-models">Llama Foundation Models</h1>
+<p><a href="https://llama.meta.com/">Llama</a> is a family of general purpose, state-of-the-art, open source foundation models from Meta. According to the 3.1 technical report, the latest models can &quot;answer questions in at least 8 languages, write high quality code, solve complex reasoning problems, and use tools in a zero-shot way.&quot; <a class="ref" href="#ref-dubey_llama_2024">Dubey <em>et al.</em> (2024)</a></p>
+<p>The Llama 3.1 release includes 8B, 70B, and 405B parameter sizes. While you need a multi-GPU cluster to run the 70B and 405B sizes, the 8B model is small enough to experiment with on a laptop. Not only did Meta release the pre-trained model checkpoints for all 3 sizes, they also published a fantastically detailed, <a href="https://arxiv.org/abs/2407.21783v2">70 page technical report</a> as well as a complete <a href="https://github.com/meta-llama/llama-models">reference implementation</a>.</p>
+<div class="card"><p><em>Llama 3.1 represents an incredible learning opportunity to study the inner workings of a modern frontier model.</em></p>
+</div><p>Over the course of this post, we'll implement a complete text generation pipeline using only the research literature, pre-trained weights from the <code>Meta-Llama3.1-8B-Instruct</code> checkpoint, and Meta's reference implementation as a guide. After we load the 8B checkpoint, we'll review the stages of an end-to-end, text generation pipeline. In the sections that follow, we'll walk through a detailed teardown of each stage—tracing an inference from raw data to the first output token. In the last section, we'll put all the pieces together into a complete generative Transformer capable of producing long form content.</p>
+<p>Let the teardown begin!</p>
+<h1 id="model-checkpoint">Model Checkpoint</h1>
+<p>We'll start by loading the configuration and pre-trained weights for the <code>Meta-Llama3.1-8B-Instruct</code> checkpoint. The &quot;instruct&quot; versions of the Llama models include the raw pre-training and substantial post-training to support user and assistant interactions and complex tool-calling scenarios. The weights for all Llama checkpoints can be downloaded directly from <a href="https://llama.meta.com/">Meta</a>, <a href="https://huggingface.co/meta-llama">Hugging Face</a>, and <a href="https://www.kaggle.com/organizations/metaresearch/models">Kaggle</a>.</p>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Load model config</span>
+<span class="n">config</span> <span class="o">=</span> <span class="n">load_config</span><span class="p">(</span><span class="s2">"Meta-Llama3.1-8B-Instruct"</span><span class="p">)</span>
+
+<span class="c1"># Load pre-trained model parameters</span>
+<span class="n">checkpoint</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span>
+    <span class="n">config</span><span class="o">.</span><span class="n">checkpoint_path</span> <span class="o">/</span> <span class="s2">"consolidated.00.pth"</span><span class="p">,</span> 
+    <span class="n">weights_only</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> 
+    <span class="n">map_location</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="n">config</span><span class="o">.</span><span class="n">_asdict</span><span class="p">()</span>
+</pre></div>
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>{'device': device(type='mps'), 'checkpoint_path': PosixPath('/Users/andrewyoung/.llama/checkpoints/Meta-Llama3.1-8B-Instruct'), 'vocab_size': 128256, 'd_model': 4096, 'd_head': 128, 'd_ffn': 14336, 'n_layers': 32, 'n_heads': 32, 'n_kv_heads': 8, 'rms_norm_eps': 1e-05, 'rope_theta': 500000.0, 'max_seq_len': 8192, 'temperature': 0.6, 'top_k': 50, 'top_p': 0.9, 'max_completion_tokens': 64}
+</pre></div>
+</div><p>We'll reference a number of the settings in <code>config</code> throughout the teardown. For now, a few interesting ones to note are <code>d_model</code>, <code>d_ffn</code>, <code>n_layers</code>, and <code>n_heads</code>. These represent the primary differences between the 8B, 70B, and 405B sizes.</p>
+<h1 id="text-generation-pipeline">Text Generation Pipeline</h1>
+<p>In <a href="https://stickshift.github.io/2024/09/04/transformer-teardown.html">the last teardown</a>, we looked at a text classification Transformer. This time we're going to dissect a <em>text generation</em> Transformer. Instead of simply applying a label to the input text, the Head stage will be responsible for <em>generating</em> new content. But don't worry! It's not as complicated as it sounds.</p>
+<p><a class="ref" href="#text-generation-pipeline-fig">Figure 1</a> illustrates the stages in a text generation pipeline. It's very similar to the text classification pipeline we looked at last time. The Tokenize stage splits raw text into a sequence of tokens. The Embeddings stage maps the sequence of tokens to a sequence of embedding vectors. The Context Layers augment the embeddings with contextual signals drawn from the surrounding tokens, transforming individual token embeddings into contextualized &quot;semantic embeddings&quot;. Finally, the Head stage converts the semantic embeddings into predictions. The key difference is, instead of predicting a label for the raw text, text generation Transformers <em>predict the next token</em>.</p>
+<figure id="text-generation-pipeline-fig"><img alt="Text Generation Pipeline" src="resources/transformer-pipeline.svg"/><figcaption>Figure 1: Text Generation Pipeline</figcaption></figure><p>But one token is just the beginning! The magical powers of Generative AI are manifested by simply running the token predictions in a loop. The predicted token in each iteration is appended to the end of the input sequence, and the process repeats. Over and over again.</p>
+<h1 id="raw-text">Raw Text</h1>
+<p>Before we can tear anything down, we need a prompt. Since our goal is to trace an inference from raw text to the first output token, we want to start with a prompt that's specific enough to generate a consistent, one-word answer. If we do everything right, the first output token we predict should be &quot;Boston&quot;.</p>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Prompt</span>
+<span class="n">prompt</span> <span class="o">=</span> <span class="s2">"&lt;|start_header_id|&gt;user&lt;|end_header_id|&gt;</span><span class="se">\n\n</span><span class="s2">"</span>
+<span class="n">prompt</span> <span class="o">+=</span> <span class="s2">"What is the capital of Massachusetts? Answer in one word."</span>
+<span class="n">prompt</span> <span class="o">+=</span> <span class="s2">"&lt;|eot_id|&gt;"</span>
+<span class="n">prompt</span> <span class="o">+=</span> <span class="s2">"&lt;|start_header_id|&gt;assistant&lt;|end_header_id|&gt;</span><span class="se">\n\n</span><span class="s2">"</span>
+</pre></div>
+</div><p>You can see <code>prompt</code> includes a number of special tokens. These would usually be injected by a framework like Hugging Face's <code>transformers</code>. We need to manually inject them because we're working with the model directly. You can find more information on the Llama 3.1 prompt syntax in the <a href="https://www.llama.com/docs/how-to-guides/prompting">Llama Prompting Guide</a>.</p>
+<h1 id="tokenize">Tokenize</h1>
+<p>The Tokenize stage splits raw text into a sequence of tokens using a fixed vocabulary. Llama uses a vocabulary of 128k tokens built on top of OpenAI's tiktoken tokenizer. We'll dig into the gory details in the later stages, but here we'll simply use the off-the-shelf Tokenizer from Meta's llama-models reference implementation.</p>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="kn">from</span> <span class="nn">llama_models.llama3.api.tokenizer</span> <span class="kn">import</span> <span class="n">Tokenizer</span>
+
+<span class="c1"># Load tokenizer model from checkpoint</span>
+<span class="n">tokenizer</span> <span class="o">=</span> <span class="n">Tokenizer</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">checkpoint_path</span> <span class="o">/</span> <span class="s2">"tokenizer.model"</span><span class="p">))</span>
+</pre></div>
+</div><div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Split raw text into tokens</span>
+<span class="n">token_ids</span> <span class="o">=</span> <span class="n">tokenizer</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">prompt</span><span class="p">,</span> <span class="n">bos</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">eos</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">allowed_special</span><span class="o">=</span><span class="s2">"all"</span><span class="p">)</span>
+<span class="n">token_ids</span>
+</pre></div>
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>[128000, 128006, 882, 128007, 271, 3923, 374, 279, 6864, 315, 22108, 30, 22559, 304, 832, 3492, 13, 128009, 128006, 78191, 128007, 271]
+</pre></div>
+</div><div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="nb">len</span><span class="p">(</span><span class="n">token_ids</span><span class="p">)</span>
+</pre></div>
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>22
+</pre></div>
+</div><p>We see <code>tokenizer.encode</code> split our prompt into 22 token ids. These ids represent the index of each token in Llama's 128k token vocabulary. We can always reverse the process with <code>tokenizer.decode</code>. If you look closely at the cell output below, you'll notice the tokenizer injected another special token <code>(128000, '&lt;|begin_of_text|&gt;')</code> to mark the beginning of the sequence.</p>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Decode token ids back into raw text</span>
+<span class="n">tokenizer</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">token_ids</span><span class="p">)</span>
+</pre></div>
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>'&lt;|begin_of_text|&gt;&lt;|start_header_id|&gt;user&lt;|end_header_id|&gt;\n\nWhat is the capital of Massachusetts? Answer in one word.&lt;|eot_id|&gt;&lt;|start_header_id|&gt;assistant&lt;|end_header_id|&gt;\n\n'
+</pre></div>
+</div><div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Load token_ids into a tensor</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">token_ids</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+
+<span class="n">x</span><span class="o">.</span><span class="n">shape</span>
+</pre></div>
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>torch.Size([22])
+</pre></div>
+</div><h1 id="embeddings">Embeddings</h1>
+<p>Embeddings are a key component of the Transformer architecture. They're also abstract mathematical structures that can be difficult to wrap your head around. To illustrate the crucial role embeddings play, let's use a quick metaphor.</p>
+<div class="card"><p><em>If a Transformer was a brain, then embeddings would be the electrical signals carrying information through the brain.</em></p>
+</div><p>Continuing with the metaphor, the Embeddings stage of the pipeline would be your sensory organs where light rays and air vibrations are translated into electrical impulses. Token embeddings would be the fresh sensory percepts. Semantic embeddings would be the abstract thoughts at the top of the cortical stack. The idea of percepts traveling up the cortical stack is a perfect analogy for token embeddings traveling through the Transformer layers.</p>
+<p>Implementing Llama's Embeddings stage is relatively straightforward. We'll use a lookup table with a unique embedding for each of the 128k tokens in the vocabulary. Each embedding is a vector with $d_{model}$ elements that were randomly generated and then learned during training. Given a sequence of token ids, the lookup table returns their embeddings as row vectors stacked in an $n \times d_{model}$ tensor.</p>
+<figure id="embeddings-fig"><img alt="Learned Token Embeddings" src="resources/embeddings.svg"/><figcaption>Figure 2: Learned Token Embeddings</figcaption></figure><div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Initialize embeddings lookup table</span>
+<span class="n">embeddings</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Embedding</span><span class="p">(</span>
+    <span class="n">num_embeddings</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">vocab_size</span><span class="p">,</span> 
+    <span class="n">embedding_dim</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">d_model</span><span class="p">,</span>
+    <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># Load pre-trained state</span>
+<span class="n">load_state</span><span class="p">(</span><span class="n">embeddings</span><span class="p">,</span> <span class="s2">"embeddings"</span><span class="p">,</span> <span class="n">checkpoint</span><span class="o">=</span><span class="n">checkpoint</span><span class="p">)</span>
+</pre></div>
+</div><div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Map token ids to embeddings</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">embeddings</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+<span class="n">x</span><span class="o">.</span><span class="n">shape</span>
+</pre></div>
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>torch.Size([22, 4096])
+</pre></div>
+</div><p>We can see from <code>x.shape</code> that we successfully mapped the 22 token ids to 22 token embeddings stacked in an $n \times d_{model}$ tensor.</p>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Show sample</span>
+<span class="n">x</span>
+</pre></div>
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>tensor([[ 2.6512e-04, -4.9973e-04, -5.8365e-04,  ...,  3.8147e-03,  6.3419e-05,  1.1902e-03],
+        [-1.6499e-04, -2.4319e-04,  1.6403e-04,  ..., -1.5163e-04,  3.5095e-04,  7.3242e-04],
+        [ 3.5095e-03,  7.2021e-03,  5.3406e-05,  ..., -7.2479e-04, -1.0620e-02,  8.2779e-04],
+        ...,
+        [-9.7656e-03, -3.4637e-03,  1.8616e-03,  ..., -7.1411e-03, -4.3030e-03,  8.6060e-03],
+        [-4.6158e-04, -3.9291e-04, -6.5863e-06,  ..., -6.2561e-04, -5.0354e-04,  6.6757e-04],
+        [-2.8687e-03,  3.8910e-03, -1.7357e-04,  ...,  8.0872e-04,  5.0354e-04,  2.3041e-03]], device='mps:0',
+       grad_fn=&lt;EmbeddingBackward0&gt;)
+</pre></div>
+</div><p>Before we move on, a quick note on terminology. If you've used cloud-based LLM APIs like OpenAI or LangChain, you're likely familiar with the term &quot;embedding model&quot;. An <em>embedding model</em> is really a combination of a tokenizer and embeddings table. These are often bundled together to give you everything you need to convert raw text into embedding vectors and can be used for a number of things independent of the LLM.</p>
+<p>Now that we've converted our raw text into token embeddings, it's time to start transforming!</p>
+<h1 id="context-layers">Context Layers</h1>
+<p>Context layers are where the Transformer magic happens. Collectively, the Context Layers are responsible for transforming a sequence of token embeddings into a sequence of semantic embeddings. The mechanism works by passing the embeddings through multiple layers of attention and feedforward blocks. The attention blocks focus on relationships between embeddings, augmenting each one with a weighted combination of the surrounding embeddings. The feedforward blocks capitalize on the extra context, transforming each augmented embedding with the non-linear magic of a fully-connected multilayer perceptron. By stacking multiple layers together, Transformers repeat the pattern of attention and transformation, gradually converting representations of individual words into representations of abstract semantic concepts.</p>
+<figure id="context-layers-fig"><img alt="Context Layers" src="resources/transformer-layers.svg"/><figcaption>Figure 3: Context Layers</figcaption></figure><p><a class="ref" href="#context-layers-fig">Figure 3</a> illustrates the flow of information through a single layer. Embeddings are first passed to the Attention block. The attention outputs are added to the attention inputs before being passed to the FFN block. Similarly, the FFN outputs are added to the FFN inputs before being passed to the next layer. Adding the inputs and outputs of each block is known as &quot;residual learning&quot; and is critical for providing a stable path for gradient flow during training (<a class="ref" href="#ref-he_deep_2015">He <em>et al.</em>, 2015</a>).</p>
+<h2 id="decoder-only-model-architecture">Decoder-Only Model Architecture</h2>
+<p>Like most of today's generative models, Llama uses a &quot;decoder-only&quot; model architecture. Instead of using the fully connected self attention we saw in <a href="https://stickshift.github.io/2024/09/04/transformer-teardown.html">the DistilBERT teardown</a>, the context layers in Llama use <em>masked self attention</em>. The &quot;decoder-only&quot; term comes from the &quot;Attention is All You Need&quot; paper, where Vaswani et al. described layers of self attention as &quot;encoder layers&quot; and layers of masked self attention as &quot;decoder layers&quot;. While Vaswani et al.'s <em>Vanilla</em> Transformer architecture processed inputs and outputs with encoder layers and decoder layers respectively, later researchers showed that by adding more compute you could achieve the same goals using a single stack of decoder layers. For a fascinating discussion of how decoders became the dominant architecture, I highly recommend watching <a href="https://youtu.be/orDKvo8h71o?si=J2sxhYtL9LCd6IRk">Hyung Won Chung's guest lecture at Stanford on the Future of AI</a> from April of this year.</p>
+<h2 id="attention">Attention</h2>
+<p>Attention is the signature component in the Transformer architecture. In the 7 years since Vaswani et al. published &quot;Attention is All You Need&quot;, researchers have experimented with numerous attention variations of all shapes and sizes. Before we jump into the code, we'll quickly review the fundamental concepts behind attention followed by details on the specific approach chosen by the Llama authors.</p>
+<h3>What is Attention?</h3>
+<p>Given our input embeddings are stacked in an $n \times d_{model}$ tensor $\mathbf{X}$, the goal of attention is to map each embedding $\set{\mathbf{x}_m \mid \mathbf{x}_m \in \mathbf{X}}$ to an attention representation $\mathbf{a}_m$ that includes relevant contextual signals drawn from the rest of the embeddings $\set{\mathbf{x}_n \mid \mathbf{x}_n \in \mathbf{X}, n \neq m}$.</p>
+<p>For example, let's imagine we've mapped the sentence <code>I love New York</code> to the sequence of token embeddings $\mathbf{x} = [E_{I}, E_{love}, E_{New}, E_{York}]$. The embedding $\mathbf{x}_2$ represents the word &quot;New&quot; <em>in isolation</em>. The word &quot;New&quot; can mean a lot of things; many of which have nothing to do with this sentence. Our goal would be to generate an attention representation $\mathbf{a}_2$ containing signals from the other embeddings $\set{E_{I}, E_{love}, E_{York}}$ that would help us create a <em>better</em> version of $\mathbf{x}_2$:</p>
+$$
+\mathbf{x}_{2*} = \mathbf{x}_{2} + \mathbf{a}_{2}
+$$
+<p>Let's assume each embedding contributes &quot;something&quot; to $\mathbf{a}_m$. Even though we can't quantify &quot;something&quot; yet, we can write $\mathbf{a}_m$ as an unknown function $f_A$ of the two embeddings $\mathbf{x}_m$, $\mathbf{x}_n$:</p>
+$$
+\mathbf{a}_m = \sum_{\mathbf{x}_n \in \mathbf{X}} f_A(\mathbf{x}_m, \mathbf{x}_n)
+$$
+<p>All of the attention variations in the Transformer literature—e.g. Self Attention, Multi-Head Self Attention, Linear Attention, Grouped Query Attention—are different approaches to implement $f_A$. In practice, the authors of a new Transformer model start with Vaswani et al.'s attention definition and then select from the large, à la carte menu of improvements that have been published since, resulting in their own unique variation of attention.</p>
+<h3>Attention in Llama 3.1</h3>
+<p>Defining attention in Llama 3.1 requires a bit of backtracking. Most of the details can be found in Llama 1 (<a class="ref" href="#ref-touvron_llama_2023-1">Touvron <em>et al.</em>, 2023</a>) with a few changes in Llama 2 (<a class="ref" href="#ref-touvron_llama_2023">Touvron <em>et al.</em>, 2023</a>) and only minor adjustments in Llama 3 (<a class="ref" href="#ref-dubey_llama_2024">Dubey <em>et al.</em>, 2024</a>).</p>
+<p>Starting with the standard Masked Self Attention definition from <a class="ref" href="#ref-vaswani_attention_2017">Vaswani <em>et al.</em> (2017)</a>, Llama adopts the following improvements that affect attention:</p>
+<ul>
+<li>Pre-normalization with RMSNorm: improves training stability and inference speed.</li>
+<li>Grouped Query Attention (GQA) with 8 key/value heads: improves inference speed and reduce memory overhead of key-value caches.</li>
+<li>Rotary Position Embedding (RoPE) with $\Theta = 500,000$: relative position encoding improves performance on longer context windows.</li>
+</ul>
+<p>We'll start by describing the standard Masked Self Attention and then describe how these improvements modify the final attention calculation in Llama.</p>
+<h3>Masked Self Attention</h3>
+<p>Given $n$ input embeddings of length $d_{model}$ stacked in an $n \times d_{model}$ tensor $\mathbf{X}$, the standard masked self attention algorithm from Vaswani et al. can be expressed using the following equation:</p>
+$$
+\begin{equation}
+\mathbf{A} = softmax\left(\frac{\mathbf{Q}\mathbf{K}^T}{\sqrt{d_K}} + \mathbf{M}\right)\mathbf{V} \\
+\end{equation}
+$$
+<p>where</p>
+<ul>
+<li>$\mathbf{Q}$, $\mathbf{K}$, and $\mathbf{V}$ are all linear projections of $\mathbf{X}$.</li>
+<li>$\mathbf{Q}$ is an $n \times d_K$ tensor of <em>queries</em> that represent selection criteria for surrounding embeddings that would add valuable context to the current representation.</li>
+<li>$\mathbf{K}$ is an $n \times d_K$ tensor of <em>keys</em> that represent characteristics that satisfy the selection criteria in the queries.</li>
+<li>$\mathbf{V}$ is an $n \times d_{model}$ tensor of <em>values</em> that represent the contextual signals to transfer from one embedding to another.</li>
+<li>The $\frac{\mathbf{Q}\mathbf{K}^T}{\sqrt{d_K}}$ term is an $n \times n$ tensor of &quot;attention weights&quot; that define how much of each embedding's values to include from $\mathbf{V}$.</li>
+<li>$\mathbf{M}$ is an $n \times n$ attention mask that prevents earlier embeddings from attending to later ones by adding a $-\infty$ bias to the later embeddings' scores.</li>
+<li>$\mathbf{A}$ is an $n \times d_{model}$ tensor of attention representations.</li>
+</ul>
+<p>The mechanism starts with the $\mathbf{Q}\mathbf{K}^T$ term that calculates the <em>angular distance</em> between each query vector $\mathbf{q}_m$ and key vector $\mathbf{k}_n$ by taking their dot product. The smaller the angle, the closer the vectors, and the better the match between $\mathbf{q}_m$ and $\mathbf{k}_n$. The result of the $\frac{\mathbf{Q}\mathbf{K}^T}{\sqrt{d_K}}$ term is an $n \times n$ tensor of raw scores where row $i$ represents query $\mathbf{q}_m$ and column $j$ represents how well key $\mathbf{k}_n$ matches $\mathbf{q}_m$.</p>
+<p>The next step is to add the attention mask $\mathbf{M}$ to prevent earlier embeddings from attending to later embeddings. Imagine $\mathbf{M}$ as an $n \times n$ diagonal mask with the upper right half set to $-\infty$ and the lower left set to $0$. Illustrated below, you can see that $\mathbf{q}_0$ can only attend to $\set{\mathbf{k}_0}$, while $\mathbf{q}_1$ can attend to $\set{\mathbf{k}_0, \mathbf{k}_1}$, and $\mathbf{q}_2$ can attend to $\set{\mathbf{k}_0, \mathbf{k}_1, \mathbf{k}_2}$.</p>
+<figure id="attention-mask-fig"><img alt="Attention Mask" src="resources/attention-mask.svg"/><figcaption>Figure 4: Attention Mask</figcaption></figure><p>Next, the $softmax$ term normalizes the attention weights across the keys before they're applied to $\mathbf{V}$.</p>
+<h3>Grouped Query Attention (GQA)</h3>
+<p>Each new token the model generates is compared against every key and value that came before. As context windows grow larger, the memory used by the key and value caches becomes a serious bottleneck. (<a class="ref" href="#ref-ainslie_gqa_2023">Ainslie <em>et al.</em>, 2023</a>)</p>
+<p>To address this bottleneck, Llama 2 replaced the Multi-Head Attention (MHA) mechanism in Llama 1 with technique called Grouped Query Attention (GQA) (<a class="ref" href="#ref-ainslie_gqa_2023">Ainslie <em>et al.</em>, 2023</a>). In MHA, each attention head has it's own set of queries, keys, and values. Earlier models such as PaLM (<a class="ref" href="#ref-chowdhery_palm_2022">Chowdhery <em>et al.</em>, 2022</a>) tried replacing MHA with Multi-Query Attention (MQA) which shares a single set of keys and values across all the attention heads. But MQA didn't perform as well as hoped. GQA was designed as a trade-off between the two extremes of MHA and MQA where keys and values <em>are</em> shared across attention heads like MQA, but, instead of one group, Llama 3.1 uses 8 key / value heads.</p>
+<p>We'll see how GQA is implemented in the upcoming sections on splitting and combining attention heads.</p>
+<h3>Rotary Position Embedding (RoPE)</h3>
+<p>The relevance of one embedding to another is heavily influenced by the distance between them. This makes the embedding positions in the sequence critically important. However, if we recall our unknown attention function $f_A(\mathbf{x}_m, \mathbf{x}_n)$, you may notice the positions are conspicuously missing. This worked for early Transformers like Vanilla and BERT because they encoded the positions directly into the token embeddings $\mathbf{x}_m$, $\mathbf{x}_n$.</p>
+<p>More recent models including Llama have adopted <em>relative</em> position encoding schemes that have been shown to perform better especially on much longer sequences. Instead of baking the positions into the token embeddings, the idea is to explicitly add the positions $m$, $n$, to our attention function:</p>
+$$
+f_A(\mathbf{x}_m, \mathbf{x}_n, m, n)
+$$
+<p>To put this into practice, Llama uses an approach known as Rotary Position Embedding (RoPE) from <a class="ref" href="#ref-su_roformer_2021">Su <em>et al.</em> (2021)</a>. As we saw earlier, the attention mechanism relies on the angular distance between query and key vectors as a measure of fitness. RoPE intentionally takes advantage of this, converting distance between embedding positions into angular distance between embedding vectors.</p>
+<p>This is straightforward to visualize in 2-dimensions. The following diagram shows 2 embeddings $\mathbf{x}_m$ and $\mathbf{x}_n$ with positions $m$ and $n$ respectively. The idea of RoPE is to rotate $\mathbf{x}_m$ a distance of $m \theta$ and $\mathbf{x}_n$ a distance of $n \theta$, directly translating the distance in sequence space $(n - m)$ to a distance in vector space $(\measuredangle{n} - \measuredangle{m})$.</p>
+<figure id="rope-fig"><img alt="RoPE Concept in 2D" src="resources/rope.svg"/><figcaption>Figure 5: RoPE Concept in 2D</figcaption></figure><p>While the 2-dimensional concept is intuitive, implementing RoPE with $d_{model}$-dimensional vectors is a little more complicated. The complete RoPE algorithm involves several steps. To see what's happening, it helps to unpack and walk through them one at a time.</p>
+<p>Let's start by rotating a single embedding. Given an embedding $\mathbf{x}$ with $d$ elements and position $m$, our goal is to rotate $\mathbf{x}$ an angular distance of $m \theta$. Unfortunately, there isn't an exact solution for this when $d$ &gt; 2. Instead, RoPE approximates the idea by splitting $\mathbf{x}$ into pairs $\set{(x_0, x_1), (x_2, x_3), \dots, (x_{d-2}, x_{d-1})}$ and then rotating each pair in 2D.</p>
+<p>Given $\mathbf{x}$, $d$, $m$, $\theta$, we can rotate $\mathbf{x}$ an angular distance of $m \theta$ by calculating $\mathbf{R}\mathbf{x}$:</p>
+$$
+\mathbf{R} \mathbf{x} = 
+\begin{bmatrix}
+cos(m \theta) & -sin(m \theta) & 0 & 0 \\
+sin(m \theta) & cos(m \theta) & 0 & 0 \\
+\vdots & \vdots & \vdots & \vdots \\
+0 & 0 & cos(m \theta) & -sin(m \theta) \\
+0 & 0 & sin(m \theta) & cos(m \theta) \\
+\end{bmatrix}
+\begin{bmatrix}
+x_0 \\
+x_1 \\
+\vdots \\
+x_{d-2} \\
+x_{d-1} \\
+\end{bmatrix}
+=
+\begin{bmatrix}
+x_0 \cdot cos(m \theta) - x_1 \cdot sin(m \theta) \\
+x_0 \cdot sin(m \theta) + x_1 \cdot cos(m \theta) \\
+\vdots \\
+x_{d-2} \cdot cos(m \theta) - x_{d-1} \cdot sin(m \theta) \\
+x_{d-2} \cdot sin(m \theta) + x_{d-1} \cdot cos(m \theta) \\
+\end{bmatrix}
+$$
+<p>Given the sparsity of $\mathbf{R}$, we'll use the compact form recommended by <a class="ref" href="#ref-su_roformer_2021">Su <em>et al.</em> (2021)</a>. If you compare the compact form below with the right hand side above, you can see they achieve the same result.</p>
+<p>Given $\mathbf{x}$, $d$, $m$, $\theta$:</p>
+$$
+\mathbf{R} \mathbf{x} = 
+\begin{bmatrix}
+x_0 \\
+x_1 \\
+\vdots \\
+x_{d-2} \\
+x_{d-1} \\
+\end{bmatrix}
+\odot
+\begin{bmatrix}
+cos(m \theta) \\
+cos(m \theta) \\
+\vdots \\
+cos(m \theta) \\
+cos(m \theta) \\
+\end{bmatrix}
++
+\begin{bmatrix}
+-x_1 \\
+x_0 \\
+\vdots \\
+-x_{d-1} \\
+x_{d-2} \\
+\end{bmatrix}
+\odot
+\begin{bmatrix}
+sin(m \theta) \\
+sin(m \theta) \\
+\vdots \\
+sin(m \theta) \\
+sin(m \theta) \\
+\end{bmatrix}
+$$
+<p>Great. We've succeeded at rotating each of the pairs $\set{(x_0, x_1), \dots, (x_{d-2}, x_{d-1})}$ an angular distance $m \theta$. However, RoPE takes position encoding a step further by varying the angular offset $\theta$ across the pairs. The actual equation RoPE uses to rotate a single embedding is the following:</p>
+<p>Given $\mathbf{x}$, $d$, $m$, $\Theta$:</p>
+$$
+\mathbf{R} \mathbf{x} = 
+\begin{bmatrix}
+x_0 \\
+x_1 \\
+\vdots \\
+x_{d-2} \\
+x_{d-1} \\
+\end{bmatrix}
+\odot
+\begin{bmatrix}
+cos(m \theta_0) \\
+cos(m \theta_0) \\
+\vdots \\
+cos(m \theta_{d/2-1}) \\
+cos(m \theta_{d/2-1}) \\
+\end{bmatrix}
++
+\begin{bmatrix}
+-x_1 \\
+x_0 \\
+\vdots \\
+-x_{d-1} \\
+x_{d-2} \\
+\end{bmatrix}
+\odot
+\begin{bmatrix}
+sin(m \theta_0) \\
+sin(m \theta_0) \\
+\vdots \\
+sin(m \theta_{d/2-1}) \\
+sin(m \theta_{d/2-1}) \\
+\end{bmatrix}
+$$
+<p>where</p>
+$$
+\theta_i = \frac{1}{\Theta^{2i/d}}, i \in [0, 1, \dots, d/2-1]
+$$
+<p>Let's visualize $\theta_i$ for $i = [0, d_{head}/2)$ to get a better sense for what's happening here. The following cell plots $\theta_i$ using both the original $\Theta = 10000$ from <a class="ref" href="#ref-su_roformer_2021">Su <em>et al.</em> (2021)</a> and the $\Theta = 500000$ from Llama 3.1. Surely the Llama authors must have had a reason to change it, right?</p>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="n">i</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">d_head</span><span class="o">//</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="n">thetas</span> <span class="o">=</span> <span class="mi">10000</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="n">i</span> <span class="o">/</span> <span class="n">config</span><span class="o">.</span><span class="n">d_head</span><span class="p">)</span>
+<span class="n">sns</span><span class="o">.</span><span class="n">lineplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">i</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">thetas</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">"$\Theta=10k$"</span><span class="p">)</span>
+
+<span class="n">thetas</span> <span class="o">=</span> <span class="mi">500000</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="o">*</span><span class="n">i</span> <span class="o">/</span> <span class="n">config</span><span class="o">.</span><span class="n">d_head</span><span class="p">)</span>
+<span class="n">sns</span><span class="o">.</span><span class="n">lineplot</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="n">i</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="n">thetas</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="sa">f</span><span class="s2">"$\Theta=500k$"</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s2">"i"</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s2">"theta_i"</span><span class="p">)</span>
+</pre></div>
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>Text(0, 0.5, 'theta_i')
+</pre></div>
+</div><div class="cell cell-output"><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAjcAAAGwCAYAAABVdURTAAAAOXRFWHRTb2Z0d2FyZQBNYXRwbG90bGliIHZlcnNpb24zLjkuMiwgaHR0cHM6Ly9tYXRwbG90bGliLm9yZy8hTgPZAAAACXBIWXMAAA9hAAAPYQGoP6dpAABTiUlEQVR4nO3deXxU1f3/8dfMJDOTfSFkJZCwyCISEARRcakRii2t2lpqaaXYavWHrZXaVtoKtVXQutRaUaot1X6rFbVqVRSXVFErioBR9jUQliyE7Psy9/fHTQYCIWSZyU0m7+fjcR9z566f3Fjy7j3n3mMzDMNAREREJEDYrS5ARERExJcUbkRERCSgKNyIiIhIQFG4ERERkYCicCMiIiIBReFGREREAorCjYiIiASUIKsL6Gkej4fDhw8TERGBzWazuhwRERHpAMMwqKioIDk5Gbu9/Xsz/S7cHD58mNTUVKvLEBERkS44cOAAgwYNanebfhduIiIiAPPiREZGWlyNiIiIdER5eTmpqanev+Pt6XfhpqUpKjIyUuFGRESkj+lIlxJ1KBYREZGAonAjIiIiAUXhRkRERAJKv+tzIyIigcvj8VBfX291GdJFTqfztI95d4TCjYiIBIT6+npycnLweDxWlyJdZLfbSU9Px+l0dus4CjciItLnGYZBXl4eDoeD1NRUn/y/f+lZLS/ZzcvLY/Dgwd160a7CjYiI9HmNjY1UV1eTnJxMaGio1eVIFw0cOJDDhw/T2NhIcHBwl4+jaCsiIn1eU1MTQLebM8RaLb+/lt9nVynciIhIwNCYgX2br35/CjciIiISUCwNN++//z6zZs0iOTkZm83Gyy+/fNp93nvvPc4++2xcLhfDhw/nySef9HudIiIi0ndYGm6qqqrIyMhg2bJlHdo+JyeHr3zlK1xyySVkZ2fz05/+lB/+8Ie8+eabfq5URERE+gpLn5aaOXMmM2fO7PD2y5cvJz09nQceeACA0aNH8+GHH/LHP/6RGTNm+KvMjjEMyksKKco/wNAxk6ytRURExM9uu+02du/e3aFWl57Wp/rcrF27lszMzFbLZsyYwdq1a0+5T11dHeXl5a0mf8jds4XIh88gaeVMDL1ASkREOmH//v3MmzeP5ORknE4nQ4YM4ZZbbuHo0aM+PU9Hu4MsW7aMtLQ03G43U6ZMYd26dSdtk52dzfjx431an6/0qXCTn59PQkJCq2UJCQmUl5dTU1PT5j5Lly4lKirKO6WmpvqltqTUYQCE2OopKDzsl3OIiEjg2b17N5MmTWLXrl3861//Yvfu3SxfvpysrCymTp1KcXGxz87Vke4gK1euZMGCBSxevJiNGzeSkZHBjBkzKCwsbLXd559/3mvDTcC/xG/hwoUsWLDA+728vNwvASfYFUKxLZpYo5TD+3eTmDjI5+cQEZGOMQyDmobuvSulq0KCHZ16pPnmm2/G6XTy1ltveV9AOHjwYCZMmMCwYcP49a9/zWOPPeaT2jrSHeTBBx/k+uuvZ968eYDZJWTVqlWsWLGC22+/HYCDBw9SVFTkDTelpaV873vfo6SkhBdeeIHExESf1NtVfSrcJCYmUlBQ0GpZQUEBkZGRhISEtLmPy+XC5XL1RHmUOxOIrSul5PBe4OIeOaeIiJyspqGJMYusedhk6+9mEOrs2J/X4uJi3nrrLe66666T3qycmJjInDlzWLlyJY8++mirwLRkyRKWLFnSfh1btzJ48OBO1V5fX8+GDRtYuHChd5ndbiczM7NVF5Ds7Gyio6NJS0tj06ZNXHXVVVx66aW8+OKL3XqzsK/0qXAzdepUXn/99VbL3n77baZOnWpRRa3VhyZB3Q6qi3KtLkVERPqAXbt2YRgGo0ePJjw8vNW6adOmMX36dEpKSjhy5Ajx8fHedTfeeCPf+ta32j12cnJyp+spKiqiqampzS4g27dv937Pzs4mIyODZ555hptvvpl7772X66+/vtPn8xdLw01lZSW7d+/2fs/JySE7O5vY2FgGDx7MwoULOXToEP/4xz8A85f5yCOP8Itf/ILrrruO//73vzz33HOsWrXKqh+hFVv0ICgBo+yg1aWIiPRrIcEOtv7OmqdoQ4IdXdovOzu79XFCQnjuuefa3DY2NpbY2NgunccXsrOz+eKLL7j55ptZtWpVr7nJ0MLScLN+/XouueQS7/eWvjFz587lySefJC8vj9zcY3dB0tPTWbVqFbfeeit/+tOfGDRoEH/961+tfwy8WdjAIZADrip1KBYRsZLNZutw05CVhg8fjs1mY9u2bVx55ZUnrd+2bRsxMTEMHDiw1XJ/NUvFxcXhcDja7AJyfD+a7OxsrrrqKp555hlKS0s7dY6eYOlv/uKLL8YwjFOub+vtwxdffDGfffaZH6vquphk84mp2KYjlNU0EBVifbujiIj0XgMGDGD69Ok8+uij3Hrrra36j+bn5/P0009z7bXXntRB2V/NUk6nk4kTJ5KVlcUVV1wBgMfjISsri5tvvhmAiooK9u7dy/PPP895553Ht7/9bT766CPOPPPMTp/PX3p/rO1DQgaYCTnZdpTdhZVMHBJjcUUiItLbLVu2jPPOO48ZM2Zw1113kZ6ezpYtW/j5z39OSkoKd99990n7dLVZ6nTdQcBsRZk7dy6TJk1i8uTJPPTQQ1RVVXmfnvr8889xOByMGTOGCRMmsHnzZmbNmsW6deuIi4vr4lXwrT71npteLyoFgARK2FtQam0tIiLSJwwbNoxPP/2UYcOGMXv2bIYNG8YNN9zAJZdcwtq1a33at2b9+vVMmDCBCRMmAGaQmTBhAosWLfJuM3v2bO6//34WLVrE+PHjyc7OZvXq1d5OxtnZ2YwaNcr7JPJ9993HyJEjueqqq6ivr/dZrd1hM9prFwpA5eXlREVFUVZWRmRkpG8P7mmi6XcDcdDEIxn/4eYrL/bt8UVEpE21tbXk5OSQnp6O2+22uhzpovZ+j535+607N75kd1DjNpNtecE+a2sRERHppxRufKwp0myaaig5YHElIiIi/ZPCjY+5Ys2hHZxVh6i16NXfIiIi/ZnCjY+5mp+YSqSYfUerLK5GRESk/1G48TFblDlgZoqtiN2FlRZXIyIi0v8o3Phac7hJsh1lT6Hu3IiIiPQ0hRtfaw43ybaj7D6iOzciIiI9TeHG15qflhpgqyC34KjFxYiIiPQ/Cje+FhKDJzgUgJqiXDyefvWORBEREcsp3PiazebtVBznOcKh0hqLCxIREbHGbbfd5h2Asycp3PiBrblpqmUATRERkfbs37+fefPmkZycjNPpZMiQIdxyyy0cPerb7g2//e1vsdlsraZRo0adtN2yZctIS0vD7XYzZcoU1q1b16VtsrOzGT9+vE9/ho5QuPGHlk7FHGWPOhWLiEg7du/ezaRJk9i1axf/+te/2L17N8uXLycrK4upU6dSXFzs0/OdeeaZ5OXleacPP/yw1fqVK1eyYMECFi9ezMaNG8nIyGDGjBkUFhZ2ahswRxBXuAkUxz0Orjs3IiLSnptvvhmn08lbb73FRRddxODBg5k5cybvvPMOhw4d4te//rVPzxcUFERiYqJ3iouLa7X+wQcf5Prrr2fevHmMGTOG5cuXExoayooVKzq1zcGDBykqKvKGm9LSUmbNmsUFF1xAfn6+T3+mEync+INe5CciYi3DgPoqayaj4w+SFBcX89ZbbzF//nxCQ0NbrUtMTGTOnDmsXLkS44RjLlmyhPDw8Han3NzcNs+5a9cukpOTGTp0KHPmzGm1XX19PRs2bCAzM9O7zG63k5mZydq1azu8DZhNUtHR0aSlpbFp0ybOOeccUlJSePfdd0lMTOzwNeqKIL8evb9q7nOTZCtm95FKDMPAZrNZXJSISD/SUA1Lkq05968OgzOsQ5vu2rULwzAYPXo04eHhrdZNmzaN6dOnU1JSwpEjR4iPj/euu/HGG/nWt77V7rGTk0/++adMmcKTTz7JyJEjycvL484772TatGls3ryZiIgIioqKaGpqIiEhodV+CQkJbN++HaBD24AZbjIyMnjmmWe4+eabuffee7n++us7dF26S+HGH45rliqtrqe4qp4B4S6LixIRkd4sOzu71feQkBCee+65NreNjY0lNja20+eYOXOmd37cuHFMmTKFIUOG8Nxzz/GDH/yg08drT3Z2Nl988QU333wzq1atYurUqT49fnsUbvyh+c5NuK2WSKrYXVipcCMi0pOCQ807KFadu4OGDx+OzWZj27ZtXHnllSet37ZtGzExMQwcOLDV8iVLlrBkyZJ2j71161YGDx7c7jbR0dGcccYZ7N69G4C4uDgcDgcFBQWttisoKPA2JXVkGzDDzVVXXcUzzzxDaWlpu3X4mvrc+IMzFELMRJ3c3DQlIiI9yGYzm4asmDrRDWHAgAFMnz6dRx99lJqa1u9Fy8/P5+mnn2b27NkndW248cYbyc7Obndqq1nqRJWVlezZs4ekpCQAnE4nEydOJCsry7uNx+PxPrnV0W0qKirYu3cv8+fP55FHHuHb3/42W7Zs6fB16S7dufGXqEFQU0yyrUgDaIqIyCktW7aM8847jxkzZnDXXXeRnp7Oli1b+PnPf05KSgp33333Sft0tVnqtttuY9asWQwZMoTDhw+zePFiHA4H11xzjXebBQsWMHfuXCZNmsTkyZN56KGHqKqqYt68eR3e5vPPP8fhcDBmzBgmTJjA5s2bmTVrFuvWrTvp6Sx/ULjxl6hBkP+FBtAUEZF2DRs2jE8//ZTFixcze/Zsjh49SmJiIldccQWLFy/uUog5lYMHD3LNNddw9OhRBg4cyAUXXMDHH3/cqtlr9uzZHDlyhEWLFpGfn8/48eNZvXp1qw7Ep9smOzubUaNG4XKZXTLuu+8+tm3bxlVXXcU777yD0+n02c/UFptx4vNlAa68vJyoqCjKysqIjIz034le/zmse5xHG7/G0+Hz+N/tX/LfuURE+rna2lpycnJIT0/H7XZbXY50UXu/x878/VafG3/xPg5+lEOlNVTXN1pckIiISP+gcOMvzY+DD3aUALD3iPrdiIiI9ASFG39pDjepDnPQM72pWEREpGco3PhLc7NUrOcodjwaQFNERKSHKNz4S0QS2OwEGY3EUaY7NyIiPaCfPSMTcHz1+1O48RdHkBlwwHwcXOFGRMRvHA4HYA7qKH1Xy++v5ffZVXrPjT9FpkD5IZJtRbx9tIrGJg9BDuVJERFfCwoKIjQ0lCNHjhAcHIzdrn9r+xqPx8ORI0cIDQ0lKKh78UThxp+iBsHBdQwOKqGh3iC3uJqhA8NPv5+IiHSKzWYjKSmJnJwc9u/fb3U50kV2u53BgwefNNxEZync+FOU2al4VEg51JtPTCnciIj4h9PpZMSIEWqa6sOcTqdP7rop3PhTVCoA6cHmu252H6lkupX1iIgEOLvdrjcUizoU+1Xz4+AJFAFoAE0REZEeoHDjT80v8otpKATQAJoiIiI9QOHGn5rDjauuCCcN7Cms1DsYRERE/Ezhxp9CB0CQ2fabbCumsq6RgvI6i4sSEREJbAo3/mSzefvdTIg2+9tszy+3siIREZGAp3Djb82Pg4+PMsPNtrwKK6sREREJeAo3/tb8OPhIdxkA2/J050ZERMSfFG78rblZKtVRDCjciIiI+JvCjb81N0sNaDIfB99bVEVtQ5OVFYmIiAQ0hRt/a3kcvDqf6NBgmjwGuwr0vhsRERF/Ubjxt0gz3NjKDjI6MRJQ05SIiIg/Kdz4W3OzFHXlZMQ7ANiqcCMiIuI3Cjf+5ooAdxQAE6LM5ijduREREfEfhZue0Nw0NTLk2OPgGoZBRETEPxRuekJzp+IU+1GC7DbKaxs5XFZrcVEiIiKBSeGmJzT3uwmuOMywgeEAbFfTlIiIiF8o3PSE5js3lB9idFIEoH43IiIi/qJw0xOa+9xQdpDRSS2Pg2uMKREREX9QuOkJUW2FG925ERER8QeFm57Q8q6b8sOMTjT73OQcraK6vtHCokRERAKTwk1PiEgGbNBUx0B7BXHhLgwDduSraUpERMTXFG56QpATIhLN+ZL9x3UqVrgRERHxNYWbnhI71PwsyWGM+t2IiIj4Ta8IN8uWLSMtLQ23282UKVNYt25du9s/9NBDjBw5kpCQEFJTU7n11lupre3lL8WLTTc/i/eqU7GIiIgfWR5uVq5cyYIFC1i8eDEbN24kIyODGTNmUFhY2Ob2zzzzDLfffjuLFy9m27Zt/O1vf2PlypX86le/6uHKO6nlzs1x4WZ7fgUej4ZhEBER8SXLw82DDz7I9ddfz7x58xgzZgzLly8nNDSUFStWtLn9Rx99xPnnn893vvMd0tLSmD59Otdcc80p7/bU1dVRXl7earJE7DDzs3gvQweG4XTYqaxr5GBJjTX1iIiIBChLw019fT0bNmwgMzPTu8xut5OZmcnatWvb3Oe8885jw4YN3jCzd+9eXn/9dS6//PI2t1+6dClRUVHeKTU11fc/SEccd+cm2GFnRIL5SPhWNU2JiIj4lKXhpqioiKamJhISElotT0hIID8/v819vvOd7/C73/2OCy64gODgYIYNG8bFF198ymaphQsXUlZW5p0OHDjg85+jQ1r63FQfhZpS9bsRERHxE8ubpTrrvffeY8mSJTz66KNs3LiRF198kVWrVvH73/++ze1dLheRkZGtJku4IiAs3pxXp2IRERG/CbLy5HFxcTgcDgoKClotLygoIDExsc197rjjDr73ve/xwx/+EICzzjqLqqoqbrjhBn79619jt/fivBY7FKoKm8PNxQBsy1e4ERER8SVLk4DT6WTixIlkZWV5l3k8HrKyspg6dWqb+1RXV58UYBwOBwCG0cufPPL2uzn2rpsDxTVU1DZYWJSIiEhgsfw2x4IFC3jiiSd46qmn2LZtGzfddBNVVVXMmzcPgGuvvZaFCxd6t581axaPPfYYzz77LDk5Obz99tvccccdzJo1yxtyeq3jOhVHhzpJinID5iPhIiIi4huWNksBzJ49myNHjrBo0SLy8/MZP348q1ev9nYyzs3NbXWn5je/+Q02m43f/OY3HDp0iIEDBzJr1izuvvtuq36EjjvuRX4Ao5MiySurZVteOeekxVpYmIiISOCwGb2+Lce3ysvLiYqKoqysrOc7Fx/+DB6/2OxY/PNd3Pfmdpa9u4drJqey9KpxPVuLiIhIH9KZv9+WN0v1KzHNd26qCqGuwvvE1FYNoCkiIuIzCjc9KSQaQgeY88U53nCzI7+cJg3DICIi4hMKNz3tuE7FaQPCcAfbqW3wsO9olbV1iYiIBAiFm552XLhx2G2MTNTL/ERERHxJ4aanecPNHgDGJEUACjciIiK+onDT0457kR9w3DAM6lQsIiLiCwo3Pe24ZilAY0yJiIj4mMJNT2sJNxV5UF/FqESzWSqvrJbS6noLCxMREQkMCjc9LTQW3NHmfMk+ItzBpMaGALBVd29ERES6TeHGCic0TY1NjgJg08EyqyoSEREJGAo3Vjgh3GSkRgPw+cFSa+oREREJIAo3Vjgx3AyKBuDzA7pzIyIi0l0KN1Y4IdyMGxSF3QaHSmsorKi1sDAREZG+T+HGCi3h5qgZbsJcQYyIN5+a0t0bERGR7lG4sUJLuCk/CA01AGSkmp2KPz9QalFRIiIigUHhxgphceAyX95HyX5AnYpFRER8ReHGCjYbxKab8839bsY3h5vsA6V4PIZFhYmIiPR9CjdWOaFT8RkJEbiD7VTUNpJztMrCwkRERPo2hRurnBBugh1278v81O9GRESk6xRurHJCuIFj/W6yFW5ERES6TOHGKm2Em5Z+N7pzIyIi0nUKN1ZpCTdlB6DRHA28JdxszSunrrHJosJERET6NoUbq4QnQHAYGB4oNR8HHxQTQmyYk4Ymg215FRYXKCIi0jcp3FjFZjupacpms5ExyOxUnJ1bYlVlIiIifZrCjZVOeNcNwPjUGAA+P6hhGERERLpC4cZKbT4xpcfBRUREukPhxkpthZtB0QDsLaqirLrBgqJERET6NoUbK7URbmLCnAwZEAponCkREZGuULixUku4Kc2FpmN3afS+GxERka5TuLFSRBIEucHTaL7vpllL05Tu3IiIiHSewo2V7HaIOfmJqWPDMJRhGBohXEREpDMUbqw2YJj5WZzjXXRmciRBdhtFlXUcKq2xqDAREZG+SeHGai3vujm6x7vIHexgdFIkAJ8f0PtuREREOkPhxmptPDEFx73vRv1uREREOkXhxmqnCjfNnYqzc0t7th4REZE+TuHGai3hpmQfeI6NBD5hcDQAmw6V0djk6fm6RERE+iiFG6tFpoDDCZ4GKDvoXTw0LpxwVxA1DU3sKqy0sEAREZG+ReHGanYHxKSZ88XHOhXb7TbGDdI4UyIiIp2lcNMbxJ1hfh7Z2WrxsffdlPZsPSIiIn2Ywk1vED/a/Czc2mrxeIUbERGRTlO46Q1OE252FlRQXd/Yw0WJiIj0TQo3vUH8GPOzcBscN9xCQqSbxEg3HgM2Hyq3qDgREZG+ReGmNxgwHOzBUF/ZagBNOPYyv89yS6yoTEREpM9RuOkNHMHHOhUXtG6amjQkFoBP9xX3dFUiIiJ9ksJNb3GKfjdThprhZl1OMU0ejRAuIiJyOgo3vUXCcf1ujjMmKZJwVxDltY1sz1e/GxERkdNRuOktvJ2KW9+5CXLYmTgkBjDv3oiIiEj7FG56i5ZmqaKd0NTQatXkdLNp6pO9CjciIiKno3DTW0QNBmc4NNWfNEL4uS39bvYVYxjqdyMiItIehZvewm6HgaPM+YItrVadlRKNO9hOcVU9uzWIpoiISLsUbnoT7xNTrTsVO4PsnD3Y7HfzsfrdiIiItEvhpjdJONP8PKFTMcCU9AEAfLL3aE9WJCIi0uco3PQmp7hzA63fd6N+NyIiIqemcNObtDwOXrwX6qtbrRqfGo3TYaewoo59R6vb2FlERERA4aZ3CY+H0DjAgKIdrVa5gx3eUcLVNCUiInJqCje9TQebpkRERKRtvSLcLFu2jLS0NNxuN1OmTGHdunXtbl9aWsr8+fNJSkrC5XJxxhln8Prrr/dQtX7W0jR1wuPgcNzL/BRuRERETsnycLNy5UoWLFjA4sWL2bhxIxkZGcyYMYPCwsI2t6+vr+eyyy5j3759vPDCC+zYsYMnnniClJSUHq7cT04xxhTAxCExBNltHCqt4UCx+t2IiIi0JcjqAh588EGuv/565s2bB8Dy5ctZtWoVK1as4Pbbbz9p+xUrVlBcXMxHH31EcHAwAGlpaac8fl1dHXV1dd7v5eW9fPDJ+FOHm1BnEGNTosg+UMq6nGJSY0N7uDgREZHez9I7N/X19WzYsIHMzEzvMrvdTmZmJmvXrm1zn1deeYWpU6cyf/58EhISGDt2LEuWLKGpqanN7ZcuXUpUVJR3Sk1N9cvP4jMtbymuOAw1JSetbul380mOOhWLiIi0xdJwU1RURFNTEwkJCa2WJyQkkJ+f3+Y+e/fu5YUXXqCpqYnXX3+dO+64gwceeIC77rqrze0XLlxIWVmZdzpw4IDPfw6fckea40xBm3dvzm1+mZ86FYuIiLTN8mapzvJ4PMTHx/P444/jcDiYOHEihw4d4r777mPx4sUnbe9yuXC5XBZU2g3xo6Es13xT8ZDzWq2amBaD3Qb7jlZTUF5LQqTboiJFRER6J0vv3MTFxeFwOCgoKGi1vKCggMTExDb3SUpK4owzzsDhcHiXjR49mvz8fOrr6/1ab49peRy84ORhGCLdwYxJjgTgY73vRkRE5CSWhhun08nEiRPJysryLvN4PGRlZTF16tQ29zn//PPZvXs3Ho/Hu2znzp0kJSXhdDr9XnOP8I4xdXKzFBwbZ0pNUyIiIiez/FHwBQsW8MQTT/DUU0+xbds2brrpJqqqqrxPT1177bUsXLjQu/1NN91EcXExt9xyCzt37mTVqlUsWbKE+fPnW/Uj+J73RX5boY1xpPS+GxERkVOzvM/N7NmzOXLkCIsWLSI/P5/x48ezevVqbyfj3Nxc7PZjGSw1NZU333yTW2+9lXHjxpGSksItt9zCL3/5S6t+BN+LOwNsDqgthYo8iExutXpymhludhdWUlRZR1x4H+tTJCIi4kc2o58NMV1eXk5UVBRlZWVERkZaXc6pPTLZHF/qu/+G4Zknrf7yQ++zPb+Cx+aczcyzkiwoUEREpOd05u+35c1ScgrtjDEFapoSERE5FYWb3qqdNxXDsU7FemJKRESkNYWb3irh1ANoApyTHgPAjoIKSqsD5BF4ERERH1C46a1a7twc2QGek4eWiI9wM3RgGIYBn+47eZgGERGR/krhpreKSYOgEGisgZJ9bW7S0jT1iZqmREREvBRueiu7AwaONOcLT35TMcDUYWa4+WBXUU9VJSIi0ut1+D03Dz/8MDfccANut5uHH3643W1/8pOfdLswwWyayss2OxWPnnXS6mnD47DbzH43eWU1JEWF9HyNIiIivUyHw80f//hH5syZg9vt5o9//OMpt7PZbAo3vnL8m4rbEBPmJCM1ms9yS3l/5xFmnzO4B4sTERHpnTocbnJyctqcFz/yPjHVdrgBuOiMgXyWW8p7OxRuREREwM99biIjI9m7d68/TxHYWp6YOrobGuva3OSiMwYC8OGuIhqaPG1uIyIi0p/4Ndz0s5EdfC8iCdxRYDRB0a42Nxk3KJqY0GAq6hrJPlDas/WJiIj0Qnpaqjez2SD+THP+FP1uHHYb00aYd2/e21HYU5WJiIj0Wgo3vV1Lv5u8z0+5SUvT1JqdR3qiIhERkV5N4aa3S5lofh7+7JSbXNgcbjYfKudIRdt9c0RERPoLv4Ybm83mz8P3D8eHm6bGNjcZGOFibIo5/Pv7unsjIiL9nDoU93YDRoArEhqq4cj2U26mpikRERGTX8PNG2+8QUpKij9PEfjsdkieYM4fWn/KzS4eGQ/AB7uO0ORRqBQRkf6rwy/xO9HBgwd55ZVXyM3Npb6+vtW6Bx98EIALLrige9WJKWUi5KyBQxtg4vfb3GRCajQR7iBKqhv44mApEwbH9GyNIiIivUSXwk1WVhZf+9rXGDp0KNu3b2fs2LHs27cPwzA4++yzfV2jDJpkfh7ccMpNghx2po2I4/VN+azZeUThRkRE+q0uNUstXLiQ2267jU2bNuF2u/n3v//NgQMHuOiii7j66qt9XaO0dCo+sg3qKk+5mfrdiIiIdDHcbNu2jWuvvRaAoKAgampqCA8P53e/+x333nuvTwsUICIRIlPA8LT7vpuWR8KzD5RSUlV/yu1EREQCWZfCTVhYmLefTVJSEnv27PGuKyoq8k1l0lrL3Zt2OhUnRYUwKjECw4APduv3ICIi/VOXws25557Lhx9+CMDll1/Oz372M+6++26uu+46zj33XJ8WKM284ebU/W7guKapHWqaEhGR/qlLHYoffPBBKivNvh933nknlZWVrFy5khEjRniflBIf60CnYjDDzV/e38uanUfweAzsdr1IUURE+pcuhZuhQ4d658PCwli+fLnPCpJTSBoPNjuUH4SKfLMfThsmpcUS6nRQVFnH1rxyxqZE9WydIiIiFutSs9TQoUM5evToSctLS0tbBR/xIVc4DBxlzh/aeMrNnEF2zhsWB+ipKRER6Z+6FG727dtHU1PTScvr6uo4dOhQt4uSU+hAp2KAi0aq342IiPRfnWqWeuWVV7zzb775JlFRx5o8mpqayMrKIi0tzWfFyQlSJsJn/3faTsUXN3cq3pBbQnltA5Hu4J6oTkREpFfoVLi54oorAHO077lz57ZaFxwcTFpaGg888IDPipMTtHQqPrQRPB5z3Kk2pMaGMnRgGHuPVPHR7iK+PDapB4sUERGxVqeapTweDx6Ph8GDB1NYWOj97vF4qKurY8eOHXz1q1/1V60ycDQEhUBdORzd3e6mLY+Ev6emKRER6We61OcmJyeHuDiz02ptba1PC5J2OIIgebw5f5p+Ny2jhGdtL8SjUcJFRKQf6VK48Xg8/P73vyclJYXw8HD27t0LwB133MHf/vY3nxYoJ+jgy/ymDh1AhDuIIxV1bMgt6YHCREREeocuhZu77rqLJ598kj/84Q84nU7v8rFjx/LXv/7VZ8VJGzoYbpxBdi4bkwDA65vy/F2ViIhIr9GlcPOPf/yDxx9/nDlz5uBwOLzLMzIy2L59u8+Kkza0hJv8zdDQfpPgzOaOxKs356tpSkRE+o0uhZtDhw4xfPjwk5Z7PB4aGhq6XZS0I3owhA0ETwPkb2p302kj4ghzOsgrq+Xzg6U9U5+IiIjFuhRuxowZwwcffHDS8hdeeIEJEyZ0uyhph83W4Zf5uYMdfGm02TS1enO+vysTERHpFbo0ttSiRYuYO3cuhw4dwuPx8OKLL7Jjxw7+8Y9/8Nprr/m6RjlRyiTYufq0/W4ALh+byKufH+b1zXncPnMUNpsG0hQRkcDWpTs3X//613n11Vd55513CAsLY9GiRWzbto1XX32Vyy67zNc1yolSzjY/OxBuLho5EHewnQPFNWw5XO7nwkRERKzXpTs3ANOmTePtt9/2ZS3SUS3hpngvVBdDaOwpNw11BnHJyHje2JzPG5vzNEq4iIgEvC7duWlRX1/PwYMHyc3NbTWJn4XEwIDmDt3tjBDe4stjEwF4Y1M+hqGnpkREJLB1Kdzs2rWLadOmERISwpAhQ0hPTyc9PZ20tDTS09N9XaO0pYOdigG+NCoeZ5CdvUVV7Cyo9HNhIiIi1upSs9T3v/99goKCeO2110hKSlInVSukTIIvVnao302EO5gLRwzknW0FvL4pj5GJET1QoIiIiDW6FG6ys7PZsGEDo0aN8nU90lEtd24OrgfDMB8Rb8fMsYm8s62A1ZvzufWyM3qgQBEREWt0+T03RUVFvq5FOiNxLDicUFMMJftOu3nm6ASCHTZ2FFSw54iapkREJHB1ONyUl5d7p3vvvZdf/OIXvPfeexw9erTVuvJyPW7cI4JckHiWOd+Bpqmo0GDOG2aO5K4X+omISCDrcLNUdHR0q741hmFw6aWXttrGMAxsNhtNTU2+q1BOLWWiGWwOroezvnnazS8/K5E1O4/w+qY85l9y8vAZIiIigaDD4ebdd9/1zu/bt4/U1NRWg2aCObaUHgXvQalTYN3jsP/DDm1+2ZhEfvXSZrYcLif3aDWDB4T6uUAREZGeZzO68OITh8NBXl4e8fHxrZYfPXqU+Pj4Xn3npry8nKioKMrKyoiMjLS6nO6pLIT7R5jzP98LYQNOu8ucv37M/3YfZeHMUfzoomF+LlBERMQ3OvP3u0sdiluan05UWVmJ2+3uyiGlK8LjIX6MOb/v/Q7tMnNsEgCvq9+NiIgEqE49Cr5gwQIAbDYbd9xxB6Ghx5o1mpqa+OSTTxg/frxPC5TTSL8ICrfC3jVw5pWn3Xz6mQnc8Z/NfH6glEOlNaREh/RAkSIiIj2nU+Hms88+A8w7N5s2bcLpdHrXOZ1OMjIyuO2223xbobQv/UL45DHI6didm/gIN+ekxbIup5jVm/P5wQV6o7SIiASWToWblk7F8+bN409/+lPf77MSCNLOB5sdivdA2UGIGnTaXWaOTWRdTjFvbMpTuBERkYDTpT43f//73xVsegt3FCQ3jxK+d02Hdvny2ERsNli/v4QDxdV+LE5ERKTndWtUcOklhl5kfuZ0LNwkRYVwfvML/f698aC/qhIREbGEwk0gSG8ON3vXmONMdcDVk8zmqxc2HMTj6fTbAERERHothZtAkDoZHC6ozIeiXR3aZfqYRCJcQRwsqeGTnGI/FygiItJzekW4WbZsGWlpabjdbqZMmcK6des6tN+zzz6LzWbjiiuu8G+BvV1wCAyeYs53sGkqxOngqxnmO2+e33DAX5WJiIj0OMvDzcqVK1mwYAGLFy9m48aNZGRkMGPGDAoLC9vdb9++fdx2221Mmzathyrt5bxNU+91eJdvTkwF4I1N+VTWNfqhKBERkZ5nebh58MEHuf7665k3bx5jxoxh+fLlhIaGsmLFilPu09TUxJw5c7jzzjsZOnRoD1bbiw292Pzc9wF4Ojb8xdmDoxk6MIyahiZe/yLPf7WJiIj0IEvDTX19PRs2bCAzM9O7zG63k5mZydq1a0+53+9+9zvi4+P5wQ9+cNpz1NXVUV5e3moKSEnjwRUJtWWQ93mHdrHZbHxz4rGOxSIiIoHA0nBTVFREU1MTCQkJrZYnJCSQn9/22Ecffvghf/vb33jiiSc6dI6lS5cSFRXlnVJTU7tdd6/kCIK0C8z5Dr6tGOCqCYOw22DdvmL2FVX5qTgREZGeY3mzVGdUVFTwve99jyeeeIK4uLgO7bNw4ULKysq804EDAdx5Nv1C87ODnYoBEqPcTBsxENA7b0REJDB0avgFX4uLi8PhcFBQUNBqeUFBAYmJiSdtv2fPHvbt28esWbO8yzweDwBBQUHs2LGDYcOGtdrH5XLhcrn8UH0v1NKpeP9aaKyDoI793N+cOIg1O4/w7w0H+WnmGTjsJ4/4LiIi0ldYeufG6XQyceJEsrKyvMs8Hg9ZWVlMnTr1pO1HjRrFpk2byM7O9k5f+9rXuOSSS8jOzg7cJqeOih8NYfHQWAMHP+3wbpeNSSDSHcThslrW7jnqxwJFRET8z/JmqQULFvDEE0/w1FNPsW3bNm666SaqqqqYN28eANdeey0LFy4EwO12M3bs2FZTdHQ0ERERjB07ttUo5f2SzXasaaqD40wBuIMdfG18MqB33oiISN9nebiZPXs2999/P4sWLWL8+PFkZ2ezevVqbyfj3Nxc8vL0mHKHeceZ6ninYjj2zpvVm/Mpr23wdVUiIiI9xmYYHRyMKECUl5cTFRVFWVlZYI5sXrIP/pQB9iD45X5whXdoN8MwmP7H99lVWMmSK8/iO1MG+7dOERGRTujM32/L79yIj8WkQfQQ8DTC/o86vFvrd96oaUpERPouhZtA5G2a6ni/G4ArJ6TgsNvYmFvK7sJKPxQmIiLifwo3gcg7zlTnwk18pJuLztA7b0REpG9TuAlELU9MFWyCqs492n11c9PUixsP0tjk8XVlIiIifqdwE4jC4yF+jDm/r3NPTX1pdDwxocEUlNfxzraC0+8gIiLSyyjcBKouNk25ghzeJ6VWfLjPx0WJiIj4n8JNoBp6sfm5+x3o5NP+3zs3jSC7jXX7itl8qMz3tYmIiPiRwk2gGnoRBIdC2QHIy+7UrolRbmaelQTA3/+3z/e1iYiI+JHCTaAKDoERl5nz217t9O7XnZ8GwKufH+ZIRZ0PCxMREfEvhZtANvpr5mcXws2EwTGMT42mvsnD05/s93FhIiIi/qNwE8hGTAeHE4p2wpEdnd79ugvSAfjnx7nUNTb5ujoRERG/ULgJZO7IYx2Lt73S6d1njk0kMdJNUWUdr32uwUtFRKRvULgJdKNnmZ9daJoKdtj53tQhAKz4Xw79bIxVERHpoxRuAt3Iy8Fmh7zPoaTzfWe+M3kwriA7Ww6X8+m+Ej8UKCIi4lsKN4EuLA6GnG/Ob3+t07vHhDm5ckIKAH//X44vKxMREfELhZv+oBtNUwDzzjc7Fr+5JZ+DJdW+qkpERMQvFG76g1FfMT9zP4aKzo8XNTIxgvOHD8BjwD/W6rFwERHp3RRu+oOoQZAyETBgx6ouHeK65rs3z67Lpaqu0YfFiYiI+JbCTX/RzaapS0bGkzYglPLaRl7ceNCHhYmIiPiWwk1/Mao53OS8DzWdf+rJbrcx97w0AP7+0T48Hj0WLiIivZPCTX8RNxzix4CnEXa+2aVDXD0plQhXEHuPVJG1vdDHBYqIiPiGwk1/0s2mqXBXEHPONV/q96esnXqpn4iI9EoKN/1JS7jZ/Q7UV3XpEDdcOJRQp4PNh8p5Z5vu3oiISO+jcNOfJIyFmDRorDUDThfEhjm9fW8eekd3b0REpPdRuOlPbLZuN00B3DBtKGFOB1sOl/PW1s6/N0dERMSfFG76m5anpna+CY11XTpETJiT75+fBsCf3tmluzciItKrKNz0N4POgfAEqCs3Hwvvoh9eMJRwVxBb88p5c4vu3oiISO+hcNPf2O0w6qvm/LZXunyYmDAn3z+u743eeyMiIr2Fwk1/5O138xo01nf5MD+clk64K4jt+RW8tTXfR8WJiIh0j8JNf5Q2DcIToaYYdrze5cNEhzqZ19z35qF3dunujYiI9AoKN/2RIwgmzDHnNz7VrUP98IKhRDTfvVm9RXdvRETEego3/dWE75qfe96Fkv1dPkxUaDDzLjBHDP+T7t6IiEgvoHDTX8UOhfSLAAM++2e3DvWD89OJcAexo6CCNzbr7o2IiFhL4aY/O/ta8/Ozf0JTY5cPExUazHXnN9+9ydKTUyIiYi2Fm/5s9CwIiYWKw7Anq1uHuu4C8+7NzoJKXv3isI8KFBER6TyFm/4syAUZ15jzG7rXsTgqJJgfXTgUgHve2E51fdfvBImIiHSHwk1/19I0tXM1VHSvv8wPpw0lJTqEvLJalq/Z64PiREREOk/hpr+LHwWpU8Boguynu3Uod7CDX39lNAB/WbOHgyXVvqhQRESkUxRuBM6ea35u/Ad4PN061MyxiZw7NJa6Rg9LX9/ug+JEREQ6R+FG4MwrwBUJJftg3wfdOpTNZmPxrDOx22DVpjzW7jnqkxJFREQ6SuFGwBkGZ33TnO/mG4sBRidF8p0pgwG489UtNDZ1726QiIhIZyjciKmlaWrbq1DV/bstP7tsJFEhwWzPr+DZTw90+3giIiIdpXAjpuTxkDgOmurhi5XdPlxMmJNbM0cA8MBbOyirbuj2MUVERDpC4UaOmdjSsfgpMLr/luHvnjuEMxLCKalu4I/v7Oz28URERDpC4UaOOetqCAqBI9vhwLpuHy7IYWfRV88E4P8+3s/OgopuH1NEROR0FG7kGHcUnHmlOb/xHz455AUj4pg+JoEmj8HvXt2K4YM7QiIiIu1RuJHWWpqmtrwINSU+OeRvvjIGp8POh7uLeHNLgU+OKSIicioKN9Ja6hRIGAsN1fDJ4z455OABoVx/oTlq+KL/bFbnYhER8SuFG2nNZoNpC8z5Tx6DOt/0k/nxl0YwNC6Mwoo67nx1i0+OKSIi0haFGznZmCtgwHCzWWr9Cp8c0h3s4L6rM7Db4MXPDvH2VjVPiYiIfyjcyMnsDrig+e7NR49AQ41PDjtxSAzXTxsKwK9e2kRpdb1PjisiInI8hRtp27hvQdRgqCqEjf/ns8PeetkZDBsYxpGKOn77ipqnRETE9xRupG2OYLjgFnP+fw9Bo2/usriDHdzf3Dz1cvZh3tyS75PjioiItFC4kVMb/10IT4TyQ/DFsz477ITBMfzoomEA/PqlTRRXqXlKRER8R+FGTi3YDef92Jz/4EFoavTZoX+aOYIR8eEUVdazWM1TIiLiQwo30r5J8yAkFkpyYMtLPjusK8hsnnLYbbz6+WHe2JTns2OLiEj/1ivCzbJly0hLS8PtdjNlyhTWrTv1uEZPPPEE06ZNIyYmhpiYGDIzM9vdXrrJGQZT55vzH9wPHo/PDp2RGs2NF5lPT/3m5c0crazz2bFFRKT/sjzcrFy5kgULFrB48WI2btxIRkYGM2bMoLCwsM3t33vvPa655hreffdd1q5dS2pqKtOnT+fQoUM9XHk/Mvl6cEWZA2ruWOXTQ//k0hGMTIjgaFU9C1/cpLGnRESk22yGxX9NpkyZwjnnnMMjjzwCgMfjITU1lR//+Mfcfvvtp92/qamJmJgYHnnkEa699trTbl9eXk5UVBRlZWVERkZ2u/5+4793wfv3QVIG3LDGfJOxj2w+VMZVj35EfZOHX10+ihsuHOazY4uISGDozN9vS+/c1NfXs2HDBjIzM73L7HY7mZmZrF27tkPHqK6upqGhgdjY2DbX19XVUV5e3mqSLphyEwSHQt7nsPsdnx56bEoUi2aNAeDe1Tv4eO9Rnx5fRET6F0vDTVFREU1NTSQkJLRanpCQQH5+x95/8stf/pLk5ORWAel4S5cuJSoqyjulpqZ2u+5+KWwATLrOnH//PvDxDb85UwZz1YQUmjwGNz/zGYXltT49voiI9B+W97npjnvuuYdnn32Wl156Cbfb3eY2CxcupKyszDsdOHCgh6sMIOf9GBwuOPAJ7M7y6aFtNht3X3kWoxIjKKqsY/4zG2lo8l3nZRER6T8sDTdxcXE4HA4KCloPolhQUEBiYmK7+95///3cc889vPXWW4wbN+6U27lcLiIjI1tN0kURiWbnYoDVv/TZW4tbhDgdPPbdiUS4gvh0Xwn3vrHdp8cXEZH+wdJw43Q6mThxIllZx+4CeDwesrKymDp16in3+8Mf/sDvf/97Vq9ezaRJk3qiVGlx0S8gLB6O7oZPHvP54dPjwrjv6gwA/vphDq/r/TciItJJljdLLViwgCeeeIKnnnqKbdu2cdNNN1FVVcW8efMAuPbaa1m4cKF3+3vvvZc77riDFStWkJaWRn5+Pvn5+VRWVlr1I/Qv7ii47E5zfs0foPywz0/x5bGJ/Kj5/Tc/f/5z9hzR71ZERDrO8nAze/Zs7r//fhYtWsT48ePJzs5m9erV3k7Gubm55OUd+3/vjz32GPX19Xzzm98kKSnJO91///1W/Qj9z7hvw6DJUF8Jby/yyyl+Pn0kU9Jjqapv4sb/20BVne+GfhARkcBm+Xtueprec+Mjh7Ph8YsBA77/OqSd7/NTFFbU8tWHP6Swoo6vjkvi4W9PwG733ft1RESk7+gz77mRPix5vDnuFMAbv/DpoJot4iPcLJtzNkF2G699kce9q9XBWERETk/hRrruS3dASAwUbIb1K/xyinPSYrn3G+bTcH95fy8rPszxy3lERCRwKNxI14XGmgEH4N27oKrIL6f5xsRB/OLLIwH4/aqtvPaF7zsxi4hI4FC4ke6Z+H1IHAe1ZZB1p99Oc9NFw5g7dQiGAQtWfs7aPRqiQURE2qZwI91jd8DlzU+qbfw/OLjBL6ex2WwsmnUmM8cmUt/k4Yb/W8/2fI0TJiIiJ1O4ke4bPAUyrgEMeP028Phn2ASH3cYfZ49nclosFbWNzF2xjkOlNX45l4iI9F0KN+IbmXeCMwIOb4RPn/DbadzBDp64dhJnJIRTUF7H3BXrKK327TAQIiLStynciG9EJMClzS/0e+sOyN/st1NFhQbz5LzJJEa62V1YyQ+eWk+lXvInIiLNFG7EdyZfDyNmQFMdvHAd1Ff77VTJ0SE8dd1kIt1BbNhfwvf+9gllNQ1+O5+IiPQdCjfiOzYbXPEohCdA0Q54c+Hp9+mGkYkR/POHU4gKCeaz3FK++9dP1EQlIiIKN+JjYXFw1eOADTY8CVte9uvpxg2K5l/Xn8uAMCebDpXx7cc/5mhlnV/PKSIivZvCjfje0Ivhgp+a86/+BEpz/Xq6McmRPHvDuQyMcLE9v4JvP/4xheW1fj2niIj0Xgo34h+X/BpSJpkv9/v3D/0y9tTxRiRE8NyPppIU5WZXYSWzH/+Yw3pMXESkX1K4Ef9wBMM3/wauSDjwCay51++nTI8L47kfTWVQTAg5RVV86y9rOVDsv07NIiLSOynciP/EpMFX/2jOv38f5Hzg91Omxoay8kdTSRsQysGSGr71l7V6k7GISD+jcCP+ddY3YcJ3AQNevAGqi/1+ypToEFb+aCrD48PJK6vlG49+RNa2Ar+fV0REegeFG/G/mX+AASOg4jA8dy00+v9ppoRINy/cOJXzhg2gqr6JH/5jPX/9YC+GYfj93CIiYi2FG/E/Zxhc/aQ5PMO+D+ClG/02/tTxokOdPHXdZK6ZPBjDgLtWbWPhi5uob/T/uUVExDoKN9IzEsfC7P8DexBseRHe+k2PnDbYYWfJlWO546tjsNvg2U8PcO2KTyip0sv+REQClcKN9Jxhl8AVj5nzHy+Djx7pkdPabDZ+cEE6f5t7DuGuID7eW8wVj/6P3YWVPXJ+ERHpWQo30rPGfQsu+505/9avYdMLPXbqS0bF8++bziMlOoT9R6u58tH/sXpzfo+dX0REeobCjfS8834CU24y51+6Efau6bFTj0yM4D83n8/EITFU1DZy4z838JuXN1Hb0NRjNYiIiH8p3EjPs9lgxhIYcwV4GuDZOZC/qcdOHxfu4l/Xn8sNFw4F4J8f5/L1R/7HzoKKHqtBRET8R+FGrGG3w5V/gSEXQH0F/PObULK/x07vDLLzq8tH89R1k4kLd7KjoIJZf/6Qf368X4+Li4j0cQo3Yp1gN3z7aYgfA5X58ORXoWh3j5Zw0RkDeeOWC7nwjIHUNXr4zcubuemfGymt1tNUIiJ9lcKNWCskGua8ALHDoCwXVkyHQxt7tISBES6e/P45/Pry0QQ7bKzeks/MP33AB7uO9GgdIiLiGwo3Yr2oFLjuTUgaD9VH4alZsOfdHi3Bbrdx/YVD+fdN55E2IJS8slq+97d1/PTZzyiq9P8blUVExHcUbqR3CB8I338N0i+C+kp4+mrY/GKPlzFuUDSv/WQa3z8vDZsNXs4+TOaDa3ju0wPqiyMi0kco3Ejv4YqAOc8fe4rqhetg3RM9Xka4K4jffu1MXvp/5zM6KZLS6gZ+8e8v+PbjH7PniF78JyLS2yncSO8S5IJvroBzfggY8Ppt8O5SsOCuyfjUaF65+XwWzhyFO9jOJznFzHzoAx56Zyd1jXovjohIb2Uz+tm99vLycqKioigrKyMyMtLqcuRUDAPW3AvvLTW/T/geXH6/+YSVBQ4UV/OblzezZqfZyTg1NoTbpo9k1rhk7HabJTWJiPQnnfn7rXAjvdunf4VVtwEGJJwFV/8d4kZYUophGLz6RR53vbaVwgqzk/FZKVEsnDmK84bHWVKTiEh/oXDTDoWbPmh3Frx4A1QXQXAYfPWPkDHbsnKq6xv52wc5/OX9vVTWNQJw8ciB3D5zFKMS9d+UiIg/KNy0Q+GmjyrPgxevh30fmN8nfBdm/gGcYZaVVFRZx5+zdvH0J7k0egxsNvjG2YO49bIzSIkOsawuEZFApHDTDoWbPszTBO/fB+/dAxgwcBRc/STEj7a0rH1FVdz35g5WbcoDIMhu4+vjU7jp4qEMj4+wtDYRkUChcNMOhZsAkPM+/PuHUFkAQSHw5aUw8fvmgJwWyj5Qyn1vbud/u48CZjnTxyTw/y4eTkZqtKW1iYj0dQo37VC4CRCVR+ClG2DPf83vg6eaT1MljrW2LuCz3BIee28Pb20t8C47f/gAbrpoOOcPH4DN4hAmItIXKdy0Q+EmgHg88PEyeHcJNFSDzQFTfgQXLwS39b/bXQUVPLZmD//JPkyTx/yf2ZnJkXz33CF8fXwyoc4giysUEek7FG7aoXATgMoOwuqFsO0V83t4Isy4G8Z+w/KmKoCDJdX89YMcnv00l9oGDwARriCuOjuFOecO4YwE9csRETkdhZt2KNwEsN3vwOs/h+K95vf0C82mqoEjra2rWXFVPS9sOMDTn+Sy/2i1d/nktFjmnDuYL49NxBXksLBCEZHeS+GmHQo3Aa6hFj56GD54ABprzaaqjG/DtJ/BgGFWVweAx2Pw4e4inv5kP+9sK/Q2WcWEBvOVcUl8fXwKEwfH6M3HIiLHUbhph8JNP1GcA2/+Cna8bn632eGsq2HabTDwDGtrO05+WS3PfprLv9blUlBe512eEh3C18Ync8X4FEYmqtlKREThph0KN/3MwQ3mGFW73mxeYDP74lz4c4gfZWlpx2ts8vDRnqP8J/swb27J9775GGBUYgRfG5/M9DGJDI8Pt7BKERHrKNy0Q+Gmnzr8Gay5D3asal5ggzFfg8k/giHn9YqOxy1qG5rI2lbIy9mHeG9HIQ1Nx/4nOjQujMvGJJA5JoGzB8fgUNOViPQTCjftULjp5/K+MN9y3PJkFUDcSPMlgBnfhtBYy0prS1l1A69vzuP1TXl8vPdoq6ATG+bkS6PiyRydwHnDBxDpDrawUhER/1K4aYfCjQBQsAU+WQ6b/g0NVeayIDeMuQImzYPUKb3qbg5ARW0D7+8s4u2t+fx3eyHltcearhx2GxmDorhgeBznDY9jwuBoPXklIgFF4aYdCjfSSm05bHoO1j8JBZuOLR84Gs76phl24oZbVd0pNTR5WL+vhLe3FvDujkJyiqparQ8JdjA5PZYLhsdxTnosZyZHEuywW1StiEj3Kdy0Q+FG2mQYcGgjbFgBm18033jcIn4MjPm6OQ0c1evu6AAcKq3hf7uLvFNRZX2r9e5gOxmDopmUFsOkIbGcPTiGqFA1Y4lI36Fw0w6FGzmt2jLY8rLZL2fve+A51vzDgBFmyDljBiSfDY7eN4SCYRjsKKjgw11FfLTnKBv2l1BW03DSdiPiwxmfGs1Zg6IYmxLFmKRI3MFqyhKR3knhph0KN9IpNSWw4w3Y+h9zkM6m4+6IuCIhbRoMvdic4kb0yrs6Ho/BniOVbNhfwvr9JWzYX3JSMxaY/XZGxIczNiWKs1KiODM5khEJEUSF6A6PiFhP4aYdCjfSZbXlsPNN2P4q7F0DtaWt10emmCFnyHkw6BzzLo+9d/ZzKaqsY+P+EjYdKmPToTI2Hyo7qSmrRVKUmzMSIhiZGGF+JkQwPD6cEKfu8ohIz1G4aYfCjfiEpwnyPjebrfa+C7kft76rA+CKgpSzzaAzaBKkTIKwAZaUezqGYZBfXsumg2bQ2XSojB35FRwuqz3lPklRboYODCM9Loz0uHCGxoUxdGAYKdEhBKnzsoj4mMJNOxRuxC/qq+HAx2bYOfCp+dLAxpqTt4seDPFnQsKZkDDGnB8wvFf23QEor21gV0EFO/Ir2VlQwY78CnYUVFBc1fZdHoAgu43k6BBSY0NIjQklNTaUQTEhpMaGkhoTyoAwp8bNEpFOU7hph8KN9IimBijcCgfXm9Oh9VC0s+1tHS5zvKuBo83BPWOHwYChEDsUQmJ6tu4OKqmqZ29RFTlFVew9UklO83xOURV1jZ5293U67CRGuUmMcpMc5SYxKoTkaDeJkW4SIt3ER7qIC3fp0XURaUXhph0KN2KZmhLz5YEFW6FwizlfuA3qK0+9T0hsc+AZClGpEDXouM9B4OpdY015PAYFFbUcKK7hQHE1B0qqzfmSag4WV5NXXktH/8WJDXMSH+FiYISL+Ag3cRFOBoQ5GRDmIja8eT7cxYAwp57yEukHFG7aoXAjvYrHA2W5ZtAp2glH90DxXvOzMv/0+7ujzbATkQDhx00RCRCeCOHxEBZnPtnVC57kamjyUFBeS15Z81RaQ15ZLYdLa8gvr6WwvI6iyjoaPZ37Zykk2EFMaDBRoU5iQoOJDg0munk+KsScIt3BRHo/g4h0BxPhDlL/IJE+os+Fm2XLlnHfffeRn59PRkYGf/7zn5k8efIpt3/++ee544472LdvHyNGjODee+/l8ssv79C5FG6kz6irNINO8R4o2QdlB4+bDpjv4+koexCEDjCnkFhzDK3QAWazlzuq9RQSbYYmV4Q5Bbl7NBh5PAYl1fUUVtSZU3kthRV1FFfVc7SyjqNV9RytrDe/V9W1Gm+rK9zBdsJdZtAJdzVP7iAiXEGEuhyEOYMIdQYR5nK0+gx1OnAHOwh1Oghp/nQ7HYQGOxSYRPygT4WblStXcu2117J8+XKmTJnCQw89xPPPP8+OHTuIj48/afuPPvqICy+8kKVLl/LVr36VZ555hnvvvZeNGzcyduzY055P4UYCRm05lB+CskPmXZ7KAqgoMD9bpoqCY2NndZXNYTZ/uSLBGW7OO8MgOAycoRDcPB0/H+yGoJBjn0EuCA4xg1KQCxzO5k8XBDnN5Q5np0OUYRiU1zZSWl1PaXUDJdX1lNU0UFJVT2lNA6XVDZTVNFBe00B5bQPlNY3m99oGquubundd2hFkt+EOduAOtuMKMj/N78eWOR12XMF2XEHmd1eQHWfzFOywH/vuaL082GFr/jQnp8NOkMNGsMNGkL1l3k6Q3UZQ8/ZBdvO7OnJLX9anws2UKVM455xzeOSRRwDweDykpqby4x//mNtvv/2k7WfPnk1VVRWvvfaad9m5557L+PHjWb58+WnPp3Aj/U5DDVQXQ/VRqGn+rC6GqiLz7k9tafNnGdSUHlvWXl8gf7EHmyHHEdT86TTvOjmc4Ag25+1BzfPB5nb2IHPe7ji23jvZzU+bw1zf8ml30ISd+iYb9R4bdU0Gdc2ftY1Q1wS1jVDfhLmuCeoaDWqboLbJoLbRoK6xeV2j0by9B49hw4MNA/MTjn03AA92zH9wjy0zjtvewAwf3k/j+G2ObdvCaLVP+8sAbDYbDpsdh8OGzW6GHrvdhsNmw2azE+QAu82Gw243t7XbsNtsx23TvKx5cmAus9vBbreb29rMY9hsdnPe3rxN8/KWdTab+eux2Th2HBtgO+44zWHMBthtePez2WzHLbOZmbj5fHiXgw1zO+z25t9GS214r4d3HlvzPhy3vnlN8/m86zFnbMc2ar3fccdqWWnz/g5atm59npZtbcfv1Or7sWMcW9v2+rb+P8KpjtPqYG3se+K2rY/TzjlsdoYMHXlyId3Qmb/flj5/Wl9fz4YNG1i4cKF3md1uJzMzk7Vr17a5z9q1a1mwYEGrZTNmzODll19uc/u6ujrq6uq838vLy7tfuEhfEhwCUSnm1Bkejxlw6ivNJrL6iubPSqivMqeGavMx+IaqY58NNdBQC43NU0PNcZ910FQHjfXm54nvBvI0mNPJo0X4nAMIaZ66zQb0xRc5e5onER8rJhJ+e8Cy81saboqKimhqaiIhIaHV8oSEBLZv397mPvn5+W1un5/fdufLpUuXcuedd/qmYJH+xG4Hd6Q5+YvHYwaclsDjaWj+3vJ5/HyDOc6Xp7F5vgGaGpsDUVPzuiYwmo7brrH5e9PJny3zhqd53nNs8q4zWi83jGP7HL8O44RlxsnLOHFdyycnr4M2tjv+kzbmabXcaPVpLm/Z/Phl5qmME/aFVo+1Hbf+pHUnnf+445686MSlJxzm5HUtS2wn7Hf8N1u7DRCda5zo+HE7epT+ovXP3GBzWlSHqXe+OcyHFi5c2OpOT3l5OampqRZWJCJedjvY3WbfHPEp2wmfIj3J6v9FWxpu4uLicDgcFBQUtFpeUFBAYmJim/skJiZ2anuXy4XL5fJNwSIiItLrWfq8otPpZOLEiWRlZXmXeTwesrKymDp1apv7TJ06tdX2AG+//fYptxcREZH+xfJmqQULFjB37lwmTZrE5MmTeeihh6iqqmLevHkAXHvttaSkpLB06VIAbrnlFi666CIeeOABvvKVr/Dss8+yfv16Hn/8cSt/DBEREeklLA83s2fP5siRIyxatIj8/HzGjx/P6tWrvZ2Gc3NzsduP3WA677zzeOaZZ/jNb37Dr371K0aMGMHLL7/coXfciIiISOCz/D03PU3vuREREel7OvP3W+8IFxERkYCicCMiIiIBReFGREREAorCjYiIiAQUhRsREREJKAo3IiIiElAUbkRERCSgKNyIiIhIQFG4ERERkYBi+fALPa3lhczl5eUWVyIiIiId1fJ3uyMDK/S7cFNRUQFAamqqxZWIiIhIZ1VUVBAVFdXuNv1ubCmPx8Phw4eJiIjAZrP59Njl5eWkpqZy4MABjVvVBl2fU9O1aZ+uz6np2rRP1+fU+tq1MQyDiooKkpOTWw2o3ZZ+d+fGbrczaNAgv54jMjKyT/yHYhVdn1PTtWmfrs+p6dq0T9fn1PrStTndHZsW6lAsIiIiAUXhRkRERAKKwo0PuVwuFi9ejMvlsrqUXknX59R0bdqn63Nqujbt0/U5tUC+Nv2uQ7GIiIgENt25ERERkYCicCMiIiIBReFGREREAorCjYiIiAQUhRsfWbZsGWlpabjdbqZMmcK6deusLskS77//PrNmzSI5ORmbzcbLL7/car1hGCxatIikpCRCQkLIzMxk165d1hTbw5YuXco555xDREQE8fHxXHHFFezYsaPVNrW1tcyfP58BAwYQHh7ON77xDQoKCiyquGc99thjjBs3zvtCsalTp/LGG2941/fna3Oie+65B5vNxk9/+lPvsv58fX77299is9laTaNGjfKu78/XpsWhQ4f47ne/y4ABAwgJCeGss85i/fr13vWB9m+zwo0PrFy5kgULFrB48WI2btxIRkYGM2bMoLCw0OrSelxVVRUZGRksW7aszfV/+MMfePjhh1m+fDmffPIJYWFhzJgxg9ra2h6utOetWbOG+fPn8/HHH/P222/T0NDA9OnTqaqq8m5z66238uqrr/L888+zZs0aDh8+zFVXXWVh1T1n0KBB3HPPPWzYsIH169fzpS99ia9//ets2bIF6N/X5niffvopf/nLXxg3blyr5f39+px55pnk5eV5pw8//NC7rr9fm5KSEs4//3yCg4N544032Lp1Kw888AAxMTHebQLu32ZDum3y5MnG/Pnzvd+bmpqM5ORkY+nSpRZWZT3AeOmll7zfPR6PkZiYaNx3333eZaWlpYbL5TL+9a9/WVChtQoLCw3AWLNmjWEY5rUIDg42nn/+ee8227ZtMwBj7dq1VpVpqZiYGOOvf/2rrk2ziooKY8SIEcbbb79tXHTRRcYtt9xiGIb+21m8eLGRkZHR5rr+fm0MwzB++ctfGhdccMEp1wfiv826c9NN9fX1bNiwgczMTO8yu91OZmYma9eutbCy3icnJ4f8/PxW1yoqKoopU6b0y2tVVlYGQGxsLAAbNmygoaGh1fUZNWoUgwcP7nfXp6mpiWeffZaqqiqmTp2qa9Ns/vz5fOUrX2l1HUD/7QDs2rWL5ORkhg4dypw5c8jNzQV0bQBeeeUVJk2axNVXX018fDwTJkzgiSee8K4PxH+bFW66qaioiKamJhISElotT0hIID8/36KqeqeW66FrZY5O/9Of/pTzzz+fsWPHAub1cTqdREdHt9q2P12fTZs2ER4ejsvl4sYbb+Sll15izJgxujbAs88+y8aNG1m6dOlJ6/r79ZkyZQpPPvkkq1ev5rHHHiMnJ4dp06ZRUVHR768NwN69e3nssccYMWIEb775JjfddBM/+clPeOqpp4DA/Le5340KLtIbzJ8/n82bN7fqFyAwcuRIsrOzKSsr44UXXmDu3LmsWbPG6rIsd+DAAW655Rbefvtt3G631eX0OjNnzvTOjxs3jilTpjBkyBCee+45QkJCLKysd/B4PEyaNIklS5YAMGHCBDZv3szy5cuZO3euxdX5h+7cdFNcXBwOh+OknvcFBQUkJiZaVFXv1HI9+vu1uvnmm3nttdd49913GTRokHd5YmIi9fX1lJaWttq+P10fp9PJ8OHDmThxIkuXLiUjI4M//elP/f7abNiwgcLCQs4++2yCgoIICgpizZo1PPzwwwQFBZGQkNCvr8+JoqOjOeOMM9i9e3e//28HICkpiTFjxrRaNnr0aG/TXSD+26xw001Op5OJEyeSlZXlXebxeMjKymLq1KkWVtb7pKenk5iY2OpalZeX88knn/SLa2UYBjfffDMvvfQS//3vf0lPT2+1fuLEiQQHB7e6Pjt27CA3N7dfXJ+2eDwe6urq+v21ufTSS9m0aRPZ2dneadKkScyZM8c735+vz4kqKyvZs2cPSUlJ/f6/HYDzzz//pNdO7Ny5kyFDhgAB+m+z1T2aA8Gzzz5ruFwu48knnzS2bt1q3HDDDUZ0dLSRn59vdWk9rqKiwvjss8+Mzz77zACMBx980Pjss8+M/fv3G4ZhGPfcc48RHR1t/Oc//zG++OIL4+tf/7qRnp5u1NTUWFy5/910001GVFSU8d577xl5eXneqbq62rvNjTfeaAwePNj473//a6xfv96YOnWqMXXqVAur7jm33367sWbNGiMnJ8f44osvjNtvv92w2WzGW2+9ZRhG/742bTn+aSnD6N/X52c/+5nx3nvvGTk5Ocb//vc/IzMz04iLizMKCwsNw+jf18YwDGPdunVGUFCQcffddxu7du0ynn76aSM0NNT45z//6d0m0P5tVrjxkT//+c/G4MGDDafTaUyePNn4+OOPrS7JEu+++64BnDTNnTvXMAzzkcM77rjDSEhIMFwul3HppZcaO3bssLboHtLWdQGMv//9795tampqjP/3//6fERMTY4SGhhpXXnmlkZeXZ13RPei6664zhgwZYjidTmPgwIHGpZde6g02htG/r01bTgw3/fn6zJ4920hKSjKcTqeRkpJizJ4929i9e7d3fX++Ni1effVVY+zYsYbL5TJGjRplPP74463WB9q/zTbDMAxr7hmJiIiI+J763IiIiEhAUbgRERGRgKJwIyIiIgFF4UZEREQCisKNiIiIBBSFGxEREQkoCjciIiISUBRuREREJKAo3IhIQLn44ov56U9/anUZImIhvaFYRAJKcXExwcHBREREWF2KiFhE4UZEREQCipqlRCSgqFlKRBRuREREJKAo3IiIiEhAUbgRERGRgKJwIyIiIgFF4UZEREQCisKNiIiIBBSFGxEREQkoeomfiIiIBBTduREREZGAonAjIiIiAUXhRkRERAKKwo2IiIgEFIUbERERCSgKNyIiIhJQFG5EREQkoCjciIiISEBRuBEREZGAonAjIiIiAUXhRkRERALK/wfAsTRWKg/ocAAAAABJRU5ErkJggg=="></div><p>I'll admit this baffled me for a while. I could understand the rotation idea. <em>But why would you go through the trouble of varying $\theta$ by what seems like such an arbitrary amount?</em></p>
+<p>To understand the rationale, we need to step back for a moment and think about the big picture. Why are we using embeddings in the first place? At the end of the day, embeddings are feature vectors. Just like rows in a classical ML master table. Except they literally have thousands of columns. We can't, nor do we want to, know what each one represents. There are simply too many of them. But we do want to support them. Like seeds in a garden, we want to give them nutrient rich soil in which to flourish.</p>
+<p>If we rotate all the features by a uniform amount, we're restricting the nutrients in their diet. Some features will be sensitive to distance. The effect of these &quot;short-range&quot; or &quot;local&quot; features may taper off rapidly as the embeddings move apart. Other &quot;long-range&quot; or &quot;global&quot; features will be much less sensitive to distance.</p>
+<div class="card"><p><em>Varying $\theta$ establishes an environment that encourages a diverse population of short, medium, and long-range features.</em></p>
+</div><h3>Attention Workflow</h3>
+<p>Now that we've gone through all of the background, let's rewrite the attention equation one more time with all of the elements we need to calculate.</p>
+$$
+\begin{aligned}
+\mathbf{A} &= softmax\left(\frac{\mathbf{Q}\mathbf{K}^T}{\sqrt{d}} + \mathbf{M}\right)\mathbf{V} \\
+\end{aligned}
+$$
+<p>expands to</p>
+$$
+\begin{aligned}
+\mathbf{A} &= softmax\left(\frac{(\mathbf{R}\mathbf{W}_Q\mathbf{X})(\mathbf{R}\mathbf{W}_K\mathbf{X})^T}{\sqrt{d}} + \mathbf{M}\right)\mathbf{W}_V\mathbf{X} \\
+\end{aligned}
+$$
+<p>where</p>
+<ul>
+<li>$\mathbf{W}_Q$, $\mathbf{W}_K$, $\mathbf{W}_V$ are the linear projections for queries, keys, and values respectively.</li>
+<li>$\mathbf{R}\mathbf{W}_Q\mathbf{X}$, $\mathbf{R}\mathbf{W}_K\mathbf{X}$ encode positions by rotating queries and keys respectively.</li>
+</ul>
+<p>The flowchart below enumerates the steps required to calculate $\mathbf{A}$. Yes, there are a lot of steps but each one is tiny. My goal was to break the calculation down into small enough pieces that each one is only a few lines of code.</p>
+<figure id="attention-workflow-fig"><img alt="Attention Workflow" src="resources/attention-flow.svg"/><figcaption>Figure 6: Attention Workflow</figcaption></figure><h3>Normalize Inputs</h3>
+<p>In the original Transformer architecture, the Attention and FFN blocks normalized the outputs of each sub-layer. In contrast, Llama normalizes the <em>inputs</em> to each sub-layer to improve training stability. Furthermore, Llama also replaces the standard LayerNorm algorithm with the RMSNorm algorithm designed by <a class="ref" href="#ref-zhang_root_2019">Zhang <em>et al.</em> (2019)</a> to be less computationally expensive and scale better.</p>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Configure attention normalization</span>
+<span class="n">normalize_attention</span> <span class="o">=</span> <span class="n">RMSNorm</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">d_model</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">rms_norm_eps</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+
+<span class="c1"># Load pre-trained weights</span>
+<span class="n">load_state</span><span class="p">(</span><span class="n">normalize_attention</span><span class="p">,</span> <span class="s2">"normalize_attention"</span><span class="p">,</span> <span class="n">checkpoint</span><span class="o">=</span><span class="n">checkpoint</span><span class="p">)</span>
+</pre></div>
+</div><div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Preserve residuals</span>
+<span class="n">residual</span> <span class="o">=</span> <span class="n">x</span>
+
+<span class="c1"># Normalize attention inputs</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">normalize_attention</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+<span class="n">x</span><span class="o">.</span><span class="n">shape</span>
+</pre></div>
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>torch.Size([22, 4096])
+</pre></div>
+</div><h3>Project Queries, Keys, Values</h3>
+<p>Next, we'll configure and then apply the linear projections $\mathbf{W}_Q$, $\mathbf{W}_K$, $\mathbf{W}_V$ that map input embeddings $\mathbf{X}$ to query, key, and value subspaces.</p>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Configure query, key, value projections</span>
+<span class="n">w_q</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span>
+    <span class="n">in_features</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">d_model</span><span class="p">,</span>
+    <span class="n">out_features</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">n_heads</span> <span class="o">*</span> <span class="n">config</span><span class="o">.</span><span class="n">d_head</span><span class="p">,</span>
+    <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">w_k</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span>
+    <span class="n">in_features</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">d_model</span><span class="p">,</span>
+    <span class="n">out_features</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">n_kv_heads</span> <span class="o">*</span> <span class="n">config</span><span class="o">.</span><span class="n">d_head</span><span class="p">,</span>
+    <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">w_v</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span>
+    <span class="n">in_features</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">d_model</span><span class="p">,</span>
+    <span class="n">out_features</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">n_kv_heads</span> <span class="o">*</span> <span class="n">config</span><span class="o">.</span><span class="n">d_head</span><span class="p">,</span>
+    <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># Load pre-trained weights</span>
+<span class="n">load_state</span><span class="p">(</span><span class="n">w_q</span><span class="p">,</span> <span class="s2">"w_q"</span><span class="p">,</span> <span class="n">w_k</span><span class="p">,</span> <span class="s2">"w_k"</span><span class="p">,</span> <span class="n">w_v</span><span class="p">,</span> <span class="s2">"w_v"</span><span class="p">,</span> <span class="n">checkpoint</span><span class="o">=</span><span class="n">checkpoint</span><span class="p">)</span>
+</pre></div>
+</div><div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Project embeddings to query, key, value spaces</span>
+<span class="n">q</span> <span class="o">=</span> <span class="n">w_q</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="n">k</span> <span class="o">=</span> <span class="n">w_k</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="n">v</span> <span class="o">=</span> <span class="n">w_v</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+<span class="n">q</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">k</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">shape</span>
+</pre></div>
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>(torch.Size([22, 4096]), torch.Size([22, 1024]), torch.Size([22, 1024]))
+</pre></div>
+</div><h3>Split Attention Heads</h3>
+<p>Now that we've projected our embeddings to $\mathbf{Q}$, $\mathbf{K}$, and $\mathbf{V}$, it's time to split up the attention heads.</p>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="k">def</span> <span class="nf">split_heads</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">n_heads</span><span class="p">):</span>    
+    <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_heads</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">d_head</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">)</span>
+</pre></div>
+</div><div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Split attention heads</span>
+<span class="n">q</span> <span class="o">=</span> <span class="n">split_heads</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">n_heads</span><span class="p">)</span>
+<span class="n">k</span> <span class="o">=</span> <span class="n">split_heads</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">n_kv_heads</span><span class="p">)</span>
+<span class="n">v</span> <span class="o">=</span> <span class="n">split_heads</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">n_kv_heads</span><span class="p">)</span>
+
+<span class="n">q</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">k</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">shape</span>
+</pre></div>
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>(torch.Size([32, 22, 128]), torch.Size([8, 22, 128]), torch.Size([8, 22, 128]))
+</pre></div>
+</div><div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Expand key/value groups</span>
+<span class="n">reps</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">n_heads</span> <span class="o">//</span> <span class="n">config</span><span class="o">.</span><span class="n">n_kv_heads</span>
+<span class="n">k</span> <span class="o">=</span> <span class="n">k</span><span class="o">.</span><span class="n">repeat_interleave</span><span class="p">(</span><span class="n">reps</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">v</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">repeat_interleave</span><span class="p">(</span><span class="n">reps</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="n">q</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">k</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">shape</span>
+</pre></div>
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>(torch.Size([32, 22, 128]), torch.Size([32, 22, 128]), torch.Size([32, 22, 128]))
+</pre></div>
+</div><div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Sanity check</span>
+<span class="k">assert</span> <span class="n">q</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">k</span><span class="o">.</span><span class="n">shape</span> <span class="o">==</span> <span class="n">v</span><span class="o">.</span><span class="n">shape</span>
+</pre></div>
+</div><p>Let's take a quick moment to walk through what just happened. Starting with $\mathbf{Q}$, we see the shape changed from $22 \times 4096$ to $32 \times 22 \times 128$. The shape of $\mathbf{K}$ and $\mathbf{V}$ changed from $22 \times 1024$ to $8 \times 22 \times 128$ and then changed again to $32 \times 22 \times 128$. But why? What is happening here?</p>
+<p>The goal of GQA is to split each embedding's query, key, and value representation into chunks, expand the key / value representations to match the queries, distribute each chunk to an attention head, and then eventually recombine everything on the other side. Figures <a href="#figure7">7</a> to <a href="#figure9">9</a> illustrate the GQA process. In the first step, we have a query representation with a dimension of 16, a key representation with a dimension of 4, and a value representation also with dimension 4.</p>
+<figure id="gqa-step1-fig"><img alt="GQA - Step 1" src="resources/gqa_step1.svg"/><figcaption>Figure 7: GQA - Step 1</figcaption></figure><p>Step 2 shows the representations after <code>split_heads</code>. Each color represents an attention head. We can see we have 8 query heads and 2 key/value heads.</p>
+<figure id="gqa-step2-fig"><img alt="GQA - Step 2" src="resources/gqa_step2.svg"/><figcaption>Figure 8: GQA - Step 2</figcaption></figure><p>Step 3 shows the representations after the key / value groups have been expanded. All of the attention heads have a full set of queries, keys, and values. If you look closely, you'll see the first group of attention heads all share the same keys and values $\set{k_0, k_1, v_0, v_1}$. Similarly, the second group of attention heads all share the same keys and values $\set{k_2, k_3, v_2, v_3}$.</p>
+<figure id="gqa-step3-fig"><img alt="GQA - Step 3" src="resources/gqa_step3.svg"/><figcaption>Figure 9: GQA - Step 3</figcaption></figure><h3>Encode Positions</h3>
+<p>Now that we've split queries, keys, and values into attention heads, the next step is to rotate the queries and keys using RoPE. Recall the compact, single embedding form of the RoPE transformation we looked at earlier:</p>
+$$
+\mathbf{R} \mathbf{x} = 
+\begin{bmatrix}
+x_0 \\
+x_1 \\
+\vdots \\
+x_{d-2} \\
+x_{d-1} \\
+\end{bmatrix}
+\odot
+\begin{bmatrix}
+cos(m \theta_0) \\
+cos(m \theta_0) \\
+\vdots \\
+cos(m \theta_{d/2-1}) \\
+cos(m \theta_{d/2-1}) \\
+\end{bmatrix}
++
+\begin{bmatrix}
+-x_1 \\
+x_0 \\
+\vdots \\
+-x_{d-1} \\
+x_{d-2} \\
+\end{bmatrix}
+\odot
+\begin{bmatrix}
+sin(m \theta_0) \\
+sin(m \theta_0) \\
+\vdots \\
+sin(m \theta_{d/2-1}) \\
+sin(m \theta_{d/2-1}) \\
+\end{bmatrix}
+$$
+<p>We'll calculate the $cos$ and $sin$ vectors for every position $m$ and stack them in $n \times d_{head}$ matrices $\mathbf{R}_{cos}$ and $\mathbf{R}_{sin}$.</p>
+<p>Given $\Theta$, $d=d_{head}$, $n=\text{sequence length}$:</p>
+$$
+\begin{aligned}
+\mathbf{R}_{cos} &=
+\begin{bmatrix}
+\cos(0 \theta_0) & \cos(0 \theta_0) & \dots & \cos(0 \theta_{d/2-1}) & \cos(0 \theta_{d/2-1}) \\
+\vdots & \vdots & \dots & \vdots & \vdots \\
+\cos((n-1) \theta_0) & \cos((n-1) \theta_0) & \dots & \cos((n-1) \theta_{d/2-1}) & \cos((n-1) \theta_{d/2-1}) \\
+\end{bmatrix} \\
+\quad \\
+\mathbf{R}_{sin} &=
+\begin{bmatrix}
+\sin(0 \theta_0) & \sin(0 \theta_0) & \dots & \sin(0 \theta_{d/2-1}) & \sin(0 \theta_{d/2-1}) \\
+\vdots & \vdots & \dots & \vdots & \vdots \\
+\sin((n-1) \theta_0) & \sin((n-1) \theta_0) & \dots & \sin((n-1) \theta_{d/2-1}) & \sin((n-1) \theta_{d/2-1}) \\
+\end{bmatrix}
+\end{aligned}
+$$
+<p>where</p>
+$$
+\theta_i = \frac{1}{\Theta^{2i/d}}, i \in [0, 1, \dots, d/2-1]
+$$
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Hyperparameters</span>
+<span class="n">base</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">rope_theta</span>
+<span class="n">d</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">d_head</span>
+</pre></div>
+</div><div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Calculate thetas</span>
+<span class="n">i</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">d</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+<span class="n">thetas</span> <span class="o">=</span> <span class="n">base</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">i</span> <span class="o">/</span> <span class="n">d</span><span class="p">)</span>
+
+<span class="n">thetas</span><span class="o">.</span><span class="n">shape</span>
+</pre></div>
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>torch.Size([64])
+</pre></div>
+</div><div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="n">thetas</span>
+</pre></div>
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>tensor([1.0000e+00, 8.1462e-01, 6.6360e-01, 5.4058e-01, 4.4037e-01, 3.5873e-01, 2.9223e-01, 2.3805e-01, 1.9392e-01,
+        1.5797e-01, 1.2869e-01, 1.0483e-01, 8.5397e-02, 6.9566e-02, 5.6670e-02, 4.6164e-02, 3.7606e-02, 3.0635e-02,
+        2.4955e-02, 2.0329e-02, 1.6560e-02, 1.3490e-02, 1.0990e-02, 8.9523e-03, 7.2927e-03, 5.9407e-03, 4.8394e-03,
+        3.9423e-03, 3.2114e-03, 2.6161e-03, 2.1311e-03, 1.7360e-03, 1.4142e-03, 1.1520e-03, 9.3847e-04, 7.6450e-04,
+        6.2277e-04, 5.0732e-04, 4.1327e-04, 3.3666e-04, 2.7425e-04, 2.2341e-04, 1.8199e-04, 1.4825e-04, 1.2077e-04,
+        9.8381e-05, 8.0143e-05, 6.5286e-05, 5.3183e-05, 4.3324e-05, 3.5292e-05, 2.8750e-05, 2.3420e-05, 1.9078e-05,
+        1.5542e-05, 1.2660e-05, 1.0313e-05, 8.4015e-06, 6.8440e-06, 5.5752e-06, 4.5417e-06, 3.6997e-06, 3.0139e-06,
+        2.4551e-06], device='mps:0')
+</pre></div>
+</div><div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Duplicate each theta, e.g. [theta_0, theta_1] -&gt; [theta_0, theta_0, theta_1, theta_1]</span>
+<span class="n">thetas</span> <span class="o">=</span> <span class="n">thetas</span><span class="o">.</span><span class="n">repeat_interleave</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+<span class="n">thetas</span><span class="o">.</span><span class="n">shape</span>
+</pre></div>
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>torch.Size([128])
+</pre></div>
+</div><div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="n">thetas</span>
+</pre></div>
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>tensor([1.0000e+00, 1.0000e+00, 8.1462e-01, 8.1462e-01, 6.6360e-01, 6.6360e-01, 5.4058e-01, 5.4058e-01, 4.4037e-01,
+        4.4037e-01, 3.5873e-01, 3.5873e-01, 2.9223e-01, 2.9223e-01, 2.3805e-01, 2.3805e-01, 1.9392e-01, 1.9392e-01,
+        1.5797e-01, 1.5797e-01, 1.2869e-01, 1.2869e-01, 1.0483e-01, 1.0483e-01, 8.5397e-02, 8.5397e-02, 6.9566e-02,
+        6.9566e-02, 5.6670e-02, 5.6670e-02, 4.6164e-02, 4.6164e-02, 3.7606e-02, 3.7606e-02, 3.0635e-02, 3.0635e-02,
+        2.4955e-02, 2.4955e-02, 2.0329e-02, 2.0329e-02, 1.6560e-02, 1.6560e-02, 1.3490e-02, 1.3490e-02, 1.0990e-02,
+        1.0990e-02, 8.9523e-03, 8.9523e-03, 7.2927e-03, 7.2927e-03, 5.9407e-03, 5.9407e-03, 4.8394e-03, 4.8394e-03,
+        3.9423e-03, 3.9423e-03, 3.2114e-03, 3.2114e-03, 2.6161e-03, 2.6161e-03, 2.1311e-03, 2.1311e-03, 1.7360e-03,
+        1.7360e-03, 1.4142e-03, 1.4142e-03, 1.1520e-03, 1.1520e-03, 9.3847e-04, 9.3847e-04, 7.6450e-04, 7.6450e-04,
+        6.2277e-04, 6.2277e-04, 5.0732e-04, 5.0732e-04, 4.1327e-04, 4.1327e-04, 3.3666e-04, 3.3666e-04, 2.7425e-04,
+        2.7425e-04, 2.2341e-04, 2.2341e-04, 1.8199e-04, 1.8199e-04, 1.4825e-04, 1.4825e-04, 1.2077e-04, 1.2077e-04,
+        9.8381e-05, 9.8381e-05, 8.0143e-05, 8.0143e-05, 6.5286e-05, 6.5286e-05, 5.3183e-05, 5.3183e-05, 4.3324e-05,
+        4.3324e-05, 3.5292e-05, 3.5292e-05, 2.8750e-05, 2.8750e-05, 2.3420e-05, 2.3420e-05, 1.9078e-05, 1.9078e-05,
+        1.5542e-05, 1.5542e-05, 1.2660e-05, 1.2660e-05, 1.0313e-05, 1.0313e-05, 8.4015e-06, 8.4015e-06, 6.8440e-06,
+        6.8440e-06, 5.5752e-06, 5.5752e-06, 4.5417e-06, 4.5417e-06, 3.6997e-06, 3.6997e-06, 3.0139e-06, 3.0139e-06,
+        2.4551e-06, 2.4551e-06], device='mps:0')
+</pre></div>
+</div><div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="k">def</span> <span class="nf">rope_frequencies</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Compute RoPE cos and sin rotation matrices."""</span>
+    
+    <span class="c1"># Repeat thetas for each position from 0 to n and stack in an (n, d_head) matrix</span>
+    <span class="n">theta_stack</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">m</span><span class="o">*</span><span class="n">thetas</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)])</span>
+    
+    <span class="c1"># Apply cos, sin</span>
+    <span class="n">r_cos</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta_stack</span><span class="p">)</span>
+    <span class="n">r_sin</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta_stack</span><span class="p">)</span>
+    
+    <span class="c1"># Sanity check</span>
+    <span class="k">assert</span> <span class="n">r_cos</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">n</span> <span class="ow">and</span> <span class="n">r_cos</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">config</span><span class="o">.</span><span class="n">d_head</span>
+    <span class="k">assert</span> <span class="n">r_sin</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">n</span> <span class="ow">and</span> <span class="n">r_sin</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">config</span><span class="o">.</span><span class="n">d_head</span>
+
+    <span class="k">return</span> <span class="n">r_cos</span><span class="p">,</span> <span class="n">r_sin</span>
+
+<span class="c1"># Compute cos and sin rotation matrices</span>
+<span class="n">r_cos</span><span class="p">,</span> <span class="n">r_sin</span> <span class="o">=</span> <span class="n">rope_frequencies</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+
+<span class="n">r_cos</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">r_sin</span><span class="o">.</span><span class="n">shape</span>
+</pre></div>
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>(torch.Size([22, 128]), torch.Size([22, 128]))
+</pre></div>
+</div><div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="n">r_cos</span>
+</pre></div>
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>tensor([[ 1.0000,  1.0000,  1.0000,  ...,  1.0000,  1.0000,  1.0000],
+        [ 0.5403,  0.5403,  0.6861,  ...,  1.0000,  1.0000,  1.0000],
+        [-0.4161, -0.4161, -0.0584,  ...,  1.0000,  1.0000,  1.0000],
+        ...,
+        [ 0.9887,  0.9887, -0.9736,  ...,  1.0000,  1.0000,  1.0000],
+        [ 0.4081,  0.4081, -0.8341,  ...,  1.0000,  1.0000,  1.0000],
+        [-0.5477, -0.5477, -0.1710,  ...,  1.0000,  1.0000,  1.0000]], device='mps:0')
+</pre></div>
+</div><div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="n">r_sin</span>
+</pre></div>
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>tensor([[ 0.0000e+00,  0.0000e+00,  0.0000e+00,  ...,  0.0000e+00,  0.0000e+00,  0.0000e+00],
+        [ 8.4147e-01,  8.4147e-01,  7.2746e-01,  ...,  3.0139e-06,  2.4551e-06,  2.4551e-06],
+        [ 9.0930e-01,  9.0930e-01,  9.9829e-01,  ...,  6.0277e-06,  4.9103e-06,  4.9103e-06],
+        ...,
+        [ 1.4988e-01,  1.4988e-01,  2.2821e-01,  ...,  5.7263e-05,  4.6648e-05,  4.6648e-05],
+        [ 9.1295e-01,  9.1295e-01, -5.5168e-01,  ...,  6.0277e-05,  4.9103e-05,  4.9103e-05],
+        [ 8.3666e-01,  8.3666e-01, -9.8528e-01,  ...,  6.3291e-05,  5.1558e-05,  5.1558e-05]], device='mps:0')
+</pre></div>
+</div><p>Next, we'll define <code>rope_swap</code> to transform the embedding pairs to match the second column of $\mathbf{R}$.</p>
+$$
+\begin{bmatrix}
+x_0 \\
+x_1 \\
+\vdots \\
+x_{d-2} \\
+x_{d-1} \\
+\end{bmatrix}
+\mapsto
+\begin{bmatrix}
+-x_1 \\
+x_0 \\
+\vdots \\
+-x_{d-1} \\
+x_{d-2} \\
+\end{bmatrix}
+$$
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="k">def</span> <span class="nf">rope_swap</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Maps [x0, x1, x2, x3] -&gt; [-x1, x0, -x3, x2]."""</span>
+        
+    <span class="c1"># Preserve original shape</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span>
+
+    <span class="c1"># Split into pairs, swap, and restore shape</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">flip</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+
+    <span class="c1"># Multiply every even index along the last dimension by -1</span>
+    <span class="c1">#   e.g. [x0, x1, x2, x3] -&gt; [-x0, x1, -x2, x3]</span>
+    <span class="n">x</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">*=</span> <span class="o">-</span><span class="mi">1</span>
+
+    <span class="k">return</span> <span class="n">x</span>
+</pre></div>
+</div><p>We can finally combine all the pieces of the RoPE rotational transform!</p>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="k">def</span> <span class="nf">rope_rotate</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">r_cos</span><span class="p">,</span> <span class="n">r_sin</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Rotate embeddings using RoPE transform."""</span>
+    
+    <span class="k">return</span> <span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">r_cos</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">rope_swap</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">*</span> <span class="n">r_sin</span><span class="p">)</span>
+</pre></div>
+</div><div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Encode positions by rotating queries and keys</span>
+<span class="n">q</span> <span class="o">=</span> <span class="n">rope_rotate</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">r_cos</span><span class="p">,</span> <span class="n">r_sin</span><span class="p">)</span>
+<span class="n">k</span> <span class="o">=</span> <span class="n">rope_rotate</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">r_cos</span><span class="p">,</span> <span class="n">r_sin</span><span class="p">)</span>
+
+<span class="n">q</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">k</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">shape</span>
+</pre></div>
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>(torch.Size([32, 22, 128]), torch.Size([32, 22, 128]), torch.Size([32, 22, 128]))
+</pre></div>
+</div><h3>Calculate Attention</h3>
+<p>We've finally reached the attention equation! First, we'll compute the attention mask and then put all the pieces together.</p>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Compute attention mask M</span>
+<span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+<span class="n">mask</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">bool</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span><span class="o">.</span><span class="n">tril</span><span class="p">(</span><span class="n">diagonal</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">m</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span><span class="o">.</span><span class="n">masked_fill_</span><span class="p">(</span><span class="n">mask</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(),</span> <span class="nb">float</span><span class="p">(</span><span class="s2">"-inf"</span><span class="p">))</span>
+
+<span class="n">m</span><span class="o">.</span><span class="n">shape</span>
+</pre></div>
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>torch.Size([22, 22])
+</pre></div>
+</div><div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="n">m</span>
+</pre></div>
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>tensor([[0., -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf],
+        [0., 0., -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf],
+        [0., 0., 0., -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf],
+        [0., 0., 0., 0., -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf],
+        [0., 0., 0., 0., 0., -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf],
+        [0., 0., 0., 0., 0., 0., -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf],
+        [0., 0., 0., 0., 0., 0., 0., -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf],
+        [0., 0., 0., 0., 0., 0., 0., 0., -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf],
+        [0., 0., 0., 0., 0., 0., 0., 0., 0., -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf],
+        [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf],
+        [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf],
+        [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf],
+        [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf],
+        [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., -inf, -inf, -inf, -inf, -inf, -inf, -inf, -inf],
+        [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., -inf, -inf, -inf, -inf, -inf, -inf, -inf],
+        [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., -inf, -inf, -inf, -inf, -inf, -inf],
+        [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., -inf, -inf, -inf, -inf, -inf],
+        [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., -inf, -inf, -inf, -inf],
+        [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., -inf, -inf, -inf],
+        [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., -inf, -inf],
+        [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., -inf],
+        [0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.]], device='mps:0')
+</pre></div>
+</div><div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Compute attention for all heads in parallel</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">softmax</span><span class="p">(</span><span class="n">q</span> <span class="o">@</span> <span class="n">k</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">d_head</span><span class="p">)</span> <span class="o">+</span> <span class="n">m</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span> <span class="o">@</span> <span class="n">v</span>
+
+<span class="n">a</span><span class="o">.</span><span class="n">shape</span>
+</pre></div>
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>torch.Size([32, 22, 128])
+</pre></div>
+</div><h3>Recombine Attention Heads</h3>
+<p>Next, we'll reassemble the attention heads.</p>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="k">def</span> <span class="nf">combine_heads</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">contiguous</span><span class="p">()</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">n_heads</span> <span class="o">*</span> <span class="n">config</span><span class="o">.</span><span class="n">d_head</span><span class="p">))</span>
+</pre></div>
+</div><div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Combine attention heads</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">combine_heads</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+
+<span class="n">a</span><span class="o">.</span><span class="n">shape</span>
+</pre></div>
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>torch.Size([22, 4096])
+</pre></div>
+</div><h3>Project Outputs</h3>
+<p>Now that we've calculated the attention representation, we need to project the attention representation back to embedding space before we combine with $\mathbf{X}$.</p>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Configure attention output projection</span>
+<span class="n">w_a</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span>
+    <span class="n">in_features</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">d_model</span><span class="p">,</span> 
+    <span class="n">out_features</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">d_model</span><span class="p">,</span>
+    <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># Load pre-trained weights</span>
+<span class="n">load_state</span><span class="p">(</span><span class="n">w_a</span><span class="p">,</span> <span class="s2">"w_a"</span><span class="p">,</span> <span class="n">checkpoint</span><span class="o">=</span><span class="n">checkpoint</span><span class="p">)</span>
+</pre></div>
+</div><div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Project attention embeddings back to model space</span>
+<span class="n">a</span> <span class="o">=</span> <span class="n">w_a</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+
+<span class="n">a</span><span class="o">.</span><span class="n">shape</span>
+</pre></div>
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>torch.Size([22, 4096])
+</pre></div>
+</div><h3>Combine Outputs with Residuals</h3>
+<p>Here we simply add the attention representation $\mathbf{A}$ with the embeddings we started with right before normalization. This type of &quot;residual learning&quot; is critical in deep neural networks to ensure the gradients have a strong path from start to finish.</p>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Combine attention embeddings with residuals</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">residual</span> <span class="o">+</span> <span class="n">a</span>
+
+<span class="n">x</span><span class="o">.</span><span class="n">shape</span>
+</pre></div>
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>torch.Size([22, 4096])
+</pre></div>
+</div><h2 id="feedforward-networks">Feedforward Networks</h2>
+<p>Feedforward network (FFN) blocks capitalize on the contextual information added through attention, applying the non-linear transformation magic that neural networks are famous for.</p>
+<h3>SwiGLU Activation</h3>
+<p>Llama's FFN blocks use an activation mechanism known as a Gated Linear Unit (GLU). Instead of passing the outputs through the activation function as a traditional MLP would, GLUs use the activation function as a gate that controls whether or not a linear projection of the inputs is allowed through. Similar to residual learning, the main goal here is to mitigate the vanishing gradient issues by providing a linear path for the gradients while retaining non-linear transformation capabilities. (<a class="ref" href="#ref-dauphin_language_2016">Dauphin <em>et al.</em>, 2016</a>)</p>
+<p>The specific approach Llama uses is called a SwiGLU (&quot;swish&quot; GLU) which uses a sigmoid activation as the gate. This basically gives you the strong gradient flow of a traditional ReLU with a fancier non-linear gate. <a class="ref" href="#ref-shazeer_glu_2020">Shazeer <em>et al.</em> (2020)</a> demonstrated SwiGLU to perform better than a large range of alternatives.</p>
+<h3>FFN Workflow</h3>
+<p>The following flowchart highlights the steps we'll walk through next. You can see the FFN block follows a similar, albeit simpler, process as the attention block.</p>
+<figure id="ffn-workflow-fig"><img alt="Feedforward Network Workflow" src="resources/ffn-flow.svg"/><figcaption>Figure 10: Feedforward Network Workflow</figcaption></figure><h3>Normalize Inputs</h3>
+<p>Just like the attention block, we'll start by saving the residuals and normalizing the input embeddings using RMSNorm.</p>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Configure FFN normalization</span>
+<span class="n">normalize_ffn</span> <span class="o">=</span> <span class="n">RMSNorm</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">d_model</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">rms_norm_eps</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+
+<span class="c1"># Load pre-trained state</span>
+<span class="n">load_state</span><span class="p">(</span><span class="n">normalize_ffn</span><span class="p">,</span> <span class="s2">"normalize_ffn"</span><span class="p">,</span> <span class="n">checkpoint</span><span class="o">=</span><span class="n">checkpoint</span><span class="p">)</span>
+</pre></div>
+</div><div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Preserve residuals</span>
+<span class="n">residual</span> <span class="o">=</span> <span class="n">x</span>
+
+<span class="c1"># Normalize FFN inputs</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">normalize_ffn</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+<span class="n">x</span><span class="o">.</span><span class="n">shape</span>
+</pre></div>
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>torch.Size([22, 4096])
+</pre></div>
+</div><h3>Transform</h3>
+<p>The following equation illustrates the SwiGLU FFN transformation from $d_{model}$-dimensional embeddings $\mathbf{X}$ to $d_{ffn}$-dimensional hidden states $\mathbf{F}$.</p>
+$$
+\mathbf{F} = \sigma(\mathbf{G}) \odot \mathbf{H}
+$$
+<p>where</p>
+<ul>
+<li>$\mathbf{H}$ is an $n \times d_{ffn}$ tensor of hidden states</li>
+<li>$\mathbf{G}$ is an $n \times d_{ffn}$ tensor of gates</li>
+<li>$\sigma$ is the sigmoid activation function (silu)</li>
+<li>$\odot$ is element-wise multiplication</li>
+</ul>
+<p>This expands to</p>
+$$
+\mathbf{F} = \sigma(\mathbf{W}_G \mathbf{X}) \odot \mathbf{W}_H \mathbf{X}
+$$
+<p>where</p>
+<ul>
+<li>$\mathbf{W}_{H}$, $\mathbf{W}_{G}$ are the linear projections for hidden states and gates respectively.</li>
+</ul>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Configure SwiGLU FFN</span>
+<span class="n">w_h</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span>
+    <span class="n">in_features</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">d_model</span><span class="p">,</span>
+    <span class="n">out_features</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">d_ffn</span><span class="p">,</span>
+    <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
+<span class="p">)</span>
+<span class="n">w_g</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span>
+    <span class="n">in_features</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">d_model</span><span class="p">,</span>
+    <span class="n">out_features</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">d_ffn</span><span class="p">,</span>
+    <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># Load pre-trained weights</span>
+<span class="n">load_state</span><span class="p">(</span><span class="n">w_h</span><span class="p">,</span> <span class="s2">"w_h"</span><span class="p">,</span> <span class="n">w_g</span><span class="p">,</span> <span class="s2">"w_g"</span><span class="p">,</span> <span class="n">checkpoint</span><span class="o">=</span><span class="n">checkpoint</span><span class="p">)</span>
+</pre></div>
+</div><div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Apply transform</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">silu</span><span class="p">(</span><span class="n">w_g</span><span class="p">(</span><span class="n">x</span><span class="p">))</span> <span class="o">*</span> <span class="n">w_h</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+<span class="n">f</span><span class="o">.</span><span class="n">shape</span>
+</pre></div>
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>torch.Size([22, 14336])
+</pre></div>
+</div><h3>Project Outputs</h3>
+<p>Now that we've calculated the FFN representation, we need to project it back to embedding space before we combine with $\mathbf{X}$.</p>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Configure FFN output projection</span>
+<span class="n">w_f</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span>
+    <span class="n">in_features</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">d_ffn</span><span class="p">,</span>
+    <span class="n">out_features</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">d_model</span><span class="p">,</span>
+    <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># Load pre-trained weights</span>
+<span class="n">load_state</span><span class="p">(</span><span class="n">w_f</span><span class="p">,</span> <span class="s2">"w_f"</span><span class="p">,</span> <span class="n">checkpoint</span><span class="o">=</span><span class="n">checkpoint</span><span class="p">)</span>
+</pre></div>
+</div><div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Project FFN embeddings back to model space</span>
+<span class="n">f</span> <span class="o">=</span> <span class="n">w_f</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+<span class="n">f</span><span class="o">.</span><span class="n">shape</span>
+</pre></div>
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>torch.Size([22, 4096])
+</pre></div>
+</div><h3>Combine Outputs with Residuals</h3>
+<p>Just like we did with attention, we combine FFN representation with the residual input embeddings.</p>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Combine FFN embeddings with residuals</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">residual</span> <span class="o">+</span> <span class="n">f</span>
+
+<span class="n">x</span><span class="o">.</span><span class="n">shape</span>
+</pre></div>
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>torch.Size([22, 4096])
+</pre></div>
+</div><h2 id="stacking-the-layers">Stacking the Layers</h2>
+<p>Let's take a quick moment to recap. We've just finished walking through each step in a single decoder layer, tracing the embeddings through both Attention and FFN blocks. Next, we'll pull all these steps together and repeat them for each layer in the stack, gradually converting representations of individual words into representations of abstract semantic concepts.</p>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="k">def</span> <span class="nf">context_layers</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="c1"># Compute cos and sin rotation matrices</span>
+    <span class="n">r_cos</span><span class="p">,</span> <span class="n">r_sin</span> <span class="o">=</span> <span class="n">rope_frequencies</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">))</span>
+
+    <span class="c1"># Apply layer logic in a loop</span>
+    <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">n_layers</span><span class="p">):</span>
+    
+        <span class="c1"># Load pre-trained state for layer</span>
+        <span class="n">load_pretrained_state</span><span class="p">(</span><span class="n">layer</span><span class="p">)</span>
+    
+        <span class="c1">#</span>
+        <span class="c1"># Attention</span>
+        <span class="c1">#</span>
+    
+        <span class="c1"># Normalize attention inputs</span>
+        <span class="n">residual</span> <span class="o">=</span> <span class="n">x</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">normalize_attention</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        
+        <span class="c1"># Project embeddings to query, key, value spaces</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="n">w_q</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="n">w_k</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">w_v</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        
+        <span class="c1"># Split attention heads</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="n">split_heads</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">n_heads</span><span class="p">)</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="n">split_heads</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">n_kv_heads</span><span class="p">)</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">split_heads</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">n_kv_heads</span><span class="p">)</span>
+        
+        <span class="c1"># Expand key/value groups</span>
+        <span class="n">reps</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">n_heads</span> <span class="o">//</span> <span class="n">config</span><span class="o">.</span><span class="n">n_kv_heads</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="n">k</span><span class="o">.</span><span class="n">repeat_interleave</span><span class="p">(</span><span class="n">reps</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">repeat_interleave</span><span class="p">(</span><span class="n">reps</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        
+        <span class="c1"># Encode positions by rotating queries and keys</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="n">rope_rotate</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">r_cos</span><span class="p">,</span> <span class="n">r_sin</span><span class="p">)</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="n">rope_rotate</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">r_cos</span><span class="p">,</span> <span class="n">r_sin</span><span class="p">)</span>
+    
+        <span class="c1"># Compute masked attention bias M</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">bool</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span><span class="o">.</span><span class="n">tril</span><span class="p">(</span><span class="n">diagonal</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span><span class="o">.</span><span class="n">masked_fill_</span><span class="p">(</span><span class="n">mask</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(),</span> <span class="nb">float</span><span class="p">(</span><span class="s2">"-inf"</span><span class="p">))</span>
+        
+        <span class="c1"># Compute attention for all heads in parallel</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">softmax</span><span class="p">(</span><span class="n">q</span> <span class="o">@</span> <span class="n">k</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">d_head</span><span class="p">)</span> <span class="o">+</span> <span class="n">m</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span> <span class="o">@</span> <span class="n">v</span>
+    
+        <span class="c1"># Combine attention heads</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">combine_heads</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+        
+        <span class="c1"># Project attention representations back to model space</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">w_a</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+        
+        <span class="c1"># Combine attention representations with residual embeddings</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">residual</span> <span class="o">+</span> <span class="n">a</span>
+        
+        <span class="c1">#</span>
+        <span class="c1"># FFN</span>
+        <span class="c1">#</span>
+    
+        <span class="c1"># Normalize FFN inputs</span>
+        <span class="n">residual</span> <span class="o">=</span> <span class="n">x</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">normalize_ffn</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    
+        <span class="c1"># Apply SwiGLU transform</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">silu</span><span class="p">(</span><span class="n">w_g</span><span class="p">(</span><span class="n">x</span><span class="p">))</span> <span class="o">*</span> <span class="n">w_h</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    
+        <span class="c1"># Project FFN representations back to model space</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">w_f</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+        
+        <span class="c1"># Combine FFN representations with residual embeddings</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">residual</span> <span class="o">+</span> <span class="n">f</span>
+
+    <span class="k">return</span> <span class="n">x</span>
+</pre></div>
+</div><div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Start over from initial tokens</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">token_ids</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+
+<span class="c1"># Map tokens to embeddings</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">embeddings</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+<span class="c1"># Transform token embeddings to semantic embeddings</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">context_layers</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+<span class="n">x</span><span class="o">.</span><span class="n">shape</span>
+</pre></div>
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>torch.Size([22, 4096])
+</pre></div>
+</div><div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="n">x</span>
+</pre></div>
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>tensor([[ 0.8842,  1.9047,  1.0641,  ..., -1.3221,  2.1526,  1.3637],
+        [ 0.5709, -0.4375, -0.1361,  ..., -0.0925, -0.2379, -0.1356],
+        [ 0.6849, -0.0598, -0.1050,  ...,  0.9282,  1.0530, -0.8878],
+        ...,
+        [-0.3983,  0.5822, -0.3068,  ...,  0.2404,  0.1521, -0.5723],
+        [-0.7122, -0.2405, -0.3738,  ...,  0.3690,  0.6642, -1.1241],
+        [-0.3904,  0.7667,  0.6280,  ...,  0.6883,  1.9776, -0.1630]], device='mps:0', grad_fn=&lt;AddBackward0&gt;)
+</pre></div>
+</div><h1 id="head">Head</h1>
+<p>After all that transforming, we're finally ready to predict the next token. The mechanism is simpler than you may think. Since the semantic embeddings have been cross-pollinated with semantic context, we can use the last embedding to represent the entire sequence. This gives us an ideal feature vector to feed into a traditional classifier with one label for each token in the vocabulary. We'll use softmax to generate a probability distribution over all the tokens, and then randomly sample from the most probable tokens.</p>
+<figure id="head-workflow-fig"><img alt="Head Workflow" src="resources/head-flow.svg"/><figcaption>Figure 11: Head Workflow</figcaption></figure><h2 id="normalize-inputs">Normalize Inputs</h2>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Configure head normalization</span>
+<span class="n">normalize_head</span> <span class="o">=</span> <span class="n">RMSNorm</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">d_model</span><span class="p">,</span> <span class="n">config</span><span class="o">.</span><span class="n">rms_norm_eps</span><span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+
+<span class="c1"># Load pre-trained weights</span>
+<span class="n">load_state</span><span class="p">(</span><span class="n">normalize_head</span><span class="p">,</span> <span class="s2">"normalize_head"</span><span class="p">,</span> <span class="n">checkpoint</span><span class="o">=</span><span class="n">checkpoint</span><span class="p">)</span>
+</pre></div>
+</div><div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Normalize head inputs</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">normalize_head</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+<span class="n">x</span><span class="o">.</span><span class="n">shape</span>
+</pre></div>
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>torch.Size([22, 4096])
+</pre></div>
+</div><h2 id="classify-sequence">Classify Sequence</h2>
+<p>Here we classify the entire sequence by projecting the last semantic embedding from model space back to token space, producing one logit for each token id in the vocabulary.</p>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Configure output projection</span>
+<span class="n">w_head</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span>
+    <span class="n">in_features</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">d_model</span><span class="p">,</span>
+    <span class="n">out_features</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">vocab_size</span><span class="p">,</span>
+    <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+    <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
+<span class="p">)</span>
+
+<span class="c1"># Load pre-trained weights</span>
+<span class="n">load_state</span><span class="p">(</span><span class="n">w_head</span><span class="p">,</span> <span class="s2">"w_head"</span><span class="p">,</span> <span class="n">checkpoint</span><span class="o">=</span><span class="n">checkpoint</span><span class="p">)</span>
+</pre></div>
+</div><div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Use last embedding to represent the entire sequence</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+<span class="c1"># Project embedding from model space to token space</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">w_head</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+<span class="n">x</span><span class="o">.</span><span class="n">shape</span>
+</pre></div>
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>torch.Size([128256])
+</pre></div>
+</div><p>We can see <code>x</code> has been transformed from a matrix of embeddings into a single vector of logits that represent each of the 128k tokens in the vocabulary.</p>
+<h2 id="top-token">Top Token</h2>
+<p>While LLMs have a reputation for being stochastic and unpredictable, it may surprise you to learn everything we've done up until has been deterministic. Our prompt always maps to the same token ids, the token ids to the same embeddings, and even the layers of attention and feedforward blocks are completely predictable. All of the randomness of an LLM comes from the sampling process we'll start next.</p>
+<p>But first, let's test all of our hard work. If we've done everything right so far, then the highest ranked output token should be &quot;Boston&quot;.</p>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Select top scoring token</span>
+<span class="n">token_id</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">argmax</span><span class="p">()</span>
+
+<span class="c1"># Decode token</span>
+<span class="n">token</span> <span class="o">=</span> <span class="n">tokenizer</span><span class="o">.</span><span class="n">decode</span><span class="p">([</span><span class="n">token_id</span><span class="p">])</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+<span class="n">token</span>
+</pre></div>
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>'Boston'
+</pre></div>
+</div><div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Verify answer</span>
+<span class="k">assert</span> <span class="n">token</span> <span class="o">==</span> <span class="s2">"Boston"</span>
+</pre></div>
+</div><p>Pretty cool huh?</p>
+<h2 id="sample-tokens">Sample Tokens</h2>
+<p>Even though the top token gave us the correct answer, LLMs don't work this way in practice. Instead of always predicting the top token, LLMs randomly sample from a group of top tokens.</p>
+<div class="card"><p><em>Sampling is where all of the LLM's creativity comes from.</em></p>
+</div><p>Sampling avoids deterministic and repetitive outputs, making the responses feel more natural and human like. It also gives the model a mechanism to avoid getting stuck in a loop like &quot;I am happy because I am happy because ...&quot;</p>
+<p><a class="ref" href="#token-sampling-fig">Figure 12</a> highlights the steps involved in token sampling. Starting with logits for every token in the vocabulary, we'll apply temperature, top k, and top p transformations to narrow the pool down to the &quot;best&quot; tokens before we randomly select from the remaining candidates.</p>
+<p>It's worth noting that we're leaving Llama land and entering application land. Once the Llama model has produced the output logits, it's up to the application to decide what to do with them. We'll pull all of the application pieces together in a complete generator in the last section.</p>
+<figure id="token-sampling-fig"><img alt="Token Sampling" src="resources/sample-flow.svg"/><figcaption>Figure 12: Token Sampling</figcaption></figure><h3>Temperature</h3>
+<p>Temperature controls the model's &quot;creativity&quot; by transforming the logits before we convert them to probabilities. A temperature setting of less than 1.0 reduces creativity by sharpening the probability distribution. A temperature setting greater than 1 increases creativity by flattening the probability distribution and increasing the chance of selecting different tokens.</p>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Default temperature comes from Hugging Face's meta-llama/Meta-Llama-3.1-8B-Instruct model</span>
+<span class="n">config</span><span class="o">.</span><span class="n">temperature</span>
+</pre></div>
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>0.6
+</pre></div>
+</div><div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Apply temperature</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">/</span> <span class="n">config</span><span class="o">.</span><span class="n">temperature</span>
+</pre></div>
+</div><h3>Ranking</h3>
+<p>Next, we'll convert the logits to probabilities using softmax and then sort them in descending order to prepare for TopK and TopP filters.</p>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Convert logits to probabilities</span>
+<span class="n">probs</span> <span class="o">=</span> <span class="n">softmax</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+<span class="c1"># Sort probabilities in descending order</span>
+<span class="n">probs</span><span class="p">,</span> <span class="n">indices</span> <span class="o">=</span> <span class="n">probs</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">descending</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+</pre></div>
+</div><h3>Top K</h3>
+<p>The Top K filter simply keeps the <code>config.top_k</code> token probabilities.</p>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Default top_k comes from Hugging Face's meta-llama/Meta-Llama-3.1-8B-Instruct model</span>
+<span class="n">config</span><span class="o">.</span><span class="n">top_k</span>
+</pre></div>
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>50
+</pre></div>
+</div><div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Retain top k tokens</span>
+<span class="n">probs</span> <span class="o">=</span> <span class="n">probs</span><span class="p">[:</span><span class="n">config</span><span class="o">.</span><span class="n">top_k</span><span class="p">]</span>
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">probs</span><span class="p">)</span><span class="si">}</span><span class="s2"> of </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="si">}</span><span class="s2"> tokens remaining"</span><span class="p">)</span>
+</pre></div>
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>50 of 128256 tokens remaining
+</pre></div>
+</div><h3>Top P</h3>
+<p>The Top P filter calculates the cumulative sum of the token probabilities and then retains as many as needed to reach <code>config.top_p</code>.</p>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Hyperparameters</span>
+<span class="n">config</span><span class="o">.</span><span class="n">top_p</span>
+</pre></div>
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>0.9
+</pre></div>
+</div><div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Find cutoff where cumulative probability exceeds top_p</span>
+<span class="n">cumulative_mask</span> <span class="o">=</span> <span class="n">probs</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">config</span><span class="o">.</span><span class="n">top_p</span>
+<span class="n">threshold_index</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">cumulative_mask</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+
+<span class="c1"># Only apply threshold if top_p was exceeded</span>
+<span class="k">if</span> <span class="n">cumulative_mask</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+    <span class="n">probs</span> <span class="o">=</span> <span class="n">probs</span><span class="p">[:</span><span class="n">threshold_index</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">probs</span><span class="p">)</span><span class="si">}</span><span class="s2"> of </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="si">}</span><span class="s2"> tokens remaining"</span><span class="p">)</span>
+</pre></div>
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>1 of 128256 tokens remaining
+</pre></div>
+</div><h3>Random Selection</h3>
+<p>Now that we've reduced the pool to the best tokens, we randomly select a token. We use <code>torch.multinomial</code> specifically because it respects the tokens' probabilities when selecting a value.</p>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Print remaining token pool</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">prob</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">probs</span><span class="p">):</span>
+    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"token id </span><span class="si">{</span><span class="n">indices</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="si">}</span><span class="s2">, token '</span><span class="si">{</span><span class="n">tokenizer</span><span class="o">.</span><span class="n">decode</span><span class="p">([</span><span class="n">indices</span><span class="p">[</span><span class="n">i</span><span class="p">]])</span><span class="si">}</span><span class="s2">', score </span><span class="si">{</span><span class="n">prob</span><span class="si">:</span><span class="s2">0.3f</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
+</pre></div>
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>token id 65432, token 'Boston', score 1.000
+</pre></div>
+</div><p>We can see here that the Top K and Top P filters have reduced the pool to a single option. Given our very specific prompt, even the randomly sampled answer should always be &quot;Boston&quot;.</p>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Sample from remaining tokens weighted by probability</span>
+<span class="n">sampled_index</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">multinomial</span><span class="p">(</span><span class="n">probs</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="c1"># Convert sampled_index to original logits</span>
+<span class="n">token_id</span> <span class="o">=</span> <span class="n">indices</span><span class="p">[</span><span class="n">sampled_index</span><span class="p">]</span>
+
+<span class="c1"># Decode token</span>
+<span class="n">token</span> <span class="o">=</span> <span class="n">tokenizer</span><span class="o">.</span><span class="n">decode</span><span class="p">([</span><span class="n">token_id</span><span class="p">])</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+<span class="n">token</span>
+</pre></div>
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>'Boston'
+</pre></div>
+</div><div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Verify answer</span>
+<span class="k">assert</span> <span class="n">token</span> <span class="o">==</span> <span class="s2">"Boston"</span>
+</pre></div>
+</div><h2 id="complete-head-stage">Complete Head Stage</h2>
+<p>Next, we'll assemble all of the steps in the Head stage together before we take the generative loop for a spin in the next section.</p>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="k">def</span> <span class="nf">head</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="c1"># Normalize head inputs</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">normalize_head</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    
+    <span class="c1"># Use last embedding to represent the entire sequence</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    
+    <span class="c1"># Project outputs to token space</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">w_head</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+    <span class="c1">#</span>
+    <span class="c1"># Temperature</span>
+    <span class="c1">#</span>
+    
+    <span class="c1"># Apply temperature</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">/</span> <span class="n">config</span><span class="o">.</span><span class="n">temperature</span>
+
+    <span class="c1">#</span>
+    <span class="c1"># Ranking</span>
+    <span class="c1">#</span>
+    
+    <span class="c1"># Convert logits to probabilities</span>
+    <span class="n">probs</span> <span class="o">=</span> <span class="n">softmax</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    
+    <span class="c1"># Sort probabilities in descending order</span>
+    <span class="n">probs</span><span class="p">,</span> <span class="n">indices</span> <span class="o">=</span> <span class="n">probs</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">descending</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="c1">#</span>
+    <span class="c1"># Top K</span>
+    <span class="c1">#</span>
+    
+    <span class="c1"># Retain top k tokens</span>
+    <span class="n">probs</span> <span class="o">=</span> <span class="n">probs</span><span class="p">[:</span><span class="n">config</span><span class="o">.</span><span class="n">top_k</span><span class="p">]</span>
+
+    <span class="c1">#</span>
+    <span class="c1"># Top P</span>
+    <span class="c1">#</span>
+    
+    <span class="c1"># Find cutoff where cumulative probability exceeds top_p</span>
+    <span class="n">cumulative_mask</span> <span class="o">=</span> <span class="n">probs</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">config</span><span class="o">.</span><span class="n">top_p</span>
+    <span class="n">threshold_index</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">cumulative_mask</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+    
+    <span class="c1"># Only apply threshold if top_p was exceeded</span>
+    <span class="k">if</span> <span class="n">cumulative_mask</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+        <span class="n">probs</span> <span class="o">=</span> <span class="n">probs</span><span class="p">[:</span><span class="n">threshold_index</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+
+    <span class="c1">#</span>
+    <span class="c1"># Random Selection</span>
+    <span class="c1">#</span>
+    
+    <span class="c1"># Sample from remaining tokens weighted by probability</span>
+    <span class="n">sampled_index</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">multinomial</span><span class="p">(</span><span class="n">probs</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    
+    <span class="c1"># Convert sampled_index to original logits</span>
+    <span class="n">token_id</span> <span class="o">=</span> <span class="n">indices</span><span class="p">[</span><span class="n">sampled_index</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">token_id</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+</pre></div>
+</div><h1 id="generator">Generator</h1>
+<p>We made it to the last section of the teardown. So far we've gone through every step from raw data to the first output token. In this section, we'll wrap the underlying Llama model in a generative loop that appends the output token to the end of the input sequence and repeats the whole process. The loop continues generating content one token at a time until the model predicts a &quot;stop&quot; token.</p>
+<figure id="text-generation-pipeline2-fig"><img alt="Text Generation Pipeline" src="resources/transformer-pipeline.svg"/><figcaption>Figure 13: Text Generation Pipeline</figcaption></figure><p>The entire end-to-end pipeline we started with is repeated above to remind us of the big picture. We'll run each of these stages including the autoregressive decoding loop at the bottom. Finally, we'll add a few extra utilities to make the prompts a lot easier to write and make the whole model easier to experiment with.</p>
+<p>While the generative loop below is functional, it's not an efficient implementation. Instead of literally appending the output token to the <code>token_ids</code> list and repeating the entire process, it's common practice for production-grade generators to cache the keys and values from the first pass and then only pass the new token through the pipeline on the subsequent iterations, saving a huge amount of compute and memory. Maybe we can improve this version in a future post.</p>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="k">class</span> <span class="nc">Message</span><span class="p">(</span><span class="n">NamedTuple</span><span class="p">):</span>
+    <span class="n">role</span><span class="p">:</span> <span class="nb">str</span>
+    <span class="n">content</span><span class="p">:</span> <span class="nb">str</span>
+</pre></div>
+</div><div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="k">def</span> <span class="nf">prepare_messages</span><span class="p">(</span><span class="n">messages</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Message</span><span class="p">]):</span>
+    <span class="c1"># Initialize prompt</span>
+    <span class="n">prompt</span> <span class="o">=</span> <span class="s2">""</span>
+    
+    <span class="c1"># Format each message</span>
+    <span class="k">for</span> <span class="n">message</span> <span class="ow">in</span> <span class="n">messages</span><span class="p">:</span>
+        <span class="n">prompt</span> <span class="o">+=</span> <span class="sa">f</span><span class="s2">"&lt;|start_header_id|&gt;</span><span class="si">{</span><span class="n">message</span><span class="o">.</span><span class="n">role</span><span class="si">}</span><span class="s2">&lt;|end_header_id|&gt;</span><span class="se">\n\n</span><span class="s2">"</span>
+        <span class="n">prompt</span> <span class="o">+=</span> <span class="n">message</span><span class="o">.</span><span class="n">content</span>
+        <span class="n">prompt</span> <span class="o">+=</span> <span class="s2">"&lt;|eot_id|&gt;"</span>
+
+    <span class="c1"># Finish with the assistant role to prime the model's response</span>
+    <span class="n">prompt</span> <span class="o">+=</span> <span class="s2">"&lt;|start_header_id|&gt;assistant&lt;|end_header_id|&gt;</span><span class="se">\n\n</span><span class="s2">"</span>
+
+    <span class="k">return</span> <span class="n">prompt</span>
+</pre></div>
+</div><div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="k">def</span> <span class="nf">generate</span><span class="p">(</span><span class="n">messages</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="n">Message</span><span class="p">]):</span>
+    <span class="c1"># Format message prompt</span>
+    <span class="n">prompt</span> <span class="o">=</span> <span class="n">prepare_messages</span><span class="p">(</span><span class="n">messages</span><span class="p">)</span>
+    
+    <span class="c1"># Split raw text into tokens</span>
+    <span class="n">token_ids</span> <span class="o">=</span> <span class="n">tokenizer</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">prompt</span><span class="p">,</span> <span class="n">bos</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">eos</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">allowed_special</span><span class="o">=</span><span class="s2">"all"</span><span class="p">)</span>
+    
+    <span class="c1"># Generate output until we get a stop token or we exceed max_output_tokens.</span>
+    <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">max_completion_tokens</span><span class="p">):</span>
+        
+        <span class="c1"># Load token ids into a tensor</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">token_ids</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+        
+        <span class="c1"># Map tokens to embeddings</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">embeddings</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        
+        <span class="c1"># Transform token embeddings to semantic embeddings</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">context_layers</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        
+        <span class="c1"># Head</span>
+        <span class="n">token_id</span> <span class="o">=</span> <span class="n">head</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        
+        <span class="c1"># Check stopping criteria</span>
+        <span class="k">if</span> <span class="n">token_id</span> <span class="ow">in</span> <span class="n">tokenizer</span><span class="o">.</span><span class="n">stop_tokens</span><span class="p">:</span>
+            <span class="k">break</span>
+    
+        <span class="c1"># Print token</span>
+        <span class="n">token</span> <span class="o">=</span> <span class="n">tokenizer</span><span class="o">.</span><span class="n">decode</span><span class="p">([</span><span class="n">token_id</span><span class="p">])</span>
+        <span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">token</span><span class="p">)</span>
+        
+        <span class="c1"># Append to end of sequence</span>
+        <span class="n">token_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">token_id</span><span class="p">)</span>
+</pre></div>
+</div><p>For the first experiment, let's stick with our original prompt but give the model more room to answer.</p>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="n">generate</span><span class="p">([</span>
+    <span class="n">Message</span><span class="p">(</span><span class="n">role</span><span class="o">=</span><span class="s2">"user"</span><span class="p">,</span> <span class="n">content</span><span class="o">=</span><span class="s2">"What is the capital of Massachusetts?"</span><span class="p">)</span>
+<span class="p">])</span>
+</pre></div>
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>The capital of Massachusetts is Boston.
+</pre></div>
+</div><p>Congrats! We just generated a full sentence. There are of course an unlimited number of experiments you could run. Let's try something a little more creative before we wrap up.</p>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="n">generate</span><span class="p">([</span>
+    <span class="n">Message</span><span class="p">(</span><span class="n">role</span><span class="o">=</span><span class="s2">"user"</span><span class="p">,</span> <span class="n">content</span><span class="o">=</span><span class="s2">"Write a haiku about fall in New England."</span><span class="p">)</span>
+<span class="p">])</span>
+</pre></div>
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>Golden leaves descend
+Crisp air whispers through the trees
+Autumn's fleeting dance
+</pre></div>
+</div><h1 id="recap">Recap</h1>
+<p>Congratulations! We dissected a state-of-the-art foundation model, cataloged the parts, and reassembled everything, tracing an inference from raw text to output token. While it wasn't a trivial undertaking, I hope you're walking away with a stronger understanding of the mechanisms driving the Generative AI revolution. I'm also incredibly grateful you stuck with me this far!</p>
+<h1 id="references">References</h1>
+<div id="refs" class="references csl-bib-body hanging-indent" data-entry-spacing="0" role="list"> <div id="ref-ainslie_gqa_2023" class="csl-entry" role="listitem"> Ainslie, Joshua, James Lee-Thorp, Michiel de Jong, Yury Zemlyanskiy, Federico Lebrón, and Sumit Sanghai. 2023. <span>“<span>GQA</span>: <span>Training</span> <span>Generalized</span> <span>Multi</span>-<span>Query</span> <span>Transformer</span> <span>Models</span> from <span>Multi</span>-<span>Head</span> <span>Checkpoints</span>.”</span> arXiv. <a href="https://doi.org/10.48550/arXiv.2305.13245">https://doi.org/10.48550/arXiv.2305.13245</a>. </div> <div id="ref-chowdhery_palm_2022" class="csl-entry" role="listitem"> Chowdhery, Aakanksha, Sharan Narang, Jacob Devlin, Maarten Bosma, Gaurav Mishra, Adam Roberts, Paul Barham, et al. 2022. <span>“<span>PaLM</span>: <span>Scaling</span> <span>Language</span> <span>Modeling</span> with <span>Pathways</span>.”</span> <em>arXiv.org</em>. <a href="https://arxiv.org/abs/2204.02311v5">https://arxiv.org/abs/2204.02311v5</a>. </div> <div id="ref-dauphin_language_2016" class="csl-entry" role="listitem"> Dauphin, Yann N., Angela Fan, Michael Auli, and David Grangier. 2016. <span>“Language <span>Modeling</span> with <span>Gated</span> <span>Convolutional</span> <span>Networks</span>.”</span> <em>arXiv.org</em>. <a href="https://arxiv.org/abs/1612.08083v3">https://arxiv.org/abs/1612.08083v3</a>. </div> <div id="ref-dubey_llama_2024" class="csl-entry" role="listitem"> Dubey, Abhimanyu, Abhinav Jauhri, Abhinav Pandey, Abhishek Kadian, Ahmad Al-Dahle, Aiesha Letman, Akhil Mathur, et al. 2024. <span>“The <span>Llama</span> 3 <span>Herd</span> of <span>Models</span>.”</span> <em>arXiv.org</em>. <a href="https://arxiv.org/abs/2407.21783v2">https://arxiv.org/abs/2407.21783v2</a>. </div> <div id="ref-he_deep_2015" class="csl-entry" role="listitem"> He, Kaiming, Xiangyu Zhang, Shaoqing Ren, and Jian Sun. 2015. <span>“Deep <span>Residual</span> <span>Learning</span> for <span>Image</span> <span>Recognition</span>.”</span> arXiv. <a href="https://doi.org/10.48550/arXiv.1512.03385">https://doi.org/10.48550/arXiv.1512.03385</a>. </div> <div id="ref-shazeer_glu_2020" class="csl-entry" role="listitem"> Shazeer, Noam. 2020. <span>“<span>GLU</span> <span>Variants</span> <span>Improve</span> <span>Transformer</span>.”</span> arXiv. <a href="https://doi.org/10.48550/arXiv.2002.05202">https://doi.org/10.48550/arXiv.2002.05202</a>. </div> <div id="ref-su_roformer_2021" class="csl-entry" role="listitem"> Su, Jianlin, Yu Lu, Shengfeng Pan, Ahmed Murtadha, Bo Wen, and Yunfeng Liu. 2021. <span>“<span>RoFormer</span>: <span>Enhanced</span> <span>Transformer</span> with <span>Rotary</span> <span>Position</span> <span>Embedding</span>.”</span> <em>arXiv.org</em>. <a href="https://arxiv.org/abs/2104.09864v5">https://arxiv.org/abs/2104.09864v5</a>. </div> <div id="ref-touvron_llama_2023-1" class="csl-entry" role="listitem"> Touvron, Hugo, Thibaut Lavril, Gautier Izacard, Xavier Martinet, Marie-Anne Lachaux, Timothée Lacroix, Baptiste Rozière, et al. 2023. <span>“<span>LLaMA</span>: <span>Open</span> and <span>Efficient</span> <span>Foundation</span> <span>Language</span> <span>Models</span>.”</span> arXiv. <a href="https://doi.org/10.48550/arXiv.2302.13971">https://doi.org/10.48550/arXiv.2302.13971</a>. </div> <div id="ref-touvron_llama_2023" class="csl-entry" role="listitem"> Touvron, Hugo, Louis Martin, Kevin Stone, Peter Albert, Amjad Almahairi, Yasmine Babaei, Nikolay Bashlykov, et al. 2023. <span>“Llama 2: <span>Open</span> <span>Foundation</span> and <span>Fine</span>-<span>Tuned</span> <span>Chat</span> <span>Models</span>.”</span> <em>arXiv.org</em>. <a href="https://arxiv.org/abs/2307.09288v2">https://arxiv.org/abs/2307.09288v2</a>. </div> <div id="ref-vaswani_attention_2017" class="csl-entry" role="listitem"> Vaswani, Ashish, Noam Shazeer, Niki Parmar, Jakob Uszkoreit, Llion Jones, Aidan N. Gomez, Lukasz Kaiser, and Illia Polosukhin. 2017. <span>“Attention <span>Is</span> <span>All</span> <span>You</span> <span>Need</span>.”</span> arXiv. <a href="https://doi.org/10.48550/arXiv.1706.03762">https://doi.org/10.48550/arXiv.1706.03762</a>. </div> <div id="ref-zhang_root_2019" class="csl-entry" role="listitem"> Zhang, Biao, and Rico Sennrich. 2019. <span>“Root <span>Mean</span> <span>Square</span> <span>Layer</span> <span>Normalization</span>.”</span> arXiv. <a href="https://doi.org/10.48550/arXiv.1910.07467">https://doi.org/10.48550/arXiv.1910.07467</a>. </div> </div> 
+    </article>
+    <!-- /article -->
+
+    </main>
+
+    <footer>
+        <div class="content">
+            <h1>Pattern Recognition</h1>
+            <div class="columns">
+                <div class="column column1">
+                    <h2>Andrew Young</h2>
+                </div>
+                <div class="column column2">
+                    <ul>
+                        <li>
+                            <a href="https://github.com/stickshift">
+                                <img class="icon icon-github" src="/images/github.svg">
+                                <span class="username">stickshift</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.linkedin.com/in/andrewsomesyoung">
+                                <img class="icon icon-linkedin" src="/images/linkedin.svg">
+                                <span class="username">andrewsomesyoung</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="column column3">
+                    <p>Software architect, AI researcher, entrepreneur, and startup veteran with a passion for creativity and good coffee.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>

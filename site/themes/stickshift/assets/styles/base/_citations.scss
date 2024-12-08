@@ -1,0 +1,26 @@
+// _citations.scss
+
+@use "variables" as var;
+
+.citation {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1.0rem;
+    
+    p {
+        margin: 0;
+    }
+}
+
+.references {
+    .csl-entry {
+        font-size: var.$med-font-size;
+        font-weight: var.$light-font-weight;
+        font-variation-settings: "wdth" 120;    
+        margin-top: 1.0rem;
+        margin-bottom: 1.0rem;
+
+        padding-left: 2.0rem;
+        text-indent: -2.0rem;
+    }
+}

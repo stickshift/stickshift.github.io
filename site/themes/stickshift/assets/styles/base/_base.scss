@@ -1,0 +1,285 @@
+// _base.scss
+
+@use "variables" as var;
+
+html {
+    background-color: var.$background-color;
+}
+
+html, body, header, footer, main, div, p, td, h1, h2, h3, h4, h5 {
+    font-family: var.$base-font-family;
+    font-size: var.$base-font-size;
+    font-weight: var.$base-font-weight;
+    font-style: var.$base-font-style;
+    font-optical-sizing: auto;
+    font-variation-settings: "wdth" 100;
+    color: var.$primary-text-color;
+
+    margin: 0;
+    padding: 0;
+
+    @media screen and (max-width: var.$portrait-mode) {
+        font-size: calc(0.8*#{var.$base-font-size})
+    }
+}
+
+// Links
+a,
+a:link,
+a:visited,
+a:hover,
+a:active,
+a:focus {
+    color: var.$link-color;
+    font-weight: var.$bold-font-weight;
+    text-decoration: none;
+
+    // The # anchor that appears on hover over headings
+    &.headerlink {
+        color: var.$secondary-accent-color;
+        font-size: 0.8em;
+        padding: 0 4px;
+        margin-left: 0.2em;
+        text-decoration: none;
+        user-select: none;
+    }
+}
+
+a.missing {
+    color: red;
+}
+
+// Icons
+.icon {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+// Images
+img.align-center {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+// Figures
+figure {
+    figcaption {
+        text-align: center;
+        color: var.$secondary-text-color;
+    }
+}
+
+body {
+
+    // Header
+    > header {
+        border-top: 2px solid var.$accent-color;
+        border-bottom: 1px solid var.$accent-color;
+        background-color: var.$header-background-color;
+
+        .navbar {
+            padding: var.$spacing-size 0;
+
+            a {
+                font-family: var.$accent-font-family !important;
+                font-size: var.$lg-font-size !important;
+            }
+
+            // Icons
+            .icon {
+                width: 1.5rem;
+                height: 1.5rem;
+            }
+        }
+    }
+
+    // Main
+    > main {
+
+        // TOC
+        > aside {
+            .toc {
+                margin-bottom: 2.0rem;
+
+                header {
+                    margin-top: 1.0rem;
+                    margin-bottom: 1.0rem;
+
+                    h1 {
+                        font-size: var.$base-font-size;
+                        font-family: var.$accent-font-family;
+                        font-weight: var.$bold-font-weight;
+                    }
+
+                    .icon {
+                        width: 1.0rem;
+                        height: 1.0rem;
+                    }
+                }
+
+                ul {
+                    list-style-type: none;
+                    padding: 0;
+                    margin: 0 0 0 0.5rem;
+
+                    > li {
+                        margin-bottom: 0.5rem;
+                    }
+                }
+                
+                li {
+                    font-family: var.$accent-font-family;
+                }
+
+                ul > li > ul {
+                    margin: 0.5rem 0 0 1.0rem;
+                }
+
+                ul > li > ul > li {
+                    margin-bottom: 0.25rem;
+                }
+            }
+        }
+
+        // Articles
+        article {
+            margin-bottom: 2.0rem;
+
+            // Header
+            > header {
+
+                // Title
+                > h1 {
+                    font-size: var.$xxlg-font-size;
+                    margin-top: 2.0rem;
+                    margin-bottom: 1.0rem;
+                }
+
+                // Subtitle
+                > h2 {
+                    font-size: var.$lg-font-size;
+                    font-family: var.$accent-font-family;
+                    font-weight: var.$base-font-weight;
+                    color: var.$secondary-text-color;
+                    margin-top: 1.0rem;
+                    margin-bottom: 1.0rem;    
+                }
+
+                // Published Date
+                > h3 {
+                    font-size: var.$base-font-size;
+                    color: var.$secondary-text-color;
+                    margin-top: 1.0rem;
+                    margin-bottom: 1.0rem;    
+                }                
+            }
+
+            // Sections
+            > h1, > h2, > h3 {
+                margin-top: 2.0rem;
+                margin-bottom: 1.0rem;
+            }
+
+            > h1 {
+                font-size: var.$xlg-font-size;
+            }
+
+            > h2 {
+                font-size: var.$lg-font-size;
+            }
+
+            > h3 {
+                font-size: var.$med-font-size;
+                font-family: var.$accent-font-family;
+                text-transform: uppercase;
+            }
+
+            // Text
+            p, li {
+                font-size: var.$med-font-size;
+                font-weight: var.$light-font-weight;
+                font-variation-settings: "wdth" 120;
+            }
+
+            p {
+                margin-top: 1.0rem;
+                margin-bottom: 1.0rem;
+            }
+        }
+    }
+
+    // Footer
+    > footer {
+        border-top: 1px solid var.$accent-color;
+        border-bottom: 2px solid var.$accent-color;
+        background-color: var.$header-background-color;
+
+        h1 {
+            font-size: var.$med-font-size;
+            font-family: var.$accent-font-family;
+            margin-top: 1.0rem;
+            margin-bottom: 1.0rem;
+        }
+
+        h2 {
+            font-size: var.$med-font-size;
+            font-family: var.$accent-font-family;
+            color: var.$secondary-text-color;
+            margin-bottom: 1.0rem;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+
+            li {
+                margin-bottom: 1.0rem;
+            }
+        }
+
+        p {
+            font-family: var.$accent-font-family;
+            color: var.$secondary-text-color;
+        }   
+
+        // Icons
+        .icon {
+            width: 1.0rem;
+            height: 1.0rem;
+            padding-right: 0.25rem;
+        }
+
+        .username {
+            font-family: var.$accent-font-family;
+        }
+    }
+}
+
+ul.articles {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+
+    li {
+        margin-top: 2.0rem;
+
+        .published {
+            font-family: var.$accent-font-family;
+            color: var.$secondary-text-color;
+            margin-bottom: 0.5rem;
+        }
+
+        a {
+            display: block;
+            font-family: var.$accent-font-family;
+            font-weight: var.$base-font-weight;
+            font-size: var.$lg-font-size;
+        }
+    }
+
+    li:last-child {
+        margin-bottom: 2.0rem;
+    }
+}

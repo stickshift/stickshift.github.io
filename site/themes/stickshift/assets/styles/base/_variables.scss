@@ -1,0 +1,44 @@
+@use 'sass:color';
+
+// Fonts
+$base-font-family: "Noto Serif", serif;
+$base-font-size: 16px;
+$base-font-weight: 400;
+$base-font-style: normal;
+$accent-font-family: "Noto Sans", sans-serif;
+$code-font-family: "Noto Sans Mono", monospace;
+
+$xxlg-font-size: 2.3rem;
+$xlg-font-size: 1.8rem;
+$lg-font-size: 1.4rem;
+$med-font-size: 1.2rem;
+$sm-font-size: 0.9rem;
+
+$bold-font-weight: calc(1.2*#{$base-font-weight});
+$light-font-weight: calc(0.75*#{$base-font-weight});
+
+// Colors
+$background-color: white;
+$header-background-color: rgba(0, 0, 0, 0.05);
+$base-text-color: rgba(0, 0, 0, 1.0);
+$primary-text-color: rgba($base-text-color, 0.89);
+$secondary-text-color: rgba($base-text-color, 0.54);
+$accent-color: rgba(29, 66, 115, 1.0);
+$secondary-accent-color: color.adjust($accent-color, $lightness: 50%);
+$link-color: rgba($accent-color, 0.89);
+$border-color: rgba($accent-color, 0.30);
+$code-border-radius: 0.25rem;
+$code-border-color: rgba($base-text-color, 0.2);
+$code-background-color: rgba($base-text-color, 0.025);
+$callout-border-color: rgba($accent-color, 0.75);
+$callout-background-color: rgba($accent-color, 0.1);
+
+// Layouts
+$content-width: 960px;
+$content-count: 12;
+$column-width: calc(#{$content-width}/#{$content-count});
+$spacing-size: 16px;
+
+// Media queries
+$portrait-mode: $content-width;
+$portrait-content-width: 95%;

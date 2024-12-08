@@ -1,0 +1,26 @@
+{# base.j2 #}
+
+{#---------------------------------------------------------------------------#}
+{# Icons #}
+{#---------------------------------------------------------------------------#}
+
+{%- macro icon(id) -%}
+<img class="icon icon-{{ id }}" src="{{ content_root }}/images/{{ id }}.svg">
+{%- endmacro %}
+
+{#---------------------------------------------------------------------------#}
+{# TOC #}
+{#---------------------------------------------------------------------------#}
+
+{%- macro render_toc(toc) -%}
+<ul>
+    {% for section_toc in toc.sections %}
+    <li>
+        <a href="{{ section_toc.link }}">{{ section_toc.name }}</a>
+        {% if section_toc.sections %}
+            {{ render_toc(section_toc) }}
+        {% endif %}
+    </li>
+    {% endfor %}
+</ul>
+{%- endmacro %}

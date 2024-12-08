@@ -1,0 +1,143 @@
+#-------------------------------------------------------------------------------
+# Ruff
+#
+#   We use ruff for both linting and formatting. Ruff comes with an extensive
+#   set of default options. Please review the defaults at following link before
+#   modifying.
+#
+#   https://docs.astral.sh/ruff/configuration/
+#
+#-------------------------------------------------------------------------------
+
+# Stretch line length to 120
+line-length = 120
+
+# Extend default exclude
+extend-exclude = [
+  ".build/*",
+  ".cache/*",
+  ".venv/*",
+  "*.ipynb",
+  "pyproject.toml",
+]
+
+# lint
+# ~~~~
+
+[lint]
+
+select = [
+  "ARG",  # flake8-unused-arguments
+  "ASYNC",  # flake8-async
+  "B",  # flake8-bugbear
+  "C4",  # flake8-comprehensions
+  "D",  # pydocstyle
+  "E",  # pycodestyle
+  "F",  # pyflakes
+  "FURB",  # refurb
+  "I",  # isort
+  "N",  # pep8-naming
+  "NPY",  # NumPy-specific rules
+  "PERF",  # Perflint
+  "PD",  # pandas
+  "PL",  # pylint
+  "PT",  # flake8-pytest-style
+  "RET",  # flake8-return
+  "RUF",  # ruff-specific rules
+  "SIM",  # flake8-simplify
+  "T20",  # flake8-print
+  "TID",  # flake8-tidy-imports
+  "TD",  # flake8-todos
+  "W",  # pycodestyle warnings
+]
+
+ignore = [
+  "ARG001",  # allow unused function args
+  "D100",  # allow modules without docstrings
+  "D203",  # no-blank-line-before-class
+  "D213",  # multi-line-summary-second-line
+  "D417",  # disable google requirement for docs on every argument
+  "E501",  # allow long lines
+  "N803",  # allow uppercase args like X
+  "N806",  # allow uppercase variables like X
+  "PD901",  # allow df
+  "PLC2701",  # allow underscore API
+  "PLC2801",  # allow dunder calls
+  "PLR6104",  # Ignore suggestions to use mutating |=
+  "PLW3201",  # ignore dunder spelling
+  "PT011",  # allow broad pytest.raises
+  "PT022",  # ignore dangerous rule on yield and cleanup
+  "PT013",  # allow importing types from pytest
+  "RET504",  # allow assignment before return
+  "RUF027",  # allow strings with {} in them
+  "RUF029",  # allow functions marked async even if not needed
+  "RUF100",  # allow blanket noqa
+  "TD002",  # don't require author on to do comments
+  "TD003",  # don't require issue links on to do comments
+]
+
+# lint / isort
+# ~~~~~~~~~~~~
+
+[lint.isort]
+
+# Define custom packages as first-party
+known-first-party = [
+  "stickshift",
+]
+
+# Sort the imports by module, independent of import style.
+force-sort-within-sections = true
+
+# Separate tests imports into auxiliary block(s) of imports.
+forced-separate = ["tests"]
+
+# lint / pydocstyle
+# ~~~~~~~~~~~~~~~~~
+
+[lint.pydocstyle]
+
+convention = "google"
+
+# lint / pylint
+# ~~~~~~~~~~~~~
+
+[lint.pylint]
+
+# Boost max locals
+max-locals = 20
+
+# Boost max nested args
+max-args = 8
+
+# Boost max nested blocks
+max-nested-blocks = 8
+
+# lint / flake8-pytest-style
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~
+[lint.flake8-pytest-style]
+
+fixture-parentheses = false
+mark-parentheses = false
+
+# lint / per-file-ignores
+# ~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+[lint.per-file-ignores]
+
+# Package modules
+"__init__.py" = [
+  "D104",  # allow skip docstrings
+]
+
+# conftest modules
+"conftest.py" = [
+  "D100",  # allow skip docstrings
+]
+
+# Test ignores
+"tests/**/*" = [
+  "D",  # docstrings
+  "F811",  # redefined-while-unused
+  "PLR2004",  # use magic values
+]

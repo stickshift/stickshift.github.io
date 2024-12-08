@@ -2,10 +2,16 @@
 
 # Environment
 export PROJECT_ROOT=$PWD
-export PROJECT_NAME=stickshift
+export PROJECT_NAME=$(basename $PROJECT_ROOT)
 
-export VERSION=${VERSION:-0.1-dev}
+# Python versions
+export VERSION=${VERSION:-0.1.0}
 export PY_VERSION=$(echo $VERSION | sed 's/-/\.dev0+/')
+
+# Jupyter
+export JUPYTER_CONFIG_DIR=${PROJECT_ROOT}/.build/jupyter
+export JUPYTER_DATA_DIR=${JUPYTER_CONFIG_DIR}
+export JUPYTER_PLATFORM_DIRS=1
 
 # Set mtimes to timestamp of latest commit if project has git repo
 if [[ -d .git ]]; then
@@ -14,13 +20,17 @@ else
   unset SOURCE_DATE_EPOCH
 fi
 
-# Export variables to temporary project.env
+# Export variables to temporary .env
 tmp_project_env=$(mktemp)
+
 project_variables=(
   PROJECT_ROOT
   PROJECT_NAME
   VERSION
   PY_VERSION
+  JUPYTER_CONFIG_DIR
+  JUPYTER_DATA_DIR
+  JUPYTER_PLATFORM_DIRS
   SOURCE_DATE_EPOCH
 )
 
@@ -34,10 +44,10 @@ for v in "${project_variables[@]}"; do
   fi
 done
 
-# Only update project.env if they're different.
+# Only update .env if they're different.
 #   Note: Prevents parallel make processes from stepping on each other.
 
-if [[ ! -f project.env ]] || ! cmp -s project.env $tmp_project_env; then
-  echo "Updating project.env"
-  mv $tmp_project_env project.env
+if [[ ! -f .env ]] || ! cmp -s .env $tmp_project_env; then
+  echo "Updating .env"
+  mv $tmp_project_env .env
 fi

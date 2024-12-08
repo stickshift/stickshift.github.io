@@ -1,5 +1,7 @@
-from tests.fixtures.torch_fixtures import device
+from tests.fixtures.workspace import kernel_name, workspace_env, workspace_path
 
 __all__ = [
-    "device",
+    "kernel_name",
+    "workspace_env",
+    "workspace_path",
 ]
