@@ -57,6 +57,7 @@ def build_index(theme: Path, output_path: Path):
     # Parse front matter
     site = _default_site_front_matter | {
         "stylesheets": [
+            "/styles/fonts.css",
             "/styles/pygments.css",
             f"/styles/{theme.stem}.css",
         ],
@@ -106,6 +107,7 @@ def build_index(theme: Path, output_path: Path):
             "author": _author,
             "title": "Home",
             "articles": articles,
+            "description": f"Pattern Recognition - Writing on AI/ML research and related technology topics by Andrew Young."
         },
     }
     html = template.render(context)

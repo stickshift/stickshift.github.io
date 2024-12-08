@@ -100,6 +100,7 @@ SITE_CSS_SRC := $(shell find $(THEME_SRC_DIR)/assets/styles -type f | egrep -v '
 SITE_CSS_BUNDLE :=
 SITE_CSS_BUNDLE := $(SITE_CSS_BUNDLE) $(SITE_BUILD_DIR)/styles/$(THEME).css
 SITE_CSS_BUNDLE := $(SITE_CSS_BUNDLE) $(SITE_BUILD_DIR)/styles/pygments.css
+SITE_CSS_BUNDLE := $(SITE_CSS_BUNDLE) $(SITE_BUILD_DIR)/styles/fonts.css
 
 SITE_BUNDLE := $(SITE_BUILD_DIR)/index.html
 
@@ -235,6 +236,15 @@ $(SITE_BUILD_DIR)/styles/pygments.css: | $(VENV)
 
 	mkdir -p $(dir $@)
 	source $(VENV) && pygmentize -S $(THEME_PYGMENTS_STYLE) -f html > $@
+
+# Fonts
+$(SITE_BUILD_DIR)/styles/fonts.css: $(THEME_SRC_DIR)/assets/styles/fonts.css
+	@echo
+	@echo -e "$(COLOR_H1)# Fonts$(COLOR_RESET)"
+	@echo
+
+	mkdir -p $(dir $@)
+	cp $< $@
 
 # Site Index
 $(SITE_BUILD_DIR)/index.html: $(ARTICLES) | $(VENV)

@@ -65,6 +65,7 @@ def build_article(theme: Path, input_path: Path, output_path: Path):
     # Parse front matter
     site_front_matter = _default_site_front_matter | {
         "stylesheets": [
+            "/styles/fonts.css",
             "/styles/pygments.css",
             f"/styles/{theme.stem}.css",
         ],
@@ -87,6 +88,7 @@ def build_article(theme: Path, input_path: Path, output_path: Path):
             **article_front_matter,
             "toc": toc,
             "body": body,
+            "description": f"{article_front_matter["title"]} - {article_front_matter["subtitle"]}"
         },
     }
     html = template.render(context)
