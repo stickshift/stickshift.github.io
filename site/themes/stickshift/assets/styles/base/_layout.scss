@@ -1,0 +1,140 @@
+// _layout.scss
+
+@use "variables" as var;
+
+@mixin content-column {
+    width: var.$content-width;
+    margin: 0 auto;
+
+    @media screen and (max-width: var.$portrait-mode) {
+        width: var.$portrait-content-width;
+    }
+}
+
+html, body {
+    height: 100%;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+
+    // Header
+    > header {
+        flex-shrink: 0;
+        width: 100%;
+
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+
+            @include content-column;
+        }
+    }
+
+    // Main
+    > main {
+
+        // Stretch main to fill viewport
+        flex-grow: 1;
+
+        // Layout children in row
+        display: flex;
+
+        // TOC
+        > aside {
+            width: calc(3 * #{var.$column-width} - #{var.$spacing-size});
+            margin-right: var.$spacing-size;
+            flex-shrink: 0;
+
+            .toc {
+                position: sticky;
+                top: 1.0rem;
+
+                header {
+                    display: flex;
+                    gap: 0.5rem;
+                }
+            }
+        }
+
+        article {
+            width: calc(9 * #{var.$column-width});
+        }
+
+        @include content-column;
+    }
+
+    > footer {
+        height: 220px;
+        flex-shrink: 0;
+    }
+}
+
+@media screen and (max-width: var.$portrait-mode) {
+    body {
+        > main {
+            // Hide TOC
+            > aside {
+                display: none;
+            }
+
+            // Make article full width
+            article {
+                width: 100%;
+            }
+        }
+    }
+}
+
+img, mjx-container > svg {
+    max-width: 100%;
+}
+
+// Header Links
+a.headerlink {
+    visibility: hidden;
+}
+h1:hover > a.headerlink,
+h2:hover > a.headerlink,
+h3:hover > a.headerlink,
+h4:hover > a.headerlink,
+h5:hover > a.headerlink,
+h6:hover > a.headerlink,
+dt:hover > a.headerlink,
+caption:hover > a.headerlink,
+p.caption:hover > a.headerlink,
+div.code-block-caption:hover > a.headerlink {
+    visibility: visible;
+}
+
+.content {
+    @include content-column;
+}
+
+// Generic column layout
+.columns {
+    width: 100%;
+    display: flex;
+
+    .column1 {
+        width: calc(4 * #{var.$column-width} - #{var.$spacing-size});
+        margin-right: var.$spacing-size;
+    }
+
+    .column2 {
+        width: calc(4 * #{var.$column-width} - #{var.$spacing-size});
+        margin-right: var.$spacing-size;
+    }
+
+    .column3 {
+        width: calc(4 * #{var.$column-width});
+    }
+
+    @media screen and (max-width: var.$portrait-mode) {
+        flex-direction: column;
+        .column1, .column2, .column3 {
+            width: 100%;
+        }
+    }
+}

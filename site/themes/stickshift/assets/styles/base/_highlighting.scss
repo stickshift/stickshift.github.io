@@ -1,0 +1,66 @@
+// _syntax_highlighting.scss
+
+@use "variables" as var;
+
+pre, code {
+    margin: 0;
+    padding: 0;
+    font-family: var.$code-font-family;
+    font-weight: var.$base-font-weight;
+    font-size: var.$sm-font-size;
+}
+
+.highlight {
+    pre {
+        overflow-x: auto;
+        padding: 0.75rem;
+        border-style: solid;
+        border-radius: var.$code-border-radius;
+        border-width: 1px 1px 1px 1px;
+        border-color: var.$code-border-color;
+        background-color: var.$code-background-color;
+        margin-top: 2.0rem;
+        margin-bottom: 2.0rem;
+    }
+}
+
+// Wrap markdown
+.highlight.language-markdown {
+    pre {
+        text-wrap: wrap;
+    }
+}
+
+// Cell inputs
+.cell-input {
+    .highlight {
+        pre {
+            margin-bottom: 1.0rem;
+        }
+    }    
+}
+
+// Cell outputs
+.cell-output {
+    .highlight {
+        pre {
+            border: none;
+            background-color: var.$background-color;
+            text-wrap: wrap;
+            margin-top: 1.0rem;
+            margin-bottom: 1.0rem;
+        }    
+    }
+
+    img {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
+
+// Mathjax
+mjx-container {
+    margin-top: 2.0rem !important;
+    margin-bottom: 2.0rem !important;
+}
