@@ -264,6 +264,7 @@ deploy: $(SITE)
 	source $(VENV) && python -m http.server -d $(SITE_BUILD_DIR)
 
 publish: $(SITE_PUBLISHED_BUNDLE)
+	source $(VENV) && python -m http.server -d $(SITE_PUBLISH_DIR)
 
 PHONIES := $(PHONIES) articles site deploy publish
 
