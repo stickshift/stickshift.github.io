@@ -75,6 +75,7 @@ VENV := $(VENV_ROOT)/bin/activate
 
 SITE_SRC_DIR := $(PROJECT_ROOT)/site
 SITE_BUILD_DIR := $(BUILD_DIR)/site
+SITE_PUBLISH_DIR := $(SITE_SRC_DIR)/dist
 
 ARTICLES_DIR := $(PROJECT_ROOT)/articles
 ARTICLE_IDS := $(foreach dir,$(shell find $(ARTICLES_DIR) -mindepth 1 -maxdepth 1 -type d),$(notdir $(dir)))
@@ -103,6 +104,8 @@ SITE_CSS_BUNDLE := $(SITE_CSS_BUNDLE) $(SITE_BUILD_DIR)/styles/pygments.css
 SITE_BUNDLE := $(SITE_BUILD_DIR)/index.html
 
 SITE := $(ARTICLES) $(SITE_IMAGE_BUNDLE) $(SITE_CSS_BUNDLE) $(SITE_BUNDLE)
+
+SITE_PUBLISHED_BUNDLE := $(SITE_PUBLISH_DIR)/index.html
 
 
 #-------------------------------------------------------------------------------
@@ -241,6 +244,17 @@ $(SITE_BUILD_DIR)/index.html: $(ARTICLES) | $(VENV)
 
 	source $(VENV) && python -m stickshift.build_index --theme $(THEME_SRC_DIR) $@
 
+# Published Site
+$(SITE_PUBLISHED_BUNDLE): $(SITE)
+	@echo
+	@echo -e "$(COLOR_H1)# Publish Site$(COLOR_RESET)"
+	@echo
+	
+	$(RM) $(SITE_PUBLISH_DIR)
+	mkdir -p $(SITE_PUBLISH_DIR)
+	cp -R $(SITE_BUILD_DIR)/* $(SITE_PUBLISH_DIR)
+
+	touch $@
 
 articles: $(ARTICLES)
 
@@ -249,7 +263,9 @@ site: $(SITE)
 deploy: $(SITE)
 	source $(VENV) && python -m http.server -d $(SITE_BUILD_DIR)
 
-PHONIES := $(PHONIES) articles site deploy
+publish: $(SITE_PUBLISHED_BUNDLE)
+
+PHONIES := $(PHONIES) articles site deploy publish
 
 
 #-------------------------------------------------------------------------------
