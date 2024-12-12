@@ -66,6 +66,12 @@ img.align-center {
 figure {
     margin: 1.0rem 0;
 
+    img {
+        display: block;
+        margin-left: auto;
+        margin-right: auto;
+    }
+
     figcaption {
         text-align: center;
         color: var.$secondary-text-color;

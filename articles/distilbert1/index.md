@@ -255,7 +255,6 @@ Similar to tokenization, the steps required to convert tokens into embeddings de
 
 ```{figure} resources/embeddings.svg
 :label: embeddings-fig
-:width: 600px
 
 Embeddings
 ```
@@ -351,7 +350,6 @@ In the previous stage, we mapped the token values and positions to embeddings. B
 
 ```{figure} resources/contextualized-embeddings.svg
 :label: contextualized-embeddings-fig
-:width: 600px
 
 Contextualized Embeddings
 ```

@@ -261,7 +261,7 @@ def _card_directive(renderer: RendererHTML, token: Token, **kwargs) -> str:
     # Validate
     meta = DirectiveMeta.model_validate(token.meta)
 
-    html = '<div '
+    html = "<div "
 
     classes = ["card"]
     if "align" in meta.options:

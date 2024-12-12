@@ -85,6 +85,12 @@ def build_index(theme: Path, output_path: Path):
 
     logger.info(f"Found {len(articles)} articles")
 
+    # Filter out drafts
+    before_count = len(articles)
+    articles = [a for a in articles if a["draft"] is False]
+    after_count = len(articles)
+    logger.info(f"Filtered {before_count - after_count} drafts")
+
     # Sort articles by published date in descending order
     articles.sort(key=itemgetter("published"), reverse=True)
 
