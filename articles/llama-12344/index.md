@@ -1,6 +1,6 @@
 ---
 title: "Transformer Teardown: Build Your Own Llama Development Kit"
-subtitle: "Walk Away with a Collection of Reusable Building Blocks You Can Mix and Match in Your Own Research"
+subtitle: "Build a Collection of Reusable Building Blocks You Can Mix and Match in Your Own LLM Research Experiments"
 published: "2024-12-11"
 banner: resources/banner.png
 bibliography:
@@ -13,6 +13,7 @@ kernelspec:
 :tags: remove-cell
 import json
 from pathlib import Path
+from sys import stdout
 from typing import Callable, Iterator, Mapping, NamedTuple, Sequence, override
 
 from llama_models.llama3.api import Tokenizer
@@ -37,7 +38,7 @@ def default_arg[T](
     return default
 ```
 
-In our last post, we dissected the Llama 3 language model from Meta. We walked through each stage of the pipeline one line of code at a time, getting a close-up view of the machinery powering a state-of-the-art generative Transformer.
+In [our last Transformer Teardown](/articles/llama1/) post, we dissected the Llama 3 language model from Meta. We walked through each stage of the pipeline one line of code at a time, getting a close-up view of the machinery powering a state-of-the-art generative Transformer.
 
 The goal of this post is to use what we learned to create a lightweight Llama development kit we can use to run our own experiments. But wait, why can't I just use `transformers` or `ollama`? You certainly could. There are plenty of open source Llama implementations out there. The problem is they all have baggage. They're over complicated with configuration switches and extra options to the point that the main ideas are completely obscured. Not only does this make it hard to understand what's happening, it makes it even harder to run experiments.
 
@@ -57,7 +58,7 @@ Transformer Pipeline
 
 # Components
 
-In the last post, we broke the pipeline in {ref}`transformer-pipeline-fig` into tiny pieces. In this post, we'll reassemble the pieces into a collection of reusable PyTorch modules shown in {ref}`modules-fig`. `Tokenizer` translates between raw text and token ids. `Generator` is implemented in terms of `Model` and `Head` submodules. `Model` combines an `Embeddings` module with multiple `Layer`s. Each `Layer` is broken into `Attention` and `FFN` submodules. Once `Model` has transformed token embeddings to semantic embeddings, `Head` predicts the next token id. Finally, `Generator` implements the autoregressive decoding loop, feeding the predicted tokens back to `Model`.
+In [the last post](/articles/llama1/), we broke the pipeline in {ref}`transformer-pipeline-fig` into tiny pieces. In this post, we'll reassemble the pieces into a collection of reusable PyTorch modules shown in {ref}`modules-fig`. `Tokenizer` translates between raw text and token ids. `Generator` is implemented in terms of `Model` and `Head` submodules. `Model` combines an `Embeddings` module with multiple `Layer`s. Each `Layer` is broken into `Attention` and `FFN` submodules. Once `Model` has transformed token embeddings to semantic embeddings, `Head` predicts the next token id. Finally, `Generator` implements the autoregressive decoding loop, feeding the predicted tokens back to `Model`.
 
 ```{figure} resources/modules.svg
 :label: modules-fig
@@ -73,11 +74,15 @@ Modules
 Predicting the Next Token
 ```
 
-Over the rest of this post we'll implement each of these components along with a few utilities for loading model configuration and parameters. If you want to jump right to the end, you can find a complete implementation of the [Llama Development Kit](https://github.com/stickshift/llama-kit) on GitHub.
+Over the rest of this post we'll implement each of these components along with a few utilities for loading model configuration and parameters.
+
+:::{card}
+*If you want to jump right to the end, you can find a complete implementation of the [Llama Development Kit](https://github.com/stickshift/llama-kit) on GitHub.*
+:::
 
 # Model Config
 
-Meta has published multiple versions and configurations of Llama. Each flavor of Llama is represented by a *checkpoint* that includes a model configuration file (`params.json`) and the model parameters (`consolidated.00.pth`).
+Meta has published multiple versions and configurations of Llama. Each flavor of Llama is represented by a *checkpoint* that includes a model configuration file (`params.json`), the model parameters (`consolidated.00.pth`), and the tokenizer model (`tokenizer.model`).
 
 :::{note}
 Before you get started, you'll need to download Llama checkpoints from [www.llama.com](https://www.llama.com/).
@@ -169,7 +174,7 @@ class LlamaEmbeddings(nn.Embedding):
 Next, we'll implement `LlamaAttention`, `LlamaFFN`, and `LlamaLayer` modules that implement the attention and feedforward network blocks in a single decoder layer. This where all the Transformer magic happens, and there is a lot going on here. For the purposes of this post, the important takeaway is simply that the logic is arranged into reusable building blocks.
 
 :::{card}
-*For more details on the implementation, please refer to [Transformer Teardown: Llama 3.1](https://stickshift.github.io/articles/llama1/) where we walk through each step one by one.*
+*For more details on the implementation, please refer to [Transformer Teardown: Llama 3.1](/articles/llama1/) where we walk through each step one by one.*
 :::
 
 ## Rotary Position Embedding (RoPE)
@@ -186,10 +191,12 @@ def rope_frequencies(config: ModelConfig, device: torch.device, n: int):
     i = torch.arange(d // 2, device=device)
     thetas = base ** (-2 * i / d)
 
-    # Duplicate each theta, e.g. [theta_0, theta_1] -> [theta_0, theta_0, theta_1, theta_1]
+    # Duplicate each theta, e.g. 
+    #   [theta_0, theta_1] -> [theta_0, theta_0, theta_1, theta_1]
     thetas = thetas.repeat_interleave(2)
 
-    # Repeat thetas for each position from 0 to n and stack in an (n, d_head) matrix
+    # Repeat thetas for each position from 0 to n and 
+    # stack in an (n, d_head) matrix
     theta_stack = torch.stack([m * thetas for m in range(n)])
 
     # Apply cos, sin
@@ -197,8 +204,8 @@ def rope_frequencies(config: ModelConfig, device: torch.device, n: int):
     r_sin = torch.sin(theta_stack)
 
     # Sanity check
-    assert r_cos.shape[0] == n and r_cos.shape[1] == config.d_head  # noqa: PT018
-    assert r_sin.shape[0] == n and r_sin.shape[1] == config.d_head  # noqa: PT018
+    assert r_cos.shape[0] == n and r_cos.shape[1] == config.d_head
+    assert r_sin.shape[0] == n and r_sin.shape[1] == config.d_head
 
     return r_cos, r_sin
 
@@ -456,7 +463,7 @@ class LlamaModel(nn.Module):
 
 # Head
 
-Next, we'll implement `LlamaHead` and `LlamaCausalLMHead` modules. `LlamaHead` is an abstract module that serves as a base class for task-specific head layers. `LlamaHead` provides common functions such as loading checkpoint weights and projecting the semantic embeddings back to token space. `LlamaCausalLMHead` extends `LlamaHead` to implement "causal language modeling" (aka. next token prediction) based on `temperature`, `top_k`, and `top_p` token sampling.
+Next, we'll implement `LlamaHead` and `LlamaCausalLMHead` modules. `LlamaHead` is intended to serve as an abstract base class for task-specific head layers. `LlamaCausalLMHead` extends `LlamaHead` to implement "causal language modeling" (aka. next token prediction) based on `temperature`, `top_k`, and `top_p` token sampling.
 
 ```{code-cell} python
 class LlamaHead(nn.Module):
@@ -579,6 +586,7 @@ class LlamaGenerator(nn.Module):
         self,
         config: ModelConfig,
         device: torch.device,
+        stop_tokens: Sequence[int] | None = None,
         temperature: float | None = None,
         top_k: int | None = None,
         top_p: float | None = None,
@@ -588,7 +596,7 @@ class LlamaGenerator(nn.Module):
 
         self.device = device
 
-        self.stop_tokens = load_tokenizer(config).stop_tokens
+        self.stop_tokens = default_arg(stop_tokens, ())
 
         self.max_tokens = default_arg(max_tokens, 32)
 
@@ -602,20 +610,25 @@ class LlamaGenerator(nn.Module):
             top_p=top_p,
         )
 
-    def __call__(self, token_ids: Sequence[int]) -> Iterator[int]:
+    def __call__(self, token_ids: Sequence[int], **kwargs) -> Iterator[int]:
         """Generate token ids until stop token or we exceed max tokens."""
         
-        # Prepare model
+        # Prepare models
         self.model.eval()
         self.head.eval()
 
         # Make mutable copy of token ids
         token_ids = list(token_ids)
 
+        # Override fields with kwargs
+        max_tokens = kwargs.get("max_tokens", self.max_tokens)
+        stop_tokens = kwargs.get("stop_tokens", self.stop_tokens)
+
         with torch.no_grad():
 
             # Generate output until we get a stop token or we exceed max_tokens.
-            for _ in range(self.max_tokens):
+            for _ in range(max_tokens):
+
                 # Load token ids into a tensor
                 x = torch.tensor(token_ids, device=self.device)
 
@@ -626,7 +639,7 @@ class LlamaGenerator(nn.Module):
                 token_id = self.head(x)
 
                 # Check stopping criteria
-                if token_id in self.stop_tokens:
+                if token_id in stop_tokens:
                     break
 
                 # Yield token
@@ -636,13 +649,185 @@ class LlamaGenerator(nn.Module):
                 token_ids.append(token_id)
 ```
 
+# Tokenizer
+
+Llama's tokenizer is based on the [tiktoken](https://github.com/openai/tiktoken) library from OpenAI. Here, we'll define a `load_tokenizer` function loads a preconfigured `tiktoken` model from the Llama checkpoint into a `Tokenizer` object provided by `llama-models`.
+
+```{code-cell} python
+from llama_models.llama3.api import Tokenizer
+
+def load_tokenizer(config: ModelConfig) -> Tokenizer:
+    """Load tokenizer from checkpoint."""
+    
+    # Load tiktoken model
+    return Tokenizer(str(config.checkpoint_path / "tokenizer.model"))
+```
+
+# Configure GPU
+
+Before we go further, we need to quickly touch on GPU configuration. (While you could theoretically experiment with Llama inference using CPUs only, I have not tried it.) I have had great success experimenting with Llama models on a 64GB M1 MacBook. Apple's unified memory architecture shares the 64GB between CPU and GPU, providing much more GPU accessible memory than you can usually find without a dedicated GPU cluster.
+
+If you're experienced at reading PyTorch code, you may have noticed our Llama modules take the PyTorch device as a contructor argument. This is not a standard practice as far as I know. Usually, you would initialize the PyTorch module in CPU memory before transfering the entire thing to the GPU by calling `model.to(device)`.
+
+While common, this approach is orders of magnitude slower. The reason is the billion plus model parameters are initialized by the CPU. On my M1 MacBook, I found this can take 20 to 30 seconds just to create the model. By passing the GPU device to the model initializer, the time to create the model drops to 500ms.
+
+Rather than hardcode the GPU device, we'll define a `torch_device` function that leverages the GPU if you have one and gracefully falls back to the CPU if you don't. As implemented, `torch_device` supports both NVIDIA and Apple GPUs but could easily be extended to support others.
+
+```{code-cell} python
+def torch_device() -> torch.device:
+    """Configure gpus."""
+
+    # NVIDIA
+    if torch.cuda.is_available():
+        return torch.device("cuda")
+
+    # Apple
+    if torch.backends.mps.is_available():
+        return torch.device("mps")
+
+    # Fall back to CPU
+    return torch.device("cpu")
+```
+
+We've now implemented everything we need to create a Llama model. Let's take it for a spin using the `Llama3.2-3B` checkpoint. We'll load the model's hyperparameters into a `ModelConfig` object and then use this to initialize a `LlamaGenerator`. 
+
+```{code-cell} python
+# Load model config for Llama 3.2 3B checkpoint
+config = load_config("Llama3.2-3B")
+
+# Configure GPU
+device = torch_device()
+
+# Create tokenizer
+tokenizer = load_tokenizer(config)
+
+# Create generator
+generator = LlamaGenerator(config, device, stop_tokens=tokenizer.stop_tokens)
+```
+
 # Model Parameters
 
-# Tokenizer
+At this point, it's important to note that the 3 billion model parameters in `generator` are randomly initialized. This means our model is completely untrained. Our next step is to load the pre-trained model weights from the checkpoint into our model. We'll define a `load_parameters` function that returns a PyTorch `state_dict` that maps module names to weight tensors.
+
+:::{note}
+The module names in the checkpoint's `consolidated.00.pth` file are based on Meta's `llama-models` reference implementation. `load_parameters` remaps Meta's module names to match ours.
+:::
+
+```{code-cell} python
+# Maps parameter names to weights
+ModelParameters = Mapping[str, Tensor]
+
+
+def load_parameters(config: ModelConfig, **kwargs) -> ModelParameters:
+    """Load model state from checkpoint."""
+    
+    # Load state from checkpoint
+    params = torch.load(
+        config.checkpoint_path / "consolidated.00.pth",
+        weights_only=True,
+        **kwargs,
+    )
+
+    # Remap Meta's parameter names
+    output_params = {}
+
+    # Embeddings
+    output_params |= {
+        "model.embeddings.weight": params["tok_embeddings.weight"],
+    }
+
+    # Layers
+    for layer_id in range(config.n_layers):
+        output_params |= {
+            f"model.layers.{layer_id}.attention.normalize.weight": params[
+                f"layers.{layer_id}.attention_norm.weight"
+            ],
+            f"model.layers.{layer_id}.attention.w_queries.weight": params[
+                f"layers.{layer_id}.attention.wq.weight"
+            ],
+            f"model.layers.{layer_id}.attention.w_keys.weight": params[
+                f"layers.{layer_id}.attention.wk.weight"
+            ],
+            f"model.layers.{layer_id}.attention.w_values.weight": params[
+                f"layers.{layer_id}.attention.wv.weight"
+            ],
+            f"model.layers.{layer_id}.attention.w_output.weight": params[
+                f"layers.{layer_id}.attention.wo.weight"
+            ],
+            f"model.layers.{layer_id}.ffn.normalize.weight": params[
+                f"layers.{layer_id}.ffn_norm.weight"
+            ],
+            f"model.layers.{layer_id}.ffn.w_input.weight": params[
+                f"layers.{layer_id}.feed_forward.w3.weight"
+            ],
+            f"model.layers.{layer_id}.ffn.w_gate.weight": params[
+                f"layers.{layer_id}.feed_forward.w1.weight"
+            ],
+            f"model.layers.{layer_id}.ffn.w_output.weight": params[
+                f"layers.{layer_id}.feed_forward.w2.weight"
+            ],
+        }
+
+    # Head
+    output_params |= {
+        "head.normalize.weight": params["norm.weight"],
+        "head.w_output.weight": params["output.weight"],
+    }
+
+    return output_params
+```
+
+Next, we'll use `load_parameters` to load the pre-trained weights into `generator`. We specify `map_location=device` to load the parameters directly to the GPU, shaving off another couple hundred milliseconds.
+
+```{code-cell} python
+# Load model parameters from checkpoint
+generator.load_state_dict(load_parameters(config, map_location=device))
+```
 
 # Pipeline
 
+To pull all the pieces together, we'll define a `generate_text` function that implements the entire end-to-end text generation pipeline.
+
+```{code-cell} python
+def generate_text(
+    tokenizer: Tokenizer,
+    generator: LlamaGenerator,
+    prompt: str,
+    **kwargs,
+) -> Iterator[str]:
+    """Generate text one token at a time."""
+
+    # Split prompt into tokens
+    token_ids = tokenizer.encode(prompt, bos=True, eos=False)
+
+    # Generate new token ids
+    for token_id in generator(token_ids, **kwargs):
+        
+        # Decode token id
+        token = tokenizer.decode([token_id])
+
+        yield token
+```
+
 # Humpy Dumpty
 
+We'll put your Llama development kit to work on real experiments in a series of upcoming posts. For now, drum roll please..., it's demo time.
+
+```{code-cell} python
+prompt = "humpty dumpty sat on"
+
+stdout.write(prompt)
+
+for token in generate_text(tokenizer, generator, prompt, max_tokens=20):
+    stdout.write(token)
+
+stdout.flush()
+```
+
+# Recap
+
+Congrats! You made it to the end of another Transformer Teardown. We took what we learned in the [Llama 3.1 Transformer Teardown](/articles/llama1/) and created a toolkit of lightweight, reusable Llama components you can easily mix, match, and extend in your own research experiments.
+
+Look for upcoming posts where we can put your Llama development kit to work!
 
 

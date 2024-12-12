@@ -29,12 +29,14 @@ aside.admonition {
 
 // Cards
 div.card {
-    border-style: solid;
-    border-radius: var.$code-border-radius;
-    border-width: 1px 1px 1px 1px;
-    border-color: var.$callout-border-color;
+    border-left: 0.25rem solid var.$callout-border-color;
+    border-right: 0.25rem solid var.$callout-border-color;
     background-color: var.$callout-background-color;
     margin: 2.0rem 1.0rem;
+
+    &.align-center {
+        text-align: center;
+    }
 
     p {
         font-family: var.$accent-font-family;
