@@ -581,7 +581,7 @@ class LlamaCausalLMHead(LlamaHead):
 Next, we'll implement the `LlamaGenerator` module that combines `LlamaModel` with `LlamaCausalLMHead`. Given a sequence of token ids, `LlamaGenerator` starts by predicting the next token in the sequence before feeding the predicted token back into the model in an autoregressive decoding loop. `LlamaGenerator` continues generating new tokens until it predicts a stop token or exceeds the `max_tokens` parameter.
 
 :::{note}
-This is not a production-grade implementation. I've intentionally left out standard optimizations such as query and key caching for the sake of keeping the logic cleaner and easier to understand.
+This is not a production-grade implementation. I've intentionally left out standard optimizations such as key / value caching for the sake of keeping the logic cleaner and easier to understand.
 :::
 
 ```{code-cell} python
@@ -817,12 +817,12 @@ def generate_text(
         yield token
 ```
 
-# Humpy Dumpty
+# Humpty Dumpty
 
 We'll put your Llama development kit to work on real experiments in a series of upcoming posts. For now, drum roll please..., it's demo time.
 
 ```{code-cell} python
-prompt = "humpty dumpty sat on"
+prompt = "humpty dumpty sat"
 
 stdout.write(prompt)
 
