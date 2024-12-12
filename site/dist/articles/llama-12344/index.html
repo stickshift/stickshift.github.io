@@ -147,7 +147,7 @@
     </li>
     
     <li>
-        <a href="#humpy-dumpty">Humpy Dumpty</a>
+        <a href="#humpty-dumpty">Humpty Dumpty</a>
         
     </li>
     
@@ -634,7 +634,7 @@
 </pre></div>
 </div><h1 id="generator">Generator</h1>
 <p>Next, we'll implement the <code>LlamaGenerator</code> module that combines <code>LlamaModel</code> with <code>LlamaCausalLMHead</code>. Given a sequence of token ids, <code>LlamaGenerator</code> starts by predicting the next token in the sequence before feeding the predicted token back into the model in an autoregressive decoding loop. <code>LlamaGenerator</code> continues generating new tokens until it predicts a stop token or exceeds the <code>max_tokens</code> parameter.</p>
-<aside class="admonition note"><p class="admonition-title">Note</p><p>This is not a production-grade implementation. I've intentionally left out standard optimizations such as query and key caching for the sake of keeping the logic cleaner and easier to understand.</p>
+<aside class="admonition note"><p class="admonition-title">Note</p><p>This is not a production-grade implementation. I've intentionally left out standard optimizations such as key / value caching for the sake of keeping the logic cleaner and easier to understand.</p>
 </aside><div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="k">class</span> <span class="nc">LlamaGenerator</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">"""Llama text generator."""</span>
 
@@ -839,9 +839,9 @@
 
         <span class="k">yield</span> <span class="n">token</span>
 </pre></div>
-</div><h1 id="humpy-dumpty">Humpy Dumpty</h1>
+</div><h1 id="humpty-dumpty">Humpty Dumpty</h1>
 <p>We'll put your Llama development kit to work on real experiments in a series of upcoming posts. For now, drum roll please..., it's demo time.</p>
-<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="n">prompt</span> <span class="o">=</span> <span class="s2">"humpty dumpty sat on"</span>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="n">prompt</span> <span class="o">=</span> <span class="s2">"humpty dumpty sat"</span>
 
 <span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">prompt</span><span class="p">)</span>
 
@@ -850,7 +850,9 @@
 
 <span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
 </pre></div>
-</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>humpty dumpty sat on a wall humpty dumpty had a great fall all the king's horses and all the king's
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>humpty dumpty sat on a wall
+Humpty Dumpty sat on a wall,
+Humpty Dumpty had a great
 </pre></div>
 </div><h1 id="recap">Recap</h1>
 <p>Congrats! You made it to the end of another Transformer Teardown. We took what we learned in the <a href="/articles/llama1/">Llama 3.1 Transformer Teardown</a> and created a toolkit of lightweight, reusable Llama components you can easily mix, match, and extend in your own research experiments.</p>
