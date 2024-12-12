@@ -1,0 +1,304 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Layer_1" xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 1053 871">
+  <!-- Generator: Adobe Illustrator 29.1.0, SVG Export Plug-In . SVG Version: 2.1.0 Build 142)  -->
+  <defs>
+    <style>
+      .st0 {
+        fill: silver;
+        fill-opacity: .2;
+      }
+
+      .st1, .st2 {
+        font-family: ArialMT, Arial;
+      }
+
+      .st1, .st2, .st3 {
+        isolation: isolate;
+      }
+
+      .st1, .st3 {
+        font-size: 13px;
+      }
+
+      .st4 {
+        fill: #fff;
+      }
+
+      .st5, .st6 {
+        fill: none;
+        stroke: #000;
+        stroke-miterlimit: 10;
+      }
+
+      .st2 {
+        fill: #cfcfcf;
+        font-size: 8px;
+      }
+
+      .st6 {
+        stroke-dasharray: 3;
+      }
+
+      .st3 {
+        font-family: Arial-BoldMT, Arial;
+        font-weight: 700;
+      }
+    </style>
+  </defs>
+  <rect class="st0" x="57" y="17" width="96" height="40"/>
+  <rect class="st4" x="50" y="10" width="96" height="40"/>
+  <path class="st5" d="M50,10h96v40H50V10Z"/>
+  <g>
+    <path class="st5" d="M0,0"/>
+    <text class="st3" transform="translate(73.6 23.5)"><tspan x="0" y="0">Pipeline</tspan></text>
+  </g>
+  <path class="st6" d="M98.5,51v810"/>
+  <rect class="st0" x="169" y="17" width="96" height="40"/>
+  <rect class="st4" x="162" y="10" width="96" height="40"/>
+  <path class="st5" d="M162,10h96v40h-96V10Z"/>
+  <g>
+    <path class="st5" d="M0,0"/>
+    <text class="st3" transform="translate(180.6 23.5)"><tspan x="0" y="0">Tokenizer</tspan></text>
+  </g>
+  <path class="st6" d="M210.5,51v810"/>
+  <rect class="st0" x="281" y="17" width="96" height="40"/>
+  <rect class="st4" x="274" y="10" width="96" height="40"/>
+  <path class="st5" d="M274,10h96v40h-96V10Z"/>
+  <g>
+    <path class="st5" d="M0,0"/>
+    <text class="st3" transform="translate(291.4 23.5)"><tspan x="0" y="0">Generator</tspan></text>
+  </g>
+  <path class="st6" d="M322.5,51v810"/>
+  <path d="M10,98c0-4.1,3.4-7.5,7.5-7.5s7.5,3.4,7.5,7.5-3.4,7.5-7.5,7.5-7.5-3.4-7.5-7.5Z"/>
+  <rect class="st0" x="393" y="17" width="96" height="40"/>
+  <rect class="st4" x="386" y="10" width="96" height="40"/>
+  <path class="st5" d="M386,10h96v40h-96V10Z"/>
+  <g>
+    <path class="st5" d="M0,0"/>
+    <text class="st3" transform="translate(415.7 23.5)"><tspan x="0" y="0">Model</tspan></text>
+  </g>
+  <path class="st6" d="M434.5,51v810"/>
+  <rect class="st0" x="505" y="17" width="98" height="40"/>
+  <rect class="st4" x="498" y="10" width="98" height="40"/>
+  <path class="st5" d="M498,10h98v40h-98V10Z"/>
+  <g>
+    <path class="st5" d="M0,0"/>
+    <text class="st3" transform="translate(508.5 23.5)"><tspan x="0" y="0">Embeddings</tspan></text>
+  </g>
+  <path class="st6" d="M547.5,51v810"/>
+  <rect class="st0" x="617" y="17" width="96" height="40"/>
+  <rect class="st4" x="610" y="10" width="96" height="40"/>
+  <path class="st5" d="M610,10h96v40h-96V10Z"/>
+  <g>
+    <path class="st5" d="M0,0"/>
+    <text class="st3" transform="translate(641.2 23.5)"><tspan x="0" y="0">Layer</tspan></text>
+  </g>
+  <path class="st6" d="M658.5,51v810"/>
+  <rect class="st0" x="729" y="17" width="96" height="40"/>
+  <rect class="st4" x="722" y="10" width="96" height="40"/>
+  <path class="st5" d="M722,10h96v40h-96V10Z"/>
+  <g>
+    <path class="st5" d="M0,0"/>
+    <text class="st3" transform="translate(742 23.5)"><tspan x="0" y="0">Attention</tspan></text>
+  </g>
+  <path class="st6" d="M770.5,51v810"/>
+  <rect class="st0" x="841" y="17" width="96" height="40"/>
+  <rect class="st4" x="834" y="10" width="96" height="40"/>
+  <path class="st5" d="M834,10h96v40h-96V10Z"/>
+  <g>
+    <path class="st5" d="M0,0"/>
+    <text class="st3" transform="translate(869.9 23.5)"><tspan x="0" y="0">FFN</tspan></text>
+  </g>
+  <path class="st6" d="M882.5,51v810"/>
+  <rect class="st0" x="953" y="17" width="96" height="40"/>
+  <rect class="st4" x="946" y="10" width="96" height="40"/>
+  <path class="st5" d="M946,10h96v40h-96V10Z"/>
+  <g>
+    <path class="st5" d="M0,0"/>
+    <text class="st3" transform="translate(978.6 23.5)"><tspan x="0" y="0">Head</tspan></text>
+  </g>
+  <path class="st6" d="M994.5,51v810"/>
+  <path d="M10,830c0-4.1,3.4-7.5,7.5-7.5s7.5,3.4,7.5,7.5-3.4,7.5-7.5,7.5-7.5-3.4-7.5-7.5Z"/>
+  <path class="st5" d="M25,98h66"/>
+  <path d="M80.8,102.2l10.2-4.2-10.2-4.2"/>
+  <path class="st5" d="M80.8,102.2l10.2-4.2-10.2-4.2v8.4"/>
+  <rect class="st4" x="34" y="73" width="40.5" height="13"/>
+  <g>
+    <path class="st4" d="M0,0"/>
+    <text class="st1" transform="translate(34 79.5)"><tspan x="0" y="0">prompt</tspan></text>
+  </g>
+  <rect class="st4" x="91" y="98" width="14" height="736"/>
+  <path class="st5" d="M91,98h14v736h-14V98Z"/>
+  <path class="st5" d="M105,130h98"/>
+  <path d="M192.8,134.2l10.2-4.2-10.2-4.2"/>
+  <path class="st5" d="M192.8,134.2l10.2-4.2-10.2-4.2v8.4"/>
+  <rect class="st4" x="122" y="106" width="91.8" height="13"/>
+  <g>
+    <path class="st4" d="M0,0"/>
+    <text class="st1" transform="translate(122 112.5)"><tspan x="0" y="0">encode(prompt)</tspan></text>
+  </g>
+  <rect class="st4" x="203" y="130" width="14" height="32"/>
+  <path class="st5" d="M203,130h14v32h-14v-32Z"/>
+  <path class="st6" d="M210,162h-105"/>
+  <path class="st5" d="M115.2,157.8l-10.2,4.2,10.2,4.2"/>
+  <rect class="st4" x="146" y="146" width="52" height="13"/>
+  <g>
+    <path class="st4" d="M0,0"/>
+    <text class="st1" transform="translate(146 152.5)"><tspan x="0" y="0">token ids</tspan></text>
+  </g>
+  <path class="st5" d="M105,210h210"/>
+  <path d="M304.8,214.2l10.2-4.2-10.2-4.2"/>
+  <path class="st5" d="M304.8,214.2l10.2-4.2-10.2-4.2v8.4"/>
+  <rect class="st4" x="122" y="185" width="83.8" height="13"/>
+  <g>
+    <path class="st4" d="M0,0"/>
+    <text class="st1" transform="translate(122 191.5)"><tspan x="0" y="0">call(token_ids)</tspan></text>
+  </g>
+  <rect class="st4" x="315" y="210" width="14" height="512"/>
+  <path class="st5" d="M315,210h14v512h-14V210Z"/>
+  <path class="st5" d="M329,242h98"/>
+  <path d="M416.8,246.2l10.2-4.2-10.2-4.2"/>
+  <path class="st5" d="M416.8,246.2l10.2-4.2-10.2-4.2v8.4"/>
+  <rect class="st4" x="346" y="218" width="83.8" height="13"/>
+  <g>
+    <path class="st4" d="M0,0"/>
+    <text class="st1" transform="translate(346 224.5)"><tspan x="0" y="0">call(token_ids)</tspan></text>
+  </g>
+  <rect class="st4" x="427" y="242" width="14" height="368"/>
+  <path class="st5" d="M427,242h14v368h-14V242Z"/>
+  <path class="st5" d="M441,274h99"/>
+  <path d="M529.8,278.2l10.2-4.2-10.2-4.2"/>
+  <path class="st5" d="M529.8,278.2l10.2-4.2-10.2-4.2v8.4"/>
+  <rect class="st4" x="458" y="249" width="83.8" height="13"/>
+  <g>
+    <path class="st4" d="M0,0"/>
+    <text class="st1" transform="translate(458 255.5)"><tspan x="0" y="0">call(token_ids)</tspan></text>
+  </g>
+  <rect class="st4" x="540" y="274" width="14" height="32"/>
+  <path class="st5" d="M540,274h14v32h-14v-32Z"/>
+  <path class="st6" d="M547,306h-106"/>
+  <path class="st5" d="M451.2,301.8l-10.2,4.2,10.2,4.2"/>
+  <rect class="st4" x="522" y="290" width="6.5" height="13"/>
+  <g>
+    <path class="st4" d="M0,0"/>
+    <text class="st1" transform="translate(522 296.5)"><tspan x="0" y="0">x</tspan></text>
+  </g>
+  <path class="st5" d="M441,378h210"/>
+  <path d="M640.8,382.2l10.2-4.2-10.2-4.2"/>
+  <path class="st5" d="M640.8,382.2l10.2-4.2-10.2-4.2v8.4"/>
+  <rect class="st4" x="482" y="359" width="34.7" height="13"/>
+  <g>
+    <path class="st4" d="M0,0"/>
+    <text class="st1" transform="translate(482 365.5)"><tspan x="0" y="0">call(x)</tspan></text>
+  </g>
+  <rect class="st4" x="651" y="378" width="14" height="176"/>
+  <path class="st5" d="M651,378h14v176h-14v-176Z"/>
+  <path class="st5" d="M665,402h98"/>
+  <path d="M752.8,406.2l10.2-4.2-10.2-4.2"/>
+  <path class="st5" d="M752.8,406.2l10.2-4.2-10.2-4.2v8.4"/>
+  <rect class="st4" x="682" y="377" width="34.7" height="13"/>
+  <g>
+    <path class="st4" d="M0,0"/>
+    <text class="st1" transform="translate(682 383.5)"><tspan x="0" y="0">call(x)</tspan></text>
+  </g>
+  <rect class="st4" x="763" y="402" width="14" height="32"/>
+  <path class="st5" d="M763,402h14v32h-14v-32Z"/>
+  <path class="st6" d="M770,434h-105"/>
+  <path class="st5" d="M675.2,429.8l-10.2,4.2,10.2,4.2"/>
+  <rect class="st4" x="746" y="418" width="6.5" height="13"/>
+  <g>
+    <path class="st4" d="M0,0"/>
+    <text class="st1" transform="translate(746 424.5)"><tspan x="0" y="0">x</tspan></text>
+  </g>
+  <path class="st5" d="M665,482h210"/>
+  <path d="M864.8,486.2l10.2-4.2-10.2-4.2"/>
+  <path class="st5" d="M864.8,486.2l10.2-4.2-10.2-4.2v8.4"/>
+  <rect class="st4" x="682" y="457" width="34.7" height="13"/>
+  <g>
+    <path class="st4" d="M0,0"/>
+    <text class="st1" transform="translate(682 463.5)"><tspan x="0" y="0">call(x)</tspan></text>
+  </g>
+  <rect class="st4" x="875" y="482" width="14" height="32"/>
+  <path class="st5" d="M875,482h14v32h-14v-32Z"/>
+  <path class="st6" d="M882,514h-217"/>
+  <path class="st5" d="M675.2,509.8l-10.2,4.2,10.2,4.2"/>
+  <rect class="st4" x="858" y="498" width="6.5" height="13"/>
+  <g>
+    <path class="st4" d="M0,0"/>
+    <text class="st1" transform="translate(858 504.5)"><tspan x="0" y="0">x</tspan></text>
+  </g>
+  <path class="st6" d="M651,546h-210"/>
+  <path class="st5" d="M451.2,541.8l-10.2,4.2,10.2,4.2"/>
+  <rect class="st4" x="634" y="530" width="6.5" height="13"/>
+  <g>
+    <path class="st4" d="M0,0"/>
+    <text class="st1" transform="translate(634 536.5)"><tspan x="0" y="0">x</tspan></text>
+  </g>
+  <path class="st6" d="M434,610h-105"/>
+  <path class="st5" d="M339.2,605.8l-10.2,4.2,10.2,4.2"/>
+  <rect class="st4" x="410" y="586" width="6.5" height="13"/>
+  <g>
+    <path class="st4" d="M0,0"/>
+    <text class="st1" transform="translate(410 592.5)"><tspan x="0" y="0">x</tspan></text>
+  </g>
+  <path class="st5" d="M329,658h658"/>
+  <path d="M976.8,662.2l10.2-4.2-10.2-4.2"/>
+  <path class="st5" d="M976.8,662.2l10.2-4.2-10.2-4.2v8.4"/>
+  <rect class="st4" x="346" y="633" width="34.7" height="13"/>
+  <g>
+    <path class="st4" d="M0,0"/>
+    <text class="st1" transform="translate(346 639.5)"><tspan x="0" y="0">call(x)</tspan></text>
+  </g>
+  <rect class="st4" x="987" y="658" width="14" height="32"/>
+  <path class="st5" d="M987,658h14v32h-14v-32Z"/>
+  <path class="st6" d="M994,690H329"/>
+  <path class="st5" d="M339.2,685.8l-10.2,4.2,10.2,4.2"/>
+  <rect class="st4" x="930" y="674" width="49.1" height="13"/>
+  <g>
+    <path class="st4" d="M0,0"/>
+    <text class="st1" transform="translate(930 680.5)"><tspan x="0" y="0">token_id</tspan></text>
+  </g>
+  <path class="st6" d="M322,722H105"/>
+  <path class="st5" d="M115.2,717.8l-10.2,4.2,10.2,4.2"/>
+  <rect class="st4" x="258" y="698" width="49.1" height="13"/>
+  <g>
+    <path class="st4" d="M0,0"/>
+    <text class="st1" transform="translate(258 704.5)"><tspan x="0" y="0">token_id</tspan></text>
+  </g>
+  <path class="st5" d="M105,770h98"/>
+  <path d="M192.8,774.2l10.2-4.2-10.2-4.2"/>
+  <path class="st5" d="M192.8,774.2l10.2-4.2-10.2-4.2v8.4"/>
+  <rect class="st4" x="122" y="746" width="100.5" height="13"/>
+  <g>
+    <path class="st4" d="M0,0"/>
+    <text class="st1" transform="translate(122 752.5)"><tspan x="0" y="0">decode(token_id)</tspan></text>
+  </g>
+  <rect class="st4" x="203" y="770" width="14" height="32"/>
+  <path class="st5" d="M203,770h14v32h-14v-32Z"/>
+  <path class="st6" d="M210,802h-105"/>
+  <path class="st5" d="M115.2,797.8l-10.2,4.2,10.2,4.2"/>
+  <rect class="st4" x="162" y="786" width="31.8" height="13"/>
+  <g>
+    <path class="st4" d="M0,0"/>
+    <text class="st1" transform="translate(162 792.5)"><tspan x="0" y="0">token</tspan></text>
+  </g>
+  <path class="st5" d="M91,830H25"/>
+  <path d="M35.2,825.8l-10.2,4.2,10.2,4.2"/>
+  <path class="st5" d="M35.2,825.8l-10.2,4.2,10.2,4.2v-8.4"/>
+  <rect class="st4" x="48" y="810" width="31.8" height="13"/>
+  <g>
+    <path class="st4" d="M0,0"/>
+    <text class="st1" transform="translate(48 816.5)"><tspan x="0" y="0">token</tspan></text>
+  </g>
+  <path class="st5" d="M466,322h448v256h-448v-256"/>
+  <path class="st4" d="M466,322v23h112.1l11.5-11.5v-11.5h-123.6"/>
+  <path class="st5" d="M466,322v23h112.1l11.5-11.5v-11.5h-123.6"/>
+  <g>
+    <path class="st5" d="M0,0"/>
+    <text class="st1" transform="translate(498 333.5)"><tspan x="0" y="0">foreach layer</tspan></text>
+  </g>
+  <g>
+    <path d="M0,0"/>
+    <text class="st3" transform="translate(470.3 333.5)"><tspan x="0" y="0">seq</tspan></text>
+  </g>
+</svg>

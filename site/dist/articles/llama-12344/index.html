@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+
+
+
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Transformer Teardown: Build Your Own Llama Development Kit - Build a Collection of Reusable Building Blocks You Can Mix and Match in Your Own LLM Research Experiments">
+    <title>Pattern Recognition - Transformer Teardown: Build Your Own Llama Development Kit</title>
+
+    <!-- css -->
+    
+    <link rel="stylesheet" href="/styles/fonts.css">
+    
+    <link rel="stylesheet" href="/styles/pygments.css">
+    
+    <link rel="stylesheet" href="/styles/stickshift.css">
+    
+    <!-- /css -->
+
+    <!-- mathjax -->
+    <script>
+        MathJax = {
+            tex: {
+                inlineMath: [['$', '$']],
+                tags: 'ams' // Support numbered eqs
+            }
+        };
+    </script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js"></script>
+    <!-- /mathjax -->
+
+    <!-- google analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-B29S0R6EYD"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-B29S0R6EYD');
+    </script>
+    <!-- /google analytics -->
+</head>
+<body>
+    <header>
+        <div class="navbar">
+            <a href="/index.html">Pattern Recognition</a>
+            <a href="https://github.com/stickshift/stickshift.github.io"><img alt="github" class="icon icon-github" src="/images/github.svg"></a>
+        </div>
+    </header>
+
+    <main>
+        
+    <!-- toc -->
+    <aside>
+        <div class="toc">
+            <header>
+                <h1>Sections</h1>
+                <a href="#"><img alt="up" class="icon icon-up" src="/images/up.svg"></a>
+            </header>
+
+            <ul>
+    
+    <li>
+        <a href="#pipeline-review">Pipeline Review</a>
+        
+    </li>
+    
+    <li>
+        <a href="#components">Components</a>
+        
+    </li>
+    
+    <li>
+        <a href="#model-config">Model Config</a>
+        
+    </li>
+    
+    <li>
+        <a href="#embeddings">Embeddings</a>
+        
+    </li>
+    
+    <li>
+        <a href="#context-layers">Context Layers</a>
+        
+            <ul>
+    
+    <li>
+        <a href="#rotary-position-embedding-rope">Rotary Position Embedding (RoPE)</a>
+        
+    </li>
+    
+    <li>
+        <a href="#attention">Attention</a>
+        
+    </li>
+    
+    <li>
+        <a href="#ffn">FFN</a>
+        
+    </li>
+    
+    <li>
+        <a href="#layer">Layer</a>
+        
+    </li>
+    
+</ul>
+        
+    </li>
+    
+    <li>
+        <a href="#model">Model</a>
+        
+    </li>
+    
+    <li>
+        <a href="#head">Head</a>
+        
+    </li>
+    
+    <li>
+        <a href="#generator">Generator</a>
+        
+    </li>
+    
+    <li>
+        <a href="#tokenizer">Tokenizer</a>
+        
+    </li>
+    
+    <li>
+        <a href="#configure-gpu">Configure GPU</a>
+        
+    </li>
+    
+    <li>
+        <a href="#model-parameters">Model Parameters</a>
+        
+    </li>
+    
+    <li>
+        <a href="#pipeline">Pipeline</a>
+        
+    </li>
+    
+    <li>
+        <a href="#humpy-dumpty">Humpy Dumpty</a>
+        
+    </li>
+    
+    <li>
+        <a href="#recap">Recap</a>
+        
+    </li>
+    
+</ul>
+        </div>
+    </aside>
+    <!-- /toc -->
+
+
+        
+    <!-- article -->
+    <article>
+        <header>
+<h1>Transformer Teardown: Build Your Own Llama Development Kit</h1>
+<h2>Build a Collection of Reusable Building Blocks You Can Mix and Match in Your Own LLM Research Experiments</h2>
+<h3>December 11, 2024</h3>
+<img src="resources/banner.png" alt="Transformer Teardown: Build Your Own Llama Development Kit"></header><p>In <a href="/articles/llama1/">our last Transformer Teardown</a> post, we dissected the Llama 3 language model from Meta. We walked through each stage of the pipeline one line of code at a time, getting a close-up view of the machinery powering a state-of-the-art generative Transformer.</p>
+<p>The goal of this post is to use what we learned to create a lightweight Llama development kit we can use to run our own experiments.</p>
+<div  class="card"><p><em>But wait, why can't I just use <code>transformers</code> or <code>ollama</code> or <code>llama.cpp</code>?</em></p>
+</div><p>You certainly could. There are plenty of open source Llama implementations out there. The problem is they all have baggage. They're over complicated with configuration switches and extra options to the point that the main ideas are completely obscured. Not only does this make it hard to understand what's happening, it makes it even harder to run experiments.</p>
+<div  class="card"><p><em>Building your own lightweight stack of Llama components will do wonders for your Transformer fundamentals and you'll walk away with a collection of reusable building blocks you can mix and match in your own research.</em></p>
+</div><h1 id="pipeline-review">Pipeline Review</h1>
+<p>Let's quickly review the stages of a text generation pipeline we learned about in the previous post. The <code>Tokenize</code> stage splits raw text into tokens. The <code>Embeddings</code> stage maps token ids to token embeddings. The <code>Context Layers</code> stage transforms token embeddings into semantic embeddings through layers of attention and feedforward networks. The <code>Head</code> stage uses the semantic embeddings as features to predict the next token in the sequence. The predicted token is fed back to the beginning of the pipeline and the process repeats.</p>
+<figure id="transformer-pipeline-fig"><img alt="Transformer Pipeline" src="resources/transformer-pipeline.svg"/><figcaption>Figure 1: Transformer Pipeline</figcaption></figure><h1 id="components">Components</h1>
+<p>In <a href="/articles/llama1/">the last post</a>, we broke the pipeline in <a class="ref" href="#transformer-pipeline-fig">Figure 1</a> into tiny pieces. In this post, we'll reassemble the pieces into a collection of reusable PyTorch modules shown in <a class="ref" href="#modules-fig">Figure 2</a>. <code>Tokenizer</code> translates between raw text and token ids. <code>Generator</code> is implemented in terms of <code>Model</code> and <code>Head</code> submodules. <code>Model</code> combines an <code>Embeddings</code> module with multiple <code>Layer</code>s. Each <code>Layer</code> is broken into <code>Attention</code> and <code>FFN</code> submodules. Once <code>Model</code> has transformed token embeddings to semantic embeddings, <code>Head</code> predicts the next token id. Finally, <code>Generator</code> implements the autoregressive decoding loop, feeding the predicted tokens back to <code>Model</code>.</p>
+<figure id="modules-fig"><img alt="Modules" src="resources/modules.svg"/><figcaption>Figure 2: Modules</figcaption></figure><p><a class="ref" href="#next-token-sequence-fig">Figure 3</a> illustrates the interactions between each component in the process of predicting the next token.</p>
+<figure id="next-token-sequence-fig"><img alt="Predicting the Next Token" src="resources/next-token-sequence.svg"/><figcaption>Figure 3: Predicting the Next Token</figcaption></figure><p>Over the rest of this post we'll implement each of these components along with a few utilities for loading model configuration and parameters.</p>
+<div  class="card"><p><em>If you want to jump right to the end, you can find a complete implementation of the <a href="https://github.com/stickshift/llama-kit">Llama Development Kit</a> on GitHub.</em></p>
+</div><h1 id="model-config">Model Config</h1>
+<p>Meta has published multiple versions and configurations of Llama. Each flavor of Llama is represented by a <em>checkpoint</em> that includes a model configuration file (<code>params.json</code>), the model parameters (<code>consolidated.00.pth</code>), and the tokenizer model (<code>tokenizer.model</code>).</p>
+<aside class="admonition note"><p class="admonition-title">Note</p><p>Before you get started, you'll need to download Llama checkpoints from <a href="https://www.llama.com/">www.llama.com</a>.</p>
+</aside><p>Here, we define a <code>ModelConfig</code> data structure and <code>load_config</code> function to load the checkpoint-specific hyperparameters from <code>params.json</code>. Examples include the number of parameters in each layer (<code>d_model</code>), the number of layers (<code>n_layers</code>), and the number of attention heads (<code>n_heads</code>). We'll come back to the model parameters at the end.</p>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="k">class</span> <span class="nc">ModelConfig</span><span class="p">(</span><span class="n">NamedTuple</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Llama3 model config."""</span>
+
+    <span class="n">checkpoint_path</span><span class="p">:</span> <span class="n">Path</span>
+
+    <span class="n">vocab_size</span><span class="p">:</span> <span class="nb">int</span>
+
+    <span class="n">d_model</span><span class="p">:</span> <span class="nb">int</span>
+
+    <span class="n">d_head</span><span class="p">:</span> <span class="nb">int</span>
+
+    <span class="n">d_ffn</span><span class="p">:</span> <span class="nb">int</span>
+
+    <span class="n">n_layers</span><span class="p">:</span> <span class="nb">int</span>
+
+    <span class="n">n_heads</span><span class="p">:</span> <span class="nb">int</span>
+
+    <span class="n">n_kv_heads</span><span class="p">:</span> <span class="nb">int</span>
+
+    <span class="n">rms_norm_eps</span><span class="p">:</span> <span class="nb">float</span>
+
+    <span class="n">rope_theta</span><span class="p">:</span> <span class="nb">float</span>
+</pre></div>
+</div><div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="k">def</span> <span class="nf">load_config</span><span class="p">(</span><span class="n">checkpoint_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ModelConfig</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Load Llama3 config from checkpoint params.json."""</span>
+    
+    <span class="c1"># Build checkpoint_path</span>
+    <span class="n">checkpoints_path</span> <span class="o">=</span> <span class="n">Path</span><span class="p">(</span><span class="s2">"~/.llama/checkpoints"</span><span class="p">)</span><span class="o">.</span><span class="n">expanduser</span><span class="p">()</span>
+    <span class="n">checkpoint_path</span> <span class="o">=</span> <span class="n">checkpoints_path</span> <span class="o">/</span> <span class="n">checkpoint_name</span>
+
+    <span class="c1"># Load hyperparameters</span>
+    <span class="n">hparams_path</span> <span class="o">=</span> <span class="n">checkpoint_path</span> <span class="o">/</span> <span class="s2">"params.json"</span>
+    <span class="n">hparams</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="n">hparams_path</span><span class="o">.</span><span class="n">read_text</span><span class="p">())</span>
+
+    <span class="c1"># Calculate d_ffn from 8/3 * d_model rounded to nearest multiple_of</span>
+    <span class="n">d_model</span> <span class="o">=</span> <span class="n">hparams</span><span class="p">[</span><span class="s2">"dim"</span><span class="p">]</span>
+    <span class="n">ffn_dim_multiplier</span> <span class="o">=</span> <span class="n">hparams</span><span class="p">[</span><span class="s2">"ffn_dim_multiplier"</span><span class="p">]</span>
+    <span class="n">multiple_of</span> <span class="o">=</span> <span class="n">hparams</span><span class="p">[</span><span class="s2">"multiple_of"</span><span class="p">]</span>
+    <span class="n">d_ffn</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="mi">8</span> <span class="o">/</span> <span class="mi">3</span> <span class="o">*</span> <span class="n">d_model</span> <span class="o">*</span> <span class="n">ffn_dim_multiplier</span><span class="p">)</span>
+    <span class="n">d_ffn</span> <span class="o">=</span> <span class="n">multiple_of</span> <span class="o">*</span> <span class="p">((</span><span class="n">d_ffn</span> <span class="o">+</span> <span class="n">multiple_of</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">//</span> <span class="n">multiple_of</span><span class="p">)</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">"checkpoint_path"</span><span class="p">:</span> <span class="n">checkpoint_path</span><span class="p">,</span>
+        <span class="s2">"vocab_size"</span><span class="p">:</span> <span class="n">hparams</span><span class="p">[</span><span class="s2">"vocab_size"</span><span class="p">],</span>
+        <span class="s2">"d_model"</span><span class="p">:</span> <span class="n">hparams</span><span class="p">[</span><span class="s2">"dim"</span><span class="p">],</span>
+        <span class="s2">"n_layers"</span><span class="p">:</span> <span class="n">hparams</span><span class="p">[</span><span class="s2">"n_layers"</span><span class="p">],</span>
+        <span class="s2">"rms_norm_eps"</span><span class="p">:</span> <span class="n">hparams</span><span class="p">[</span><span class="s2">"norm_eps"</span><span class="p">],</span>
+        <span class="s2">"n_heads"</span><span class="p">:</span> <span class="n">hparams</span><span class="p">[</span><span class="s2">"n_heads"</span><span class="p">],</span>
+        <span class="s2">"d_head"</span><span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">hparams</span><span class="p">[</span><span class="s2">"dim"</span><span class="p">]</span> <span class="o">/</span> <span class="n">hparams</span><span class="p">[</span><span class="s2">"n_heads"</span><span class="p">]),</span>
+        <span class="s2">"n_kv_heads"</span><span class="p">:</span> <span class="n">hparams</span><span class="p">[</span><span class="s2">"n_kv_heads"</span><span class="p">],</span>
+        <span class="s2">"rope_theta"</span><span class="p">:</span> <span class="n">hparams</span><span class="p">[</span><span class="s2">"rope_theta"</span><span class="p">],</span>
+        <span class="s2">"d_ffn"</span><span class="p">:</span> <span class="n">d_ffn</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="c1"># Override with kwargs</span>
+    <span class="n">data</span> <span class="o">|=</span> <span class="n">kwargs</span>
+
+    <span class="k">return</span> <span class="n">ModelConfig</span><span class="p">(</span><span class="o">**</span><span class="n">data</span><span class="p">)</span>
+</pre></div>
+</div><h1 id="embeddings">Embeddings</h1>
+<p>Next, we'll implement a <code>LlamaEmbeddings</code> module that maps token ids to token embeddings.</p>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="k">class</span> <span class="nc">LlamaEmbeddings</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Embedding</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Llama token embeddings layer."""</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">ModelConfig</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span>
+            <span class="n">num_embeddings</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">vocab_size</span><span class="p">,</span>
+            <span class="n">embedding_dim</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">d_model</span><span class="p">,</span>
+            <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
+        <span class="p">)</span>
+</pre></div>
+</div><h1 id="context-layers">Context Layers</h1>
+<p>Next, we'll implement <code>LlamaAttention</code>, <code>LlamaFFN</code>, and <code>LlamaLayer</code> modules that implement the attention and feedforward network blocks in a single decoder layer. There is a lot going on here. For the purposes of this post, the important takeaway is simply that the logic is arranged into reusable building blocks.</p>
+<div  class="card"><p><em>For more details on the implementation, please refer to <a href="/articles/llama1/">Transformer Teardown: Llama 3.1</a> where we walk through each step one by one.</em></p>
+</div><h2 id="rotary-position-embedding-rope">Rotary Position Embedding (RoPE)</h2>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="k">def</span> <span class="nf">rope_frequencies</span><span class="p">(</span><span class="n">config</span><span class="p">:</span> <span class="n">ModelConfig</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">,</span> <span class="n">n</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Compute RoPE cos and sin rotation matrices."""</span>
+    
+    <span class="c1"># Hyperparameters</span>
+    <span class="n">base</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">rope_theta</span>
+    <span class="n">d</span> <span class="o">=</span> <span class="n">config</span><span class="o">.</span><span class="n">d_head</span>
+
+    <span class="c1"># Calculate thetas</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">d</span> <span class="o">//</span> <span class="mi">2</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span>
+    <span class="n">thetas</span> <span class="o">=</span> <span class="n">base</span> <span class="o">**</span> <span class="p">(</span><span class="o">-</span><span class="mi">2</span> <span class="o">*</span> <span class="n">i</span> <span class="o">/</span> <span class="n">d</span><span class="p">)</span>
+
+    <span class="c1"># Duplicate each theta, e.g. </span>
+    <span class="c1">#   [theta_0, theta_1] -&gt; [theta_0, theta_0, theta_1, theta_1]</span>
+    <span class="n">thetas</span> <span class="o">=</span> <span class="n">thetas</span><span class="o">.</span><span class="n">repeat_interleave</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="c1"># Repeat thetas for each position from 0 to n and </span>
+    <span class="c1"># stack in an (n, d_head) matrix</span>
+    <span class="n">theta_stack</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">stack</span><span class="p">([</span><span class="n">m</span> <span class="o">*</span> <span class="n">thetas</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n</span><span class="p">)])</span>
+
+    <span class="c1"># Apply cos, sin</span>
+    <span class="n">r_cos</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">cos</span><span class="p">(</span><span class="n">theta_stack</span><span class="p">)</span>
+    <span class="n">r_sin</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">theta_stack</span><span class="p">)</span>
+
+    <span class="c1"># Sanity check</span>
+    <span class="k">assert</span> <span class="n">r_cos</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">n</span> <span class="ow">and</span> <span class="n">r_cos</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">config</span><span class="o">.</span><span class="n">d_head</span>
+    <span class="k">assert</span> <span class="n">r_sin</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">n</span> <span class="ow">and</span> <span class="n">r_sin</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">config</span><span class="o">.</span><span class="n">d_head</span>
+
+    <span class="k">return</span> <span class="n">r_cos</span><span class="p">,</span> <span class="n">r_sin</span>
+
+
+<span class="k">def</span> <span class="nf">rope_swap</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Maps [x0, x1, x2, x3] -&gt; [-x1, x0, -x3, x2]."""</span>
+    
+    <span class="c1"># Preserve original shape</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span>
+
+    <span class="c1"># Split into pairs, swap, and restore shape</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">flip</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+
+    <span class="c1"># Multiply every even index along the last dimension by -1</span>
+    <span class="c1">#   e.g. [x0, x1, x2, x3] -&gt; [-x0, x1, -x2, x3]</span>
+    <span class="n">x</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">::</span><span class="mi">2</span><span class="p">]</span> <span class="o">*=</span> <span class="o">-</span><span class="mi">1</span>
+
+    <span class="k">return</span> <span class="n">x</span>
+
+
+<span class="k">def</span> <span class="nf">rope_rotate</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">r_cos</span><span class="p">,</span> <span class="n">r_sin</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Rotate embeddings using RoPE transform."""</span>    
+    <span class="k">return</span> <span class="p">(</span><span class="n">x</span> <span class="o">*</span> <span class="n">r_cos</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">rope_swap</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">*</span> <span class="n">r_sin</span><span class="p">)</span>
+</pre></div>
+</div><h2 id="attention">Attention</h2>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="k">class</span> <span class="nc">LlamaAttention</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Llama attention layer."""</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">ModelConfig</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
+
+        <span class="c1"># Input normalization</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">normalize</span> <span class="o">=</span> <span class="n">RMSNorm</span><span class="p">(</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">d_model</span><span class="p">,</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">rms_norm_eps</span><span class="p">,</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+
+        <span class="c1"># Queries projection</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">w_queries</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span>
+            <span class="n">in_features</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">d_model</span><span class="p">,</span>
+            <span class="n">out_features</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">n_heads</span> <span class="o">*</span> <span class="n">config</span><span class="o">.</span><span class="n">d_head</span><span class="p">,</span>
+            <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Keys projection</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">w_keys</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span>
+            <span class="n">in_features</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">d_model</span><span class="p">,</span>
+            <span class="n">out_features</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">n_kv_heads</span> <span class="o">*</span> <span class="n">config</span><span class="o">.</span><span class="n">d_head</span><span class="p">,</span>
+            <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Values projection</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">w_values</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span>
+            <span class="n">in_features</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">d_model</span><span class="p">,</span>
+            <span class="n">out_features</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">n_kv_heads</span> <span class="o">*</span> <span class="n">config</span><span class="o">.</span><span class="n">d_head</span><span class="p">,</span>
+            <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Output projection</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">w_output</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span>
+            <span class="n">in_features</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">d_model</span><span class="p">,</span>
+            <span class="n">out_features</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">d_model</span><span class="p">,</span>
+            <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="nd">@override</span>
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">r_cos</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">r_sin</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
+        <span class="c1"># Match input device</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">device</span>
+
+        <span class="c1"># Save residuals</span>
+        <span class="n">residual</span> <span class="o">=</span> <span class="n">x</span>
+
+        <span class="c1"># Normalize inputs</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="c1"># Project inputs to query, key, value spaces</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">w_queries</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">w_keys</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">w_values</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="c1"># Split attention heads</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_split_heads</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">n_heads</span><span class="p">)</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_split_heads</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">n_kv_heads</span><span class="p">)</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_split_heads</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">n_kv_heads</span><span class="p">)</span>
+
+        <span class="c1"># Expand key/value groups</span>
+        <span class="n">reps</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">n_heads</span> <span class="o">//</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">n_kv_heads</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="n">k</span><span class="o">.</span><span class="n">repeat_interleave</span><span class="p">(</span><span class="n">reps</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">v</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">repeat_interleave</span><span class="p">(</span><span class="n">reps</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+        <span class="c1"># Encode positions by rotating queries and keys</span>
+        <span class="n">q</span> <span class="o">=</span> <span class="n">rope_rotate</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">r_cos</span><span class="p">,</span> <span class="n">r_sin</span><span class="p">)</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="n">rope_rotate</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">r_cos</span><span class="p">,</span> <span class="n">r_sin</span><span class="p">)</span>
+
+        <span class="c1"># Compute masked attention bias M</span>
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">torch</span><span class="o">.</span><span class="n">bool</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span> \
+                    <span class="o">.</span><span class="n">tril</span><span class="p">(</span><span class="n">diagonal</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">m</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">)</span> \
+                 <span class="o">.</span><span class="n">masked_fill_</span><span class="p">(</span><span class="n">mask</span><span class="o">.</span><span class="n">logical_not</span><span class="p">(),</span> <span class="nb">float</span><span class="p">(</span><span class="s2">"-inf"</span><span class="p">))</span>
+
+        <span class="c1"># Compute attention for all heads in parallel</span>
+        <span class="n">scores</span> <span class="o">=</span> <span class="n">q</span> <span class="o">@</span> <span class="n">k</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">d_head</span><span class="p">)</span> <span class="o">+</span> <span class="n">m</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">scores</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span> <span class="o">@</span> <span class="n">v</span>
+
+        <span class="c1"># Combine attention heads</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_combine_heads</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+
+        <span class="c1"># Project outputs back to model space</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">w_output</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+
+        <span class="c1"># Merge outputs with residuals</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">residual</span> <span class="o">+</span> <span class="n">a</span>
+
+        <span class="k">return</span> <span class="n">x</span>
+
+    <span class="k">def</span> <span class="nf">_split_heads</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">n_heads</span><span class="p">:</span> <span class="nb">int</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Split attention heads."""</span>
+        <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_heads</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">d_head</span><span class="p">)</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_combine_heads</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">"""Combine attention heads."""</span>
+        <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">-</span><span class="mi">3</span><span class="p">,</span> <span class="o">-</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">contiguous</span><span class="p">()</span><span class="o">.</span><span class="n">view</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">n_heads</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="o">.</span><span class="n">d_head</span><span class="p">))</span>
+</pre></div>
+</div><h2 id="ffn">FFN</h2>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="k">class</span> <span class="nc">LlamaFFN</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Llama feed-forward network."""</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">ModelConfig</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="c1"># Input normalization</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">normalize</span> <span class="o">=</span> <span class="n">RMSNorm</span><span class="p">(</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">d_model</span><span class="p">,</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">rms_norm_eps</span><span class="p">,</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+
+        <span class="c1"># Input projection</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">w_input</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span>
+            <span class="n">in_features</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">d_model</span><span class="p">,</span>
+            <span class="n">out_features</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">d_ffn</span><span class="p">,</span>
+            <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Gate projection</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">w_gate</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span>
+            <span class="n">in_features</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">d_model</span><span class="p">,</span>
+            <span class="n">out_features</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">d_ffn</span><span class="p">,</span>
+            <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Output projection</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">w_output</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span>
+            <span class="n">in_features</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">d_ffn</span><span class="p">,</span>
+            <span class="n">out_features</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">d_model</span><span class="p">,</span>
+            <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="nd">@override</span>
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
+        <span class="c1"># Save residuals</span>
+        <span class="n">residual</span> <span class="o">=</span> <span class="n">x</span>
+
+        <span class="c1"># Normalize inputs</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="c1"># Apply SwiGLU transform</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">silu</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">w_gate</span><span class="p">(</span><span class="n">x</span><span class="p">))</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">w_input</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="c1"># Project outputs back to model space</span>
+        <span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">w_output</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+
+        <span class="c1"># Merge outputs with residuals</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">residual</span> <span class="o">+</span> <span class="n">f</span>
+
+        <span class="k">return</span> <span class="n">x</span>
+</pre></div>
+</div><h2 id="layer">Layer</h2>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="k">class</span> <span class="nc">LlamaLayer</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Llama transformer layer."""</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">ModelConfig</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">attention</span> <span class="o">=</span> <span class="n">LlamaAttention</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">ffn</span> <span class="o">=</span> <span class="n">LlamaFFN</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
+
+    <span class="nd">@override</span>
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">r_cos</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">,</span> <span class="n">r_sin</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
+        <span class="c1"># Attention</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">attention</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">r_cos</span><span class="p">,</span> <span class="n">r_sin</span><span class="p">)</span>
+
+        <span class="c1"># FFN</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ffn</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">x</span>
+</pre></div>
+</div><h1 id="model">Model</h1>
+<p>Next, we'll implement a <code>LlamaModel</code> component that bundles the embeddings and context layers together. This <code>model = embeddings + context layers</code> design is a common pattern in Hugging Face and other Transformer implementations.</p>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="k">class</span> <span class="nc">LlamaModel</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Combines embeddings and layers in reusable module."""</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">ModelConfig</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">config</span> <span class="o">=</span> <span class="n">config</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">embeddings</span> <span class="o">=</span> <span class="n">LlamaEmbeddings</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">layers</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">ModuleList</span><span class="p">(</span>
+            <span class="n">LlamaLayer</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span> <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">n_layers</span><span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="nd">@override</span>
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">token_ids</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
+        <span class="c1"># Match input device</span>
+        <span class="n">device</span> <span class="o">=</span> <span class="n">token_ids</span><span class="o">.</span><span class="n">device</span>
+
+        <span class="c1"># Compute cos and sin rotation matrices once for entire sequence</span>
+        <span class="n">r_cos</span><span class="p">,</span> <span class="n">r_sin</span> <span class="o">=</span> <span class="n">rope_frequencies</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">config</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">token_ids</span><span class="p">))</span>
+
+        <span class="c1"># Map tokens to embeddings</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">embeddings</span><span class="p">(</span><span class="n">token_ids</span><span class="p">)</span>
+
+        <span class="c1"># Transform token embeddings to semantic embeddings</span>
+        <span class="k">for</span> <span class="n">layer</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">layers</span><span class="p">:</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">layer</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">r_cos</span><span class="p">,</span> <span class="n">r_sin</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">x</span>
+</pre></div>
+</div><h1 id="head">Head</h1>
+<p>Next, we'll implement <code>LlamaHead</code> and <code>LlamaCausalLMHead</code> modules. <code>LlamaHead</code> is intended to serve as an abstract base class for task-specific head layers. <code>LlamaCausalLMHead</code> extends <code>LlamaHead</code> to implement &quot;causal language modeling&quot; (aka. next token prediction) based on <code>temperature</code>, <code>top_k</code>, and <code>top_p</code> token sampling.</p>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="k">class</span> <span class="nc">LlamaHead</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Llama prediction head."""</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">config</span><span class="p">:</span> <span class="n">ModelConfig</span><span class="p">,</span> <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="c1"># Input normalization</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">normalize</span> <span class="o">=</span> <span class="n">RMSNorm</span><span class="p">(</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">d_model</span><span class="p">,</span>
+            <span class="n">config</span><span class="o">.</span><span class="n">rms_norm_eps</span><span class="p">,</span>
+        <span class="p">)</span><span class="o">.</span><span class="n">to</span><span class="p">(</span><span class="n">device</span><span class="p">)</span>
+
+        <span class="c1"># Output projection</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">w_output</span> <span class="o">=</span> <span class="n">nn</span><span class="o">.</span><span class="n">Linear</span><span class="p">(</span>
+            <span class="n">in_features</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">d_model</span><span class="p">,</span>
+            <span class="n">out_features</span><span class="o">=</span><span class="n">config</span><span class="o">.</span><span class="n">vocab_size</span><span class="p">,</span>
+            <span class="n">bias</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+            <span class="n">device</span><span class="o">=</span><span class="n">device</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="nd">@override</span>
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tensor</span><span class="p">:</span>
+        <span class="c1"># Normalize inputs</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">normalize</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="c1"># Use last embedding to represent the entire sequence</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1"># Project outputs to token space</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">w_output</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">x</span>
+
+
+<span class="k">class</span> <span class="nc">LlamaCausalLMHead</span><span class="p">(</span><span class="n">LlamaHead</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Llama causal language model head."""</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">config</span><span class="p">:</span> <span class="n">ModelConfig</span><span class="p">,</span>
+        <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">,</span>
+        <span class="n">temperature</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">top_k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">top_p</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">temperature</span> <span class="o">=</span> <span class="n">default_arg</span><span class="p">(</span><span class="n">temperature</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">top_k</span> <span class="o">=</span> <span class="n">default_arg</span><span class="p">(</span><span class="n">top_k</span><span class="p">,</span> <span class="mi">50</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">top_p</span> <span class="o">=</span> <span class="n">default_arg</span><span class="p">(</span><span class="n">top_p</span><span class="p">,</span> <span class="mf">0.9</span><span class="p">)</span>
+
+    <span class="nd">@override</span>
+    <span class="k">def</span> <span class="nf">forward</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">x</span><span class="p">:</span> <span class="n">Tensor</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+        <span class="c1"># Project semantic embeddings to token space</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="n">forward</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+        <span class="c1"># Temperature</span>
+        <span class="c1"># -----------</span>
+
+        <span class="c1"># If temperature is 0, return the top token</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">temperature</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+
+        <span class="c1"># Apply temperature</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">temperature</span>
+
+        <span class="c1"># Ranking</span>
+        <span class="c1"># -------</span>
+
+        <span class="c1"># Convert logits to probabilities</span>
+        <span class="n">probs</span> <span class="o">=</span> <span class="n">F</span><span class="o">.</span><span class="n">softmax</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># Sort probabilities in descending order</span>
+        <span class="n">probs</span><span class="p">,</span> <span class="n">indices</span> <span class="o">=</span> <span class="n">probs</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">descending</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+        <span class="c1"># Top K</span>
+        <span class="c1"># -----</span>
+
+        <span class="c1"># Retain top k tokens</span>
+        <span class="n">probs</span> <span class="o">=</span> <span class="n">probs</span><span class="p">[:</span> <span class="bp">self</span><span class="o">.</span><span class="n">top_k</span><span class="p">]</span>
+
+        <span class="c1"># Top P</span>
+        <span class="c1"># -----</span>
+
+        <span class="c1"># Find cutoff where cumulative probability exceeds top_p</span>
+        <span class="n">cumulative_mask</span> <span class="o">=</span> <span class="n">probs</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">dim</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">top_p</span>
+        <span class="n">threshold_index</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">cumulative_mask</span><span class="p">)</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+
+        <span class="c1"># Only apply threshold if top_p was exceeded</span>
+        <span class="k">if</span> <span class="n">cumulative_mask</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+            <span class="n">probs</span> <span class="o">=</span> <span class="n">probs</span><span class="p">[:</span> <span class="n">threshold_index</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span>
+
+        <span class="c1"># Random Selection</span>
+        <span class="c1"># ----------------</span>
+
+        <span class="c1"># Sample from remaining tokens weighted by probability</span>
+        <span class="n">sampled_index</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">multinomial</span><span class="p">(</span><span class="n">probs</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+        <span class="c1"># Convert sampled_index to original logits</span>
+        <span class="n">token_id</span> <span class="o">=</span> <span class="n">indices</span><span class="p">[</span><span class="n">sampled_index</span><span class="p">]</span>
+
+        <span class="k">return</span> <span class="n">token_id</span><span class="o">.</span><span class="n">item</span><span class="p">()</span>
+</pre></div>
+</div><h1 id="generator">Generator</h1>
+<p>Next, we'll implement the <code>LlamaGenerator</code> module that combines <code>LlamaModel</code> with <code>LlamaCausalLMHead</code>. Given a sequence of token ids, <code>LlamaGenerator</code> starts by predicting the next token in the sequence before feeding the predicted token back into the model in an autoregressive decoding loop. <code>LlamaGenerator</code> continues generating new tokens until it predicts a stop token or exceeds the <code>max_tokens</code> parameter.</p>
+<aside class="admonition note"><p class="admonition-title">Note</p><p>This is not a production-grade implementation. I've intentionally left out standard optimizations such as query and key caching for the sake of keeping the logic cleaner and easier to understand.</p>
+</aside><div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="k">class</span> <span class="nc">LlamaGenerator</span><span class="p">(</span><span class="n">nn</span><span class="o">.</span><span class="n">Module</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">"""Llama text generator."""</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">config</span><span class="p">:</span> <span class="n">ModelConfig</span><span class="p">,</span>
+        <span class="n">device</span><span class="p">:</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">,</span>
+        <span class="n">stop_tokens</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">temperature</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">top_k</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">top_p</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+        <span class="n">max_tokens</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="nb">super</span><span class="p">()</span><span class="o">.</span><span class="fm">__init__</span><span class="p">()</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">device</span> <span class="o">=</span> <span class="n">device</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">stop_tokens</span> <span class="o">=</span> <span class="n">default_arg</span><span class="p">(</span><span class="n">stop_tokens</span><span class="p">,</span> <span class="p">())</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_tokens</span> <span class="o">=</span> <span class="n">default_arg</span><span class="p">(</span><span class="n">max_tokens</span><span class="p">,</span> <span class="mi">32</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span> <span class="o">=</span> <span class="n">LlamaModel</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">device</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">head</span> <span class="o">=</span> <span class="n">LlamaCausalLMHead</span><span class="p">(</span>
+            <span class="n">config</span><span class="p">,</span>
+            <span class="n">device</span><span class="p">,</span>
+            <span class="n">temperature</span><span class="o">=</span><span class="n">temperature</span><span class="p">,</span>
+            <span class="n">top_k</span><span class="o">=</span><span class="n">top_k</span><span class="p">,</span>
+            <span class="n">top_p</span><span class="o">=</span><span class="n">top_p</span><span class="p">,</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">token_ids</span><span class="p">:</span> <span class="n">Sequence</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+<span class="w">        </span><span class="sd">"""Generate token ids until stop token or we exceed max tokens."""</span>
+        
+        <span class="c1"># Prepare models</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">head</span><span class="o">.</span><span class="n">eval</span><span class="p">()</span>
+
+        <span class="c1"># Make mutable copy of token ids</span>
+        <span class="n">token_ids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">token_ids</span><span class="p">)</span>
+
+        <span class="c1"># Override fields with kwargs</span>
+        <span class="n">max_tokens</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"max_tokens"</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">max_tokens</span><span class="p">)</span>
+        <span class="n">stop_tokens</span> <span class="o">=</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">"stop_tokens"</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">stop_tokens</span><span class="p">)</span>
+
+        <span class="k">with</span> <span class="n">torch</span><span class="o">.</span><span class="n">no_grad</span><span class="p">():</span>
+
+            <span class="c1"># Generate output until we get a stop token or we exceed max_tokens.</span>
+            <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">max_tokens</span><span class="p">):</span>
+
+                <span class="c1"># Load token ids into a tensor</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">tensor</span><span class="p">(</span><span class="n">token_ids</span><span class="p">,</span> <span class="n">device</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">device</span><span class="p">)</span>
+
+                <span class="c1"># Transform token_ids into semantic embeddings</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">model</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+                <span class="c1"># Predict next token</span>
+                <span class="n">token_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">head</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+                <span class="c1"># Check stopping criteria</span>
+                <span class="k">if</span> <span class="n">token_id</span> <span class="ow">in</span> <span class="n">stop_tokens</span><span class="p">:</span>
+                    <span class="k">break</span>
+
+                <span class="c1"># Yield token</span>
+                <span class="k">yield</span> <span class="n">token_id</span>
+
+                <span class="c1"># Append to end of sequence</span>
+                <span class="n">token_ids</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">token_id</span><span class="p">)</span>
+</pre></div>
+</div><h1 id="tokenizer">Tokenizer</h1>
+<p>Llama's tokenizer is based on the <a href="https://github.com/openai/tiktoken">tiktoken</a> library from OpenAI. Here, we'll define a <code>load_tokenizer</code> function loads a preconfigured <code>tiktoken</code> model from the Llama checkpoint into a <code>Tokenizer</code> object provided by <code>llama-models</code>.</p>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="kn">from</span> <span class="nn">llama_models.llama3.api</span> <span class="kn">import</span> <span class="n">Tokenizer</span>
+
+<span class="k">def</span> <span class="nf">load_tokenizer</span><span class="p">(</span><span class="n">config</span><span class="p">:</span> <span class="n">ModelConfig</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Tokenizer</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Load tokenizer from checkpoint."""</span>
+    
+    <span class="c1"># Load tiktoken model</span>
+    <span class="k">return</span> <span class="n">Tokenizer</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">checkpoint_path</span> <span class="o">/</span> <span class="s2">"tokenizer.model"</span><span class="p">))</span>
+</pre></div>
+</div><h1 id="configure-gpu">Configure GPU</h1>
+<p>Before we go further, we need to quickly touch on GPU configuration. (While you could theoretically experiment with Llama inference using CPUs only, I have not tried it.)</p>
+<p>Personally, I have had great success experimenting with Llama models on a 64GB M1 MacBook. Apple's unified memory architecture shares the 64GB between CPU and GPU, providing much more GPU accessible memory than you can usually find without a dedicated GPU cluster.</p>
+<p>If you're experienced at reading PyTorch code, you may have noticed our Llama modules take the PyTorch device as a contructor argument. This is not a standard practice as far as I know. Usually, you would initialize the PyTorch module in CPU memory before transfering the entire thing to the GPU by calling <code>model.to(device)</code>.</p>
+<p>While common, this approach is orders of magnitude slower. The reason is the billion plus model parameters are initialized by the CPU. On my M1 MacBook, I found this can take 20 to 30 seconds just to create the model. By passing the GPU device to the model initializer, the time to create the model drops to 500ms.</p>
+<p>Rather than hardcode the GPU device, we define a <code>torch_device</code> function that leverages the GPU if you have one and gracefully falls back to the CPU if you don't. As implemented, <code>torch_device</code> supports both NVIDIA and Apple GPUs but could easily be extended to support others.</p>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="k">def</span> <span class="nf">torch_device</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Configure gpus."""</span>
+
+    <span class="c1"># NVIDIA</span>
+    <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">cuda</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">"cuda"</span><span class="p">)</span>
+
+    <span class="c1"># Apple</span>
+    <span class="k">if</span> <span class="n">torch</span><span class="o">.</span><span class="n">backends</span><span class="o">.</span><span class="n">mps</span><span class="o">.</span><span class="n">is_available</span><span class="p">():</span>
+        <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">"mps"</span><span class="p">)</span>
+
+    <span class="c1"># Fall back to CPU</span>
+    <span class="k">return</span> <span class="n">torch</span><span class="o">.</span><span class="n">device</span><span class="p">(</span><span class="s2">"cpu"</span><span class="p">)</span>
+</pre></div>
+</div><p>We've now implemented everything we need to create a Llama model. Let's take it for a spin using the <code>Llama3.2-3B</code> checkpoint. We'll load the model's hyperparameters into a <code>ModelConfig</code> object and then use this to initialize a <code>LlamaGenerator</code>.</p>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Load model config for Llama 3.2 3B checkpoint</span>
+<span class="n">config</span> <span class="o">=</span> <span class="n">load_config</span><span class="p">(</span><span class="s2">"Llama3.2-3B"</span><span class="p">)</span>
+
+<span class="c1"># Configure GPU</span>
+<span class="n">device</span> <span class="o">=</span> <span class="n">torch_device</span><span class="p">()</span>
+
+<span class="c1"># Create tokenizer</span>
+<span class="n">tokenizer</span> <span class="o">=</span> <span class="n">load_tokenizer</span><span class="p">(</span><span class="n">config</span><span class="p">)</span>
+
+<span class="c1"># Create generator</span>
+<span class="n">generator</span> <span class="o">=</span> <span class="n">LlamaGenerator</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">device</span><span class="p">,</span> <span class="n">stop_tokens</span><span class="o">=</span><span class="n">tokenizer</span><span class="o">.</span><span class="n">stop_tokens</span><span class="p">)</span>
+</pre></div>
+</div><h1 id="model-parameters">Model Parameters</h1>
+<p>At this point, it's important to note that the 3 billion model parameters in <code>generator</code> are randomly initialized. This means our model is completely untrained. Our next step is to load the pre-trained model weights from the checkpoint into our model. We'll define a <code>load_parameters</code> function that returns a PyTorch <code>state_dict</code> that maps module names to weight tensors.</p>
+<aside class="admonition note"><p class="admonition-title">Note</p><p>The module names in the checkpoint's <code>consolidated.00.pth</code> file are based on Meta's <code>llama-models</code> <a href="https://github.com/meta-llama/llama-models/blob/main/models/llama3/reference_impl/model.py#L276">reference implementation</a>. <code>load_parameters</code> remaps Meta's module names to match ours.</p>
+</aside><div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Maps parameter names to weights</span>
+<span class="n">ModelParameters</span> <span class="o">=</span> <span class="n">Mapping</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">Tensor</span><span class="p">]</span>
+
+
+<span class="k">def</span> <span class="nf">load_parameters</span><span class="p">(</span><span class="n">config</span><span class="p">:</span> <span class="n">ModelConfig</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ModelParameters</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">"""Load model state from checkpoint."""</span>
+    
+    <span class="c1"># Load state from checkpoint</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="n">torch</span><span class="o">.</span><span class="n">load</span><span class="p">(</span>
+        <span class="n">config</span><span class="o">.</span><span class="n">checkpoint_path</span> <span class="o">/</span> <span class="s2">"consolidated.00.pth"</span><span class="p">,</span>
+        <span class="n">weights_only</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+        <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Remap Meta's parameter names</span>
+    <span class="n">output_params</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c1"># Embeddings</span>
+    <span class="n">output_params</span> <span class="o">|=</span> <span class="p">{</span>
+        <span class="s2">"model.embeddings.weight"</span><span class="p">:</span> <span class="n">params</span><span class="p">[</span><span class="s2">"tok_embeddings.weight"</span><span class="p">],</span>
+    <span class="p">}</span>
+
+    <span class="c1"># Layers</span>
+    <span class="k">for</span> <span class="n">layer_id</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">n_layers</span><span class="p">):</span>
+        <span class="n">output_params</span> <span class="o">|=</span> <span class="p">{</span>
+            <span class="sa">f</span><span class="s2">"model.layers.</span><span class="si">{</span><span class="n">layer_id</span><span class="si">}</span><span class="s2">.attention.normalize.weight"</span><span class="p">:</span> <span class="n">params</span><span class="p">[</span>
+                <span class="sa">f</span><span class="s2">"layers.</span><span class="si">{</span><span class="n">layer_id</span><span class="si">}</span><span class="s2">.attention_norm.weight"</span>
+            <span class="p">],</span>
+            <span class="sa">f</span><span class="s2">"model.layers.</span><span class="si">{</span><span class="n">layer_id</span><span class="si">}</span><span class="s2">.attention.w_queries.weight"</span><span class="p">:</span> <span class="n">params</span><span class="p">[</span>
+                <span class="sa">f</span><span class="s2">"layers.</span><span class="si">{</span><span class="n">layer_id</span><span class="si">}</span><span class="s2">.attention.wq.weight"</span>
+            <span class="p">],</span>
+            <span class="sa">f</span><span class="s2">"model.layers.</span><span class="si">{</span><span class="n">layer_id</span><span class="si">}</span><span class="s2">.attention.w_keys.weight"</span><span class="p">:</span> <span class="n">params</span><span class="p">[</span>
+                <span class="sa">f</span><span class="s2">"layers.</span><span class="si">{</span><span class="n">layer_id</span><span class="si">}</span><span class="s2">.attention.wk.weight"</span>
+            <span class="p">],</span>
+            <span class="sa">f</span><span class="s2">"model.layers.</span><span class="si">{</span><span class="n">layer_id</span><span class="si">}</span><span class="s2">.attention.w_values.weight"</span><span class="p">:</span> <span class="n">params</span><span class="p">[</span>
+                <span class="sa">f</span><span class="s2">"layers.</span><span class="si">{</span><span class="n">layer_id</span><span class="si">}</span><span class="s2">.attention.wv.weight"</span>
+            <span class="p">],</span>
+            <span class="sa">f</span><span class="s2">"model.layers.</span><span class="si">{</span><span class="n">layer_id</span><span class="si">}</span><span class="s2">.attention.w_output.weight"</span><span class="p">:</span> <span class="n">params</span><span class="p">[</span>
+                <span class="sa">f</span><span class="s2">"layers.</span><span class="si">{</span><span class="n">layer_id</span><span class="si">}</span><span class="s2">.attention.wo.weight"</span>
+            <span class="p">],</span>
+            <span class="sa">f</span><span class="s2">"model.layers.</span><span class="si">{</span><span class="n">layer_id</span><span class="si">}</span><span class="s2">.ffn.normalize.weight"</span><span class="p">:</span> <span class="n">params</span><span class="p">[</span>
+                <span class="sa">f</span><span class="s2">"layers.</span><span class="si">{</span><span class="n">layer_id</span><span class="si">}</span><span class="s2">.ffn_norm.weight"</span>
+            <span class="p">],</span>
+            <span class="sa">f</span><span class="s2">"model.layers.</span><span class="si">{</span><span class="n">layer_id</span><span class="si">}</span><span class="s2">.ffn.w_input.weight"</span><span class="p">:</span> <span class="n">params</span><span class="p">[</span>
+                <span class="sa">f</span><span class="s2">"layers.</span><span class="si">{</span><span class="n">layer_id</span><span class="si">}</span><span class="s2">.feed_forward.w3.weight"</span>
+            <span class="p">],</span>
+            <span class="sa">f</span><span class="s2">"model.layers.</span><span class="si">{</span><span class="n">layer_id</span><span class="si">}</span><span class="s2">.ffn.w_gate.weight"</span><span class="p">:</span> <span class="n">params</span><span class="p">[</span>
+                <span class="sa">f</span><span class="s2">"layers.</span><span class="si">{</span><span class="n">layer_id</span><span class="si">}</span><span class="s2">.feed_forward.w1.weight"</span>
+            <span class="p">],</span>
+            <span class="sa">f</span><span class="s2">"model.layers.</span><span class="si">{</span><span class="n">layer_id</span><span class="si">}</span><span class="s2">.ffn.w_output.weight"</span><span class="p">:</span> <span class="n">params</span><span class="p">[</span>
+                <span class="sa">f</span><span class="s2">"layers.</span><span class="si">{</span><span class="n">layer_id</span><span class="si">}</span><span class="s2">.feed_forward.w2.weight"</span>
+            <span class="p">],</span>
+        <span class="p">}</span>
+
+    <span class="c1"># Head</span>
+    <span class="n">output_params</span> <span class="o">|=</span> <span class="p">{</span>
+        <span class="s2">"head.normalize.weight"</span><span class="p">:</span> <span class="n">params</span><span class="p">[</span><span class="s2">"norm.weight"</span><span class="p">],</span>
+        <span class="s2">"head.w_output.weight"</span><span class="p">:</span> <span class="n">params</span><span class="p">[</span><span class="s2">"output.weight"</span><span class="p">],</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="n">output_params</span>
+</pre></div>
+</div><p>Next, we'll use <code>load_parameters</code> to load the pre-trained weights into <code>generator</code>. We specify <code>map_location=device</code> to load the parameters directly to the GPU, shaving off another couple hundred milliseconds.</p>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="c1"># Load model parameters from checkpoint</span>
+<span class="n">generator</span><span class="o">.</span><span class="n">load_state_dict</span><span class="p">(</span><span class="n">load_parameters</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">map_location</span><span class="o">=</span><span class="n">device</span><span class="p">))</span>
+</pre></div>
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>&lt;All keys matched successfully&gt;
+</pre></div>
+</div><h1 id="pipeline">Pipeline</h1>
+<p>To pull all the pieces together, we'll define a <code>generate_text</code> function that implements the entire end-to-end text generation pipeline.</p>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="k">def</span> <span class="nf">generate_text</span><span class="p">(</span>
+    <span class="n">tokenizer</span><span class="p">:</span> <span class="n">Tokenizer</span><span class="p">,</span>
+    <span class="n">generator</span><span class="p">:</span> <span class="n">LlamaGenerator</span><span class="p">,</span>
+    <span class="n">prompt</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Iterator</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">"""Generate text one token at a time."""</span>
+
+    <span class="c1"># Split prompt into tokens</span>
+    <span class="n">token_ids</span> <span class="o">=</span> <span class="n">tokenizer</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="n">prompt</span><span class="p">,</span> <span class="n">bos</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">eos</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># Generate new token ids</span>
+    <span class="k">for</span> <span class="n">token_id</span> <span class="ow">in</span> <span class="n">generator</span><span class="p">(</span><span class="n">token_ids</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        
+        <span class="c1"># Decode token id</span>
+        <span class="n">token</span> <span class="o">=</span> <span class="n">tokenizer</span><span class="o">.</span><span class="n">decode</span><span class="p">([</span><span class="n">token_id</span><span class="p">])</span>
+
+        <span class="k">yield</span> <span class="n">token</span>
+</pre></div>
+</div><h1 id="humpy-dumpty">Humpy Dumpty</h1>
+<p>We'll put your Llama development kit to work on real experiments in a series of upcoming posts. For now, drum roll please..., it's demo time.</p>
+<div class="cell cell-input"><div class="highlight language-python"><pre><span></span><span class="n">prompt</span> <span class="o">=</span> <span class="s2">"humpty dumpty sat on"</span>
+
+<span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">prompt</span><span class="p">)</span>
+
+<span class="k">for</span> <span class="n">token</span> <span class="ow">in</span> <span class="n">generate_text</span><span class="p">(</span><span class="n">tokenizer</span><span class="p">,</span> <span class="n">generator</span><span class="p">,</span> <span class="n">prompt</span><span class="p">,</span> <span class="n">max_tokens</span><span class="o">=</span><span class="mi">20</span><span class="p">):</span>
+    <span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">token</span><span class="p">)</span>
+
+<span class="n">stdout</span><span class="o">.</span><span class="n">flush</span><span class="p">()</span>
+</pre></div>
+</div><div class="cell cell-output"><div class="highlight language-plain"><pre><span></span>humpty dumpty sat on a wall, humpty dumpty had a great fall
+humpty dumpty sat on a wall
+</pre></div>
+</div><h1 id="recap">Recap</h1>
+<p>Congrats! You made it to the end of another Transformer Teardown. We took what we learned in the <a href="/articles/llama1/">Llama 3.1 Transformer Teardown</a> and created a toolkit of lightweight, reusable Llama components you can easily mix, match, and extend in your own research experiments.</p>
+<p><em>Look for upcoming posts where we can put your Llama development kit to work!</em></p>
+
+    </article>
+    <!-- /article -->
+
+    </main>
+
+    <footer>
+        <div class="content">
+            <h1>Pattern Recognition</h1>
+            <div class="columns">
+                <div class="column column1">
+                    <h2>Andrew Young</h2>
+                </div>
+                <div class="column column2">
+                    <ul>
+                        <li>
+                            <a href="https://github.com/stickshift">
+                                <img alt="github" class="icon icon-github" src="/images/github.svg">
+                                <span class="username">stickshift</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="https://www.linkedin.com/in/andrewsomesyoung">
+                                <img alt="linkedin" class="icon icon-linkedin" src="/images/linkedin.svg">
+                                <span class="username">andrewsomesyoung</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <div class="column column3">
+                    <p>Software architect, AI researcher, entrepreneur, and startup veteran with a passion for creativity and good coffee.</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+</body>
+</html>
