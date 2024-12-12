@@ -177,7 +177,7 @@ class LlamaEmbeddings(nn.Embedding):
 
 # Context Layers
 
-Next, we'll implement `LlamaAttention`, `LlamaFFN`, and `LlamaLayer` modules that implement the attention and feedforward network blocks in a single decoder layer. This where all the Transformer magic happens, and there is a lot going on here. For the purposes of this post, the important takeaway is simply that the logic is arranged into reusable building blocks.
+Next, we'll implement `LlamaAttention`, `LlamaFFN`, and `LlamaLayer` modules that implement the attention and feedforward network blocks in a single decoder layer. There is a lot going on here. For the purposes of this post, the important takeaway is simply that the logic is arranged into reusable building blocks.
 
 :::{card}
 *For more details on the implementation, please refer to [Transformer Teardown: Llama 3.1](/articles/llama1/) where we walk through each step one by one.*
@@ -671,13 +671,15 @@ def load_tokenizer(config: ModelConfig) -> Tokenizer:
 
 # Configure GPU
 
-Before we go further, we need to quickly touch on GPU configuration. (While you could theoretically experiment with Llama inference using CPUs only, I have not tried it.) I have had great success experimenting with Llama models on a 64GB M1 MacBook. Apple's unified memory architecture shares the 64GB between CPU and GPU, providing much more GPU accessible memory than you can usually find without a dedicated GPU cluster.
+Before we go further, we need to quickly touch on GPU configuration. (While you could theoretically experiment with Llama inference using CPUs only, I have not tried it.)
+
+Personally, I have had great success experimenting with Llama models on a 64GB M1 MacBook. Apple's unified memory architecture shares the 64GB between CPU and GPU, providing much more GPU accessible memory than you can usually find without a dedicated GPU cluster.
 
 If you're experienced at reading PyTorch code, you may have noticed our Llama modules take the PyTorch device as a contructor argument. This is not a standard practice as far as I know. Usually, you would initialize the PyTorch module in CPU memory before transfering the entire thing to the GPU by calling `model.to(device)`.
 
 While common, this approach is orders of magnitude slower. The reason is the billion plus model parameters are initialized by the CPU. On my M1 MacBook, I found this can take 20 to 30 seconds just to create the model. By passing the GPU device to the model initializer, the time to create the model drops to 500ms.
 
-Rather than hardcode the GPU device, we'll define a `torch_device` function that leverages the GPU if you have one and gracefully falls back to the CPU if you don't. As implemented, `torch_device` supports both NVIDIA and Apple GPUs but could easily be extended to support others.
+Rather than hardcode the GPU device, we define a `torch_device` function that leverages the GPU if you have one and gracefully falls back to the CPU if you don't. As implemented, `torch_device` supports both NVIDIA and Apple GPUs but could easily be extended to support others.
 
 ```{code-cell} python
 def torch_device() -> torch.device:
@@ -716,7 +718,7 @@ generator = LlamaGenerator(config, device, stop_tokens=tokenizer.stop_tokens)
 At this point, it's important to note that the 3 billion model parameters in `generator` are randomly initialized. This means our model is completely untrained. Our next step is to load the pre-trained model weights from the checkpoint into our model. We'll define a `load_parameters` function that returns a PyTorch `state_dict` that maps module names to weight tensors.
 
 :::{note}
-The module names in the checkpoint's `consolidated.00.pth` file are based on Meta's `llama-models` reference implementation. `load_parameters` remaps Meta's module names to match ours.
+The module names in the checkpoint's `consolidated.00.pth` file are based on Meta's `llama-models` [reference implementation](https://github.com/meta-llama/llama-models/blob/main/models/llama3/reference_impl/model.py#L276). `load_parameters` remaps Meta's module names to match ours.
 :::
 
 ```{code-cell} python
@@ -834,6 +836,4 @@ stdout.flush()
 
 Congrats! You made it to the end of another Transformer Teardown. We took what we learned in the [Llama 3.1 Transformer Teardown](/articles/llama1/) and created a toolkit of lightweight, reusable Llama components you can easily mix, match, and extend in your own research experiments.
 
-Look for upcoming posts where we can put your Llama development kit to work!
-
-
+*Look for upcoming posts where we can put your Llama development kit to work!*

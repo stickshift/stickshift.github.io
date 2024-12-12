@@ -8,6 +8,7 @@ pre, code {
     font-family: var.$code-font-family;
     font-weight: var.$base-font-weight;
     font-size: var.$sm-font-size;
+    line-height: calc(1.3*#{var.$sm-font-size});
 }
 
 p > code {
