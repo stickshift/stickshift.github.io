@@ -104,10 +104,13 @@ SITE_CSS_BUNDLE := $(SITE_CSS_BUNDLE) $(SITE_BUILD_DIR)/styles/fonts.css
 
 SITE_BUNDLE := $(SITE_BUILD_DIR)/index.html
 
-SITE := $(ARTICLES) $(SITE_IMAGE_BUNDLE) $(SITE_CSS_BUNDLE) $(SITE_BUNDLE)
+DISTILBERT1_REDIRECT := $(SITE_BUILD_DIR)/2024/09/04/transformer-teardown.html
+LLAMA1_REDIRECT := $(SITE_BUILD_DIR)/2024/09/21/llama.html
+REDIRECTS := $(DISTILBERT1_REDIRECT) $(LLAMA1_REDIRECT)
+
+SITE := $(ARTICLES) $(SITE_IMAGE_BUNDLE) $(SITE_CSS_BUNDLE) $(SITE_BUNDLE) $(REDIRECTS)
 
 SITE_PUBLISHED_BUNDLE := $(SITE_PUBLISH_DIR)/index.html
-
 
 #-------------------------------------------------------------------------------
 # Tests
@@ -245,6 +248,21 @@ $(SITE_BUILD_DIR)/styles/fonts.css: $(THEME_SRC_DIR)/assets/styles/fonts.css
 
 	mkdir -p $(dir $@)
 	cp $< $@
+
+# Redirects
+$(DISTILBERT1_REDIRECT): | $(VENV)
+	@echo
+	@echo -e "$(COLOR_H1)# Redirect distilbert1$(COLOR_RESET)"
+	@echo
+
+	source $(VENV) && python -m stickshift.build_redirect --theme $(THEME_SRC_DIR) /articles/distilbert1/ $@
+
+$(LLAMA1_REDIRECT): | $(VENV)
+	@echo
+	@echo -e "$(COLOR_H1)# Redirect llama1$(COLOR_RESET)"
+	@echo
+
+	source $(VENV) && python -m stickshift.build_redirect --theme $(THEME_SRC_DIR) /articles/llama1/ $@
 
 # Site Index
 $(SITE_BUILD_DIR)/index.html: $(ARTICLES) | $(VENV)
