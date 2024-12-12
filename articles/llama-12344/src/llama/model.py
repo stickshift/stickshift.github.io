@@ -1,13 +1,13 @@
 from functools import partial
 import json
 from pathlib import Path
-from typing import Any, Iterator, Mapping, NamedTuple, Protocol, Sequence, override
+from typing import Iterator, Mapping, NamedTuple, Protocol, Sequence, override
 
 from llama_models.llama3.api import Tokenizer as LlamaTokenizer
 from llama_models.llama3.reference_impl.model import RMSNorm
 import numpy as np
 import torch
-from torch import nn, Tensor
+from torch import Tensor, nn
 from torch.nn import functional as F
 
 from .tools import default_arg
@@ -22,10 +22,10 @@ __all__ = [
     "LlamaModel",
     "ModelConfig",
     "Tokenizer",
-    "load_checkpoint",
+    "generate_text",
+    "load_parameters",
     "load_config",
     "load_tokenizer",
-    "generate_text",
 ]
 
 
@@ -95,44 +95,51 @@ def load_config(checkpoint_name: str, **kwargs) -> ModelConfig:
 
 
 # ------------------------------------------------------------------------------
-# Checkpoint
+# Parameters
 # ------------------------------------------------------------------------------
 
-Checkpoint = Mapping[str, Any]
-"""Maps component names to weights."""
+ModelParameters = Mapping[str, Tensor]
+"""Maps parameter names to weights."""
 
 
-def load_checkpoint(config: ModelConfig, **kwargs) -> Checkpoint:
-    """Load model checkpoint from disk."""
-    checkpoint = torch.load(
+def load_parameters(config: ModelConfig, **kwargs) -> ModelParameters:
+    """Load model state from checkpoint."""
+    # Load state from checkpoint
+    checkpoint_params = torch.load(
         config.checkpoint_path / "consolidated.00.pth",
         weights_only=True,
         **kwargs,
     )
 
-    # Map keys from llama architecture
-    results = {
-        "model.embeddings.weight": checkpoint["tok_embeddings.weight"],
-        "head.normalize.weight": checkpoint["norm.weight"],
-        "head.w_output.weight": checkpoint["output.weight"],
+    # Map keys from Meta's layout
+    params = {}
+
+    # Embeddings
+    params |= {
+        "model.embeddings.weight": checkpoint_params["tok_embeddings.weight"],
     }
 
+    # Layers
     for layer_id in range(config.n_layers):
-        results |= {
-            f"model.layers.{layer_id}.attention.normalize.weight": checkpoint[
-                f"layers.{layer_id}.attention_norm.weight"
-            ],
-            f"model.layers.{layer_id}.attention.w_queries.weight": checkpoint[f"layers.{layer_id}.attention.wq.weight"],
-            f"model.layers.{layer_id}.attention.w_keys.weight": checkpoint[f"layers.{layer_id}.attention.wk.weight"],
-            f"model.layers.{layer_id}.attention.w_values.weight": checkpoint[f"layers.{layer_id}.attention.wv.weight"],
-            f"model.layers.{layer_id}.attention.w_output.weight": checkpoint[f"layers.{layer_id}.attention.wo.weight"],
-            f"model.layers.{layer_id}.ffn.normalize.weight": checkpoint[f"layers.{layer_id}.ffn_norm.weight"],
-            f"model.layers.{layer_id}.ffn.w_input.weight": checkpoint[f"layers.{layer_id}.feed_forward.w3.weight"],
-            f"model.layers.{layer_id}.ffn.w_gate.weight": checkpoint[f"layers.{layer_id}.feed_forward.w1.weight"],
-            f"model.layers.{layer_id}.ffn.w_output.weight": checkpoint[f"layers.{layer_id}.feed_forward.w2.weight"],
+        params |= {
+            f"model.layers.{layer_id}.attention.normalize.weight": checkpoint_params[f"layers.{layer_id}.attention_norm.weight"],
+            f"model.layers.{layer_id}.attention.w_queries.weight": checkpoint_params[f"layers.{layer_id}.attention.wq.weight"],
+            f"model.layers.{layer_id}.attention.w_keys.weight": checkpoint_params[f"layers.{layer_id}.attention.wk.weight"],
+            f"model.layers.{layer_id}.attention.w_values.weight": checkpoint_params[f"layers.{layer_id}.attention.wv.weight"],
+            f"model.layers.{layer_id}.attention.w_output.weight": checkpoint_params[f"layers.{layer_id}.attention.wo.weight"],
+            f"model.layers.{layer_id}.ffn.normalize.weight": checkpoint_params[f"layers.{layer_id}.ffn_norm.weight"],
+            f"model.layers.{layer_id}.ffn.w_input.weight": checkpoint_params[f"layers.{layer_id}.feed_forward.w3.weight"],
+            f"model.layers.{layer_id}.ffn.w_gate.weight": checkpoint_params[f"layers.{layer_id}.feed_forward.w1.weight"],
+            f"model.layers.{layer_id}.ffn.w_output.weight": checkpoint_params[f"layers.{layer_id}.feed_forward.w2.weight"],
         }
 
-    return results
+    # Head
+    params |= {
+        "head.normalize.weight": checkpoint_params["norm.weight"],
+        "head.w_output.weight": checkpoint_params["output.weight"],
+    }
+
+    return params
 
 
 # ------------------------------------------------------------------------------
@@ -331,7 +338,7 @@ class LlamaAttention(nn.Module):
 class LlamaFFN(nn.Module):
     def __init__(self, config: ModelConfig, device: torch.device):
         super().__init__()
-        
+
         self.normalize = RMSNorm(
             config.d_model,
             config.rms_norm_eps,
@@ -360,7 +367,6 @@ class LlamaFFN(nn.Module):
 
     @override
     def forward(self, x: Tensor) -> Tensor:
-
         # Save residuals
         residual = x
 
@@ -391,10 +397,9 @@ class LlamaLayer(nn.Module):
         self.attention = LlamaAttention(config, device)
 
         self.ffn = LlamaFFN(config, device)
-    
+
     @override
     def forward(self, x: Tensor, r_cos: Tensor, r_sin: Tensor) -> Tensor:
-        
         # Attention
         x = self.attention(x, r_cos, r_sin)
 
@@ -477,7 +482,6 @@ class LlamaHead(nn.Module):
 
 
 class LlamaCausalLMHead(LlamaHead):
-    
     def __init__(
         self,
         config: ModelConfig,
@@ -556,7 +560,8 @@ class LlamaCausalLMHead(LlamaHead):
 
 
 class LlamaGenerator(nn.Module):
-    def __init__(self,
+    def __init__(
+        self,
         config: ModelConfig,
         device: torch.device,
         temperature: float | None = None,
@@ -565,7 +570,7 @@ class LlamaGenerator(nn.Module):
         max_tokens: int | None = None,
     ):
         super().__init__()
-        
+
         self.device = device
 
         self.stop_tokens = load_tokenizer(config).stop_tokens
@@ -575,13 +580,12 @@ class LlamaGenerator(nn.Module):
         self.model = LlamaModel(config, device)
 
         self.head = LlamaCausalLMHead(
-            config, 
-            device, 
+            config,
+            device,
             temperature=temperature,
             top_k=top_k,
             top_p=top_p,
         )
-
 
     def __call__(self, token_ids: Sequence[int]) -> Iterator[int]:
         # Prepare model

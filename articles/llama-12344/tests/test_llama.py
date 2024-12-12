@@ -1,9 +1,9 @@
-from llama.model import LlamaGenerator, load_checkpoint, load_config, load_tokenizer
+from llama.model import LlamaGenerator, load_parameters, load_config, load_tokenizer
 from llama.tools import torch_device
 import torch
 
 
-def test_checkpoint():
+def test_load_parameters():
     #
     # Givens
     #
@@ -18,32 +18,32 @@ def test_checkpoint():
     # Whens
     #
 
-    # I load checkpoint
-    checkpoint = load_checkpoint(config, map_location=device)
+    # I load parameters from checkpoint
+    params = load_parameters(config, map_location=device)
 
     #
     # Thens
     #
 
     # checkpoint should include Generator keys
-    assert "model.embeddings.weight" in checkpoint
+    assert "model.embeddings.weight" in params
 
     for layer_id in range(config.n_layers):
-        assert f"model.layers.{layer_id}.attention.normalize.weight" in checkpoint
-        assert f"model.layers.{layer_id}.attention.w_queries.weight" in checkpoint
-        assert f"model.layers.{layer_id}.attention.w_keys.weight" in checkpoint
-        assert f"model.layers.{layer_id}.attention.w_values.weight" in checkpoint
-        assert f"model.layers.{layer_id}.attention.w_output.weight" in checkpoint
-        assert f"model.layers.{layer_id}.ffn.normalize.weight" in checkpoint
-        assert f"model.layers.{layer_id}.ffn.w_input.weight" in checkpoint
-        assert f"model.layers.{layer_id}.ffn.w_gate.weight" in checkpoint
-        assert f"model.layers.{layer_id}.ffn.w_output.weight" in checkpoint
+        assert f"model.layers.{layer_id}.attention.normalize.weight" in params
+        assert f"model.layers.{layer_id}.attention.w_queries.weight" in params
+        assert f"model.layers.{layer_id}.attention.w_keys.weight" in params
+        assert f"model.layers.{layer_id}.attention.w_values.weight" in params
+        assert f"model.layers.{layer_id}.attention.w_output.weight" in params
+        assert f"model.layers.{layer_id}.ffn.normalize.weight" in params
+        assert f"model.layers.{layer_id}.ffn.w_input.weight" in params
+        assert f"model.layers.{layer_id}.ffn.w_gate.weight" in params
+        assert f"model.layers.{layer_id}.ffn.w_output.weight" in params
 
-    assert "head.normalize.weight" in checkpoint
-    assert "head.w_output.weight" in checkpoint
+    assert "head.normalize.weight" in params
+    assert "head.w_output.weight" in params
 
     # tensors should be loaded to device
-    assert checkpoint["model.embeddings.weight"].device.type == device.type
+    assert params["model.embeddings.weight"].device.type == device.type
 
 
 def test_load_state_dict():

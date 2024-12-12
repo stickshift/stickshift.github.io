@@ -107,7 +107,7 @@ def build_index(theme: Path, output_path: Path):
             "author": _author,
             "title": "Home",
             "articles": articles,
-            "description": f"Pattern Recognition - Writing on AI/ML research and related technology topics by Andrew Young."
+            "description": "Pattern Recognition - Writing on AI/ML research and related technology topics by Andrew Young.",
         },
     }
     html = template.render(context)
