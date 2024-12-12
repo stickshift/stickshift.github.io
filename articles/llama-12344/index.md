@@ -677,7 +677,7 @@ Personally, I have had great success experimenting with Llama models on a 64GB M
 
 If you're experienced at reading PyTorch code, you may have noticed our Llama modules take the PyTorch device as a contructor argument. This is not a standard practice as far as I know. Usually, you would initialize the PyTorch module in CPU memory before transfering the entire thing to the GPU by calling `model.to(device)`.
 
-While common, this approach is orders of magnitude slower. The reason is the billion plus model parameters are initialized by the CPU. On my M1 MacBook, I found this can take 20 to 30 seconds just to create the model. By passing the GPU device to the model initializer, the time to create the model drops to 500ms.
+While common, *this approach is orders of magnitude slower*. The reason is the billion plus model parameters are initialized by the CPU. On my M1 MacBook, I found this can take 20 to 30 seconds just to create the model. By passing the GPU device to the model initializer, the time to create the model drops to 500ms.
 
 Rather than hardcode the GPU device, we define a `torch_device` function that leverages the GPU if you have one and gracefully falls back to the CPU if you don't. As implemented, `torch_device` supports both NVIDIA and Apple GPUs but could easily be extended to support others.
 
