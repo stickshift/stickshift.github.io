@@ -88,7 +88,7 @@ def build_article(theme: Path, input_path: Path, output_path: Path):
             **article_front_matter,
             "toc": toc,
             "body": body,
-            "description": f"{article_front_matter["title"]} - {article_front_matter["subtitle"]}"
+            "description": f"{article_front_matter['title']} - {article_front_matter['subtitle']}",
         },
     }
     html = template.render(context)

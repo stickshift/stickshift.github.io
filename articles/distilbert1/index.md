@@ -198,7 +198,11 @@ Before we get into the implementation, let's start by running the entire process
 model = "distilbert/distilbert-base-uncased-finetuned-sst-2-english"
 
 # Create off-the-shelf text classification transformer
-generator = transformers.pipeline("text-classification", model=model, device=device)
+generator = transformers.pipeline(
+    "text-classification",
+    model=model,
+    device=device,
+)
 ```
 
 ```{code-cell} ipython3
@@ -255,7 +259,6 @@ Similar to tokenization, the steps required to convert tokens into embeddings de
 
 ```{figure} resources/embeddings.svg
 :label: embeddings-fig
-:width: 600px
 
 Embeddings
 ```
@@ -351,7 +354,6 @@ In the previous stage, we mapped the token values and positions to embeddings. B
 
 ```{figure} resources/contextualized-embeddings.svg
 :label: contextualized-embeddings-fig
-:width: 600px
 
 Contextualized Embeddings
 ```
@@ -480,7 +482,7 @@ w
 ```
 
 ```{code-cell} ipython3
-:tags: hide-input
+:tags: remove-input
 
 # Plot weights for each query
 _, axs = plt.subplots(nrows=2, ncols=3, figsize=(10,5), gridspec_kw={"wspace": 0.5, "hspace": 0.5})
@@ -525,10 +527,13 @@ At this point, we've walked through the core SDPA algorithm step-by-step. Howeve
 
 ```{code-cell} ipython3
 def split_heads(x):
-    return x.view(-1, config.n_heads, config.d_head).transpose(-3, -2)
+    return x.view(-1, config.n_heads, config.d_head) \
+            .transpose(-3, -2)
 
 def combine_heads(x):
-    return x.transpose(-3, -2).contiguous().view(-1, int(config.n_heads * config.d_head))
+    return x.transpose(-3, -2) \
+            .contiguous() \
+            .view(-1, int(config.n_heads * config.d_head))
 ```
 
 ```{code-cell} ipython3

@@ -258,8 +258,18 @@ def _admonition_directive(renderer: RendererHTML, token: Token, **kwargs) -> str
 
 
 def _card_directive(renderer: RendererHTML, token: Token, **kwargs) -> str:
-    html = '<div class="card">'
-    html += render(token.meta["body"])
+    # Validate
+    meta = DirectiveMeta.model_validate(token.meta)
+
+    html = "<div "
+
+    classes = ["card"]
+    if "align" in meta.options:
+        classes.append(f"align-{meta.options['align']}")
+    html += f' class="{" ".join(classes)}"'
+
+    html += ">"
+    html += render(meta.body)
     html += "</div>"
 
     return html
