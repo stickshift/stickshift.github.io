@@ -40,7 +40,13 @@ def default_arg[T](
 
 In [our last Transformer Teardown](/articles/llama1/) post, we dissected the Llama 3 language model from Meta. We walked through each stage of the pipeline one line of code at a time, getting a close-up view of the machinery powering a state-of-the-art generative Transformer.
 
-The goal of this post is to use what we learned to create a lightweight Llama development kit we can use to run our own experiments. But wait, why can't I just use `transformers` or `ollama`? You certainly could. There are plenty of open source Llama implementations out there. The problem is they all have baggage. They're over complicated with configuration switches and extra options to the point that the main ideas are completely obscured. Not only does this make it hard to understand what's happening, it makes it even harder to run experiments.
+The goal of this post is to use what we learned to create a lightweight Llama development kit we can use to run our own experiments.
+
+:::{card}
+*But wait, why can't I just use `transformers` or `ollama` or `llama.cpp`?*
+:::
+
+You certainly could. There are plenty of open source Llama implementations out there. The problem is they all have baggage. They're over complicated with configuration switches and extra options to the point that the main ideas are completely obscured. Not only does this make it hard to understand what's happening, it makes it even harder to run experiments.
 
 :::{card}
 *Building your own lightweight stack of Llama components will do wonders for your Transformer fundamentals and you'll walk away with a collection of reusable building blocks you can mix and match in your own research.*
