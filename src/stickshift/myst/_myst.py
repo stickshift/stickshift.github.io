@@ -393,6 +393,10 @@ def _render_cell_output(output: dict) -> str:
         if "image/png" in mime_bundle:
             return _png_data(mime_bundle["image/png"])
 
+        # HTML text
+        if "text/html" in mime_bundle:
+            return mime_bundle["text/html"]
+
         # Plain text
         if "text/plain" in mime_bundle:
             return _highlight_code(mime_bundle["text/plain"], language="plain")

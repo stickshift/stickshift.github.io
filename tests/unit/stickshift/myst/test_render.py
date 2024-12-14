@@ -660,6 +660,52 @@ def test_code_cell_display_data(kernel_name: str):
         img.verify()
 
 
+def test_code_cell_html(kernel_name: str):
+    #
+    # Givens
+    #
+
+    # Markdown content w/ executable code
+    markdown = _dedent(
+        f"""
+        ---
+        kernelspec:
+          name: {kernel_name}
+        ---
+        ```{{code-cell}} python
+        from IPython.display import display, HTML
+
+        display(HTML("<h1>alpha</h1>"))
+        ```
+        """
+    )
+
+    #
+    # Whens
+    #
+
+    # I render content
+    html = myst.render(markdown)
+
+    # I extract the cell outputs
+    cell_outputs = _parse_html(html).find_all(class_="cell-output")
+
+    #
+    # Thens
+    #
+
+    # Last cell output should be "<h1>alpha</h1>"
+    expected_html = _dedent(
+        """
+        <div class="cell cell-output">
+            <h1>alpha</h1>
+        </div>
+        """
+    )
+
+    assert cell_outputs[-1].prettify().strip() == _normalize_html(expected_html)
+
+
 def test_code_cell_remove_input(kernel_name: str):
     #
     # Givens
