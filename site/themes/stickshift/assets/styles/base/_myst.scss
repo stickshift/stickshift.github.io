@@ -44,3 +44,44 @@ div.card {
         padding: 1.0rem;
     }
 }
+
+// DataFrames
+table.dataframe {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1.0rem 0;
+    font-size: var.$sm-font-size;
+
+    th, td {
+        padding: 0.75rem;
+        text-align: left;
+        border-bottom: 1px solid var.$dataframe-border-color;
+    }
+
+    thead {
+        th {
+            background-color: var.$dataframe-header-color;
+            font-weight: var.$bold-font-weight;
+        }
+    }
+
+    tbody {
+        tr:nth-child(even) {
+            background-color: var.$dataframe-background-color;
+        }
+    
+        tr:nth-child(odd) {
+            background-color: #ffffff;
+        }
+
+        tr:hover {
+            background-color: var.$dataframe-accent-color;
+        }
+    }
+
+    // For better mobile responsiveness
+    @media (max-width: 768px) {
+        display: block;
+        overflow-x: auto;
+    }
+}

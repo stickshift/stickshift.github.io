@@ -706,6 +706,76 @@ def test_code_cell_html(kernel_name: str):
     assert cell_outputs[-1].prettify().strip() == _normalize_html(expected_html)
 
 
+def test_code_cell_pandas(kernel_name: str):
+    #
+    # Givens
+    #
+
+    # Markdown content w/ executable code
+    markdown = _dedent(
+        f"""
+        ---
+        kernelspec:
+          name: {kernel_name}
+        ---
+        ```{{code-cell}} python
+        from IPython.display import display
+        from pandas import DataFrame
+
+        display(DataFrame([{{"x": 1, "y": 2}},{{"x": 2, "y": 3}},]))
+        ```
+        """
+    )
+
+    #
+    # Whens
+    #
+
+    # I render content
+    html = myst.render(markdown)
+
+    # I extract the cell outputs
+    cell_outputs = _parse_html(html).find_all(class_="cell-output")
+
+    # I normalize last cell 
+    cell_html = _normalize_html(str(cell_outputs[-1]))
+
+    #
+    # Thens
+    #
+
+    # Last cell output should be
+    expected_html = _dedent(
+        """
+        <div class="cell cell-output">
+            <table class="dataframe">
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>x</th>
+                        <th>y</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <th>0</th>
+                        <td>1</td>
+                        <td>2</td>
+                    </tr>
+                    <tr>
+                        <th>1</th>
+                        <td>2</td>
+                        <td>3</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        """
+    )
+
+    assert cell_html == _normalize_html(expected_html)
+
+
 def test_code_cell_remove_input(kernel_name: str):
     #
     # Givens

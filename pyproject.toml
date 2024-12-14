@@ -55,6 +55,7 @@ dev-dependencies = [
     "jupytext>=1.16.4",
     "matplotlib>=3.9.3",
     "numpy>=2.1.3",
+    "pandas>=2.2.3",
     "pillow>=11.0.0",
     "pytest-cov>=6.0.0",
     "pytest-xdist>=3.6.1",

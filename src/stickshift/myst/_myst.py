@@ -380,6 +380,40 @@ def _png_data(data: str) -> str:
     return f'<img src="data:image/png;base64,{escapeHtml(data)}">'
 
 
+def _data_frame_data(soup: BeautifulSoup) -> str:
+    """Transform pandas data frame tables."""
+
+    html = ""
+
+    tables = soup.find_all("table", class_="dataframe")
+
+    for table in tables:
+
+        html += '<table class="dataframe">'
+
+        # Header
+        html += "<thead><tr>" + "".join([str(c) for c in table.thead.tr.contents]) + "</tr></thead>"
+
+        # Body
+        html += str(table.tbody)
+        
+        html += "</table>"
+
+
+    return html
+
+
+def _html_data(data: str) -> str:
+
+    soup = _parse_html(data)
+
+    # Transform pandas data frame tables
+    if soup.find_all("table", class_="dataframe"):
+        return _data_frame_data(soup)
+    
+    return data
+
+
 def _render_cell_output(output: dict) -> str:
     # Stream
     if output["output_type"] == "stream":
@@ -395,7 +429,7 @@ def _render_cell_output(output: dict) -> str:
 
         # HTML text
         if "text/html" in mime_bundle:
-            return mime_bundle["text/html"]
+            return _html_data(mime_bundle["text/html"])
 
         # Plain text
         if "text/plain" in mime_bundle:
